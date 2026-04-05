@@ -10,7 +10,7 @@ async function callOpenAI(prompt, maxTokens = 1000) {
     body: JSON.stringify({
       model: 'gpt-5.4-mini',
       messages: [{ role: 'user', content: prompt }],
-      max_tokens: maxTokens,
+      max_completion_tokens: maxTokens,
     }),
   })
 

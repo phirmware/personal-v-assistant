@@ -102,7 +102,7 @@ const STATUS_CONFIG = {
   },
 }
 
-export default function Goals({ goals, setGoals, finances, profile }) {
+export default function Goals({ goals, setGoals, finances, profile, notes }) {
   const [title, setTitle] = useState('')
   const [sectionName, setSectionName] = useState(DEFAULT_SECTION)
   const [target, setTarget] = useState('')
@@ -224,6 +224,7 @@ export default function Goals({ goals, setGoals, finances, profile }) {
         finances,
         goals: scopedGoals,
         section,
+        notes,
       })
 
       if (result.goals?.length) {

@@ -156,7 +156,7 @@ For upcoming expenses: calculate whether the user can afford each expense by its
   return parseJSON(raw)
 }
 
-export async function runGoalsAnalysis({ profile, finances, goals, section = null }) {
+export async function runGoalsAnalysis({ profile, finances, goals, section = null, notes = [] }) {
   const today = new Date().toISOString().split('T')[0]
   const ageCtx = getAgeContext(profile)
   const finSummary = buildFinanceSummary(finances)
@@ -166,13 +166,16 @@ export async function runGoalsAnalysis({ profile, finances, goals, section = nul
     section: g.section || 'Financial',
     title: g.title,
     target: g.target || 0,
-    current: g.current || 0,
     progress: g.progress || 0,
     deadline: g.deadline || null,
     details: g.details || '',
     notes: g.notes || '',
     plan: g.plan || '',
   })))
+  const notesSummary = (notes || [])
+    .slice(0, 12)
+    .map((n) => `- ${n.text || ''}`)
+    .join('\n')
 
   const scopeText = section
     ? `Focus only on this section: "${section}".`
@@ -184,6 +187,9 @@ ${finSummary}
 
 GOALS:
 ${goalsJSON}
+
+USER NOTES (context to infer priorities and constraints):
+${notesSummary || '(none)'}
 
 ${scopeText}
 
@@ -210,7 +216,8 @@ Respond with ONLY valid JSON:
   "overall": "<2 sentences max — priorities and biggest lever to pull>"
 }
 
-Rules: Be concise. Use £ for money goals and % for non-money goals. Map goal titles to real account data intelligently. Use section/details/notes/plan to make recommendations concrete.`
+Rules: Be concise. Use £ for money goals and % for non-money goals. Map goal titles to real account data intelligently. Use section/details/notes/plan and user notes to make recommendations concrete.
+Do not assume previous AI-estimated current amounts as ground truth; infer current_estimate freshly from financial data plus context.`
 
   const raw = await callOpenAI(prompt, 1500)
   return parseJSON(raw)

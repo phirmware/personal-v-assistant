@@ -106,7 +106,7 @@ export default function App() {
       case 'finance':
         return <Finance finances={finances} setFinances={setFinances} goals={goals} profile={profile} setProfile={setProfile} />
       case 'goals':
-        return <Goals goals={goals} setGoals={setGoals} finances={finances} profile={profile} />
+        return <Goals goals={goals} setGoals={setGoals} finances={finances} profile={profile} notes={notes} />
       case 'notes':
         return <Notes notes={notes} setNotes={setNotes} />
       case 'insights':

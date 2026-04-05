@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus, Trash2, StickyNote } from 'lucide-react'
+import EmptyState from '../components/EmptyState'
 
 export default function Notes({ notes, setNotes }) {
   const [text, setText] = useState('')
@@ -20,7 +21,7 @@ export default function Notes({ notes, setNotes }) {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-white">Quick Notes</h1>
+      <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Quick Notes</h1>
 
       <form onSubmit={addNote} className="flex gap-3">
         <input
@@ -39,9 +40,11 @@ export default function Notes({ notes, setNotes }) {
 
       <div className="space-y-2">
         {notes.length === 0 && (
-          <p className="text-gray-500 text-center py-8">
-            No notes yet.
-          </p>
+          <EmptyState
+            icon={StickyNote}
+            title="No notes yet"
+            description="Capture a quick thought, reminder, or idea."
+          />
         )}
         {notes.map((note) => (
           <div

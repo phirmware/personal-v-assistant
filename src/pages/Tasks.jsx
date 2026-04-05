@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { runTaskSuggestion } from '../ai'
 import MarkdownContent from '../components/MarkdownContent'
+import EmptyState from '../components/EmptyState'
 
 const PRIORITY_COLORS = {
   high: 'text-red-400',
@@ -93,7 +94,7 @@ export default function Tasks({ tasks, setTasks }) {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-white">Tasks</h1>
+      <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Tasks</h1>
 
       <form
         onSubmit={addTask}
@@ -139,9 +140,11 @@ export default function Tasks({ tasks, setTasks }) {
 
       <div className="space-y-2">
         {sorted.length === 0 && (
-          <p className="text-gray-500 text-center py-8">
-            No tasks yet. Add one above.
-          </p>
+          <EmptyState
+            icon={Plus}
+            title="No tasks yet"
+            description="Add your first task to start building momentum."
+          />
         )}
         {sorted.map((task) => (
           <div

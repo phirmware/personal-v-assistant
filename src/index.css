@@ -168,6 +168,55 @@ body {
   transform: translateY(1px) scale(0.99);
 }
 
+.app-shell button:focus-visible,
+.app-shell a:focus-visible,
+.app-shell input:focus-visible,
+.app-shell select:focus-visible,
+.app-shell textarea:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(2, 6, 23, 0.9),
+    0 0 0 4px color-mix(in srgb, var(--app-accent-400) 40%, #1f2937);
+}
+
+.empty-state {
+  text-align: center;
+  border: 1px dashed rgba(75, 85, 99, 0.75);
+  background: rgba(17, 24, 39, 0.45);
+  border-radius: 1rem;
+  padding: 1.15rem 1rem;
+}
+
+.empty-state-icon {
+  width: 2rem;
+  height: 2rem;
+  margin: 0 auto 0.45rem;
+  display: grid;
+  place-items: center;
+  color: var(--app-accent-400);
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--app-accent-500) 20%, transparent);
+}
+
+.empty-state-title {
+  color: #e5e7eb;
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.empty-state-description {
+  color: #6b7280;
+  font-size: 0.8rem;
+  margin: 0.2rem 0 0;
+}
+
+.empty-state-action {
+  margin-top: 0.6rem;
+  font-size: 0.78rem;
+  color: var(--app-accent-300);
+}
+
 .markdown-content h1,
 .markdown-content h2,
 .markdown-content h3,
@@ -272,6 +321,17 @@ body {
 
 .tab-ripple {
   animation: tab-ripple 300ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell *,
+  .app-shell *::before,
+  .app-shell *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @keyframes page-enter {

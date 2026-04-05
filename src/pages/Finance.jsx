@@ -276,7 +276,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
   return (
     <div className="space-y-5 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-2xl font-bold text-white">Financial Position</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Financial Position</h1>
         <button
           onClick={handleFinanceAI}
           disabled={aiLoading}

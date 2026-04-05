@@ -15,6 +15,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { runGoalsAnalysis } from '../ai'
+import EmptyState from '../components/EmptyState'
 
 const GBP = (v) =>
   (v || 0).toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })
@@ -293,7 +294,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
     <div className="space-y-5 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-2xl font-bold text-white">Goals & Plans</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Goals & Plans</h1>
         <button
           onClick={() => handleGoalsAI()}
           disabled={aiLoadingScope !== null}
@@ -442,9 +443,11 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
 
       {/* Goals list */}
       {normalizedGoals.length === 0 && !aiResult.all && (
-        <p className="text-gray-500 text-center py-8 text-sm">
-          No goals yet. Add one above, then run AI for all goals or per section.
-        </p>
+        <EmptyState
+          icon={Target}
+          title="No goals yet"
+          description="Add a goal and run AI for direction and next steps."
+        />
       )}
 
       <div className="space-y-5">

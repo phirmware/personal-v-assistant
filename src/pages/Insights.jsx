@@ -42,16 +42,35 @@ export default function Insights({ insights, setInsights }) {
   }
 
   return (
-    <div className="space-y-6">
-      {insights.length > 0 && (
-        <div className="flex justify-end">
-          <button
-            onClick={clearAll}
-            className="text-sm text-gray-500 hover:text-red-400 transition-colors"
-          >
-            Clear All
-          </button>
+    <div className="page-shell space-y-5 sm:space-y-6">
+      <section className="page-top-ui">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="page-top-ui-kicker">Insights Feed</p>
+            <h2 className="page-top-ui-title">AI recommendations timeline</h2>
+            <p className="page-top-ui-meta">Review, revisit, and clean up old guidance.</p>
+          </div>
+          <span className="page-top-ui-pill">
+            {insights.length} item{insights.length === 1 ? '' : 's'}
+          </span>
         </div>
+      </section>
+
+      {insights.length > 0 && (
+        <section className="page-group">
+          <div className="section-header-inline">
+            <p className="section-header-title">Actions</p>
+            <p className="section-header-meta">Timeline controls</p>
+          </div>
+          <div className="app-strip-cell flex justify-end px-3 py-2.5">
+            <button
+              onClick={clearAll}
+              className="text-sm text-gray-500 hover:text-red-400 transition-colors"
+            >
+              Clear All
+            </button>
+          </div>
+        </section>
       )}
 
       {insights.length === 0 && (
@@ -62,56 +81,64 @@ export default function Insights({ insights, setInsights }) {
         />
       )}
 
-      <div className="space-y-4">
-        {insights.map((insight) => {
-          const isOpen = Boolean(openMap[insight.id])
-          const preview = buildInsightPreview(insight.content)
-          return (
-            <div
-              key={insight.id}
-              className="app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden"
-            >
-              <button
-                type="button"
-                onClick={() => toggleOpen(insight.id)}
-                className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-start justify-between gap-3 text-left"
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 app-accent-text">
-                    <Sparkles size={18} />
-                    <span className="text-sm text-gray-500">
-                      {new Date(insight.date).toLocaleString()}
-                    </span>
-                  </div>
-                  {!isOpen && (
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-                      {preview || 'Tap to view insight'}
-                    </p>
+      <section className="page-group">
+        <div className="section-header-inline">
+          <p className="section-header-title">Timeline</p>
+          <p className="section-header-meta">Newest first</p>
+        </div>
+        <div className="page-group-shell">
+          <div className="app-surface-list">
+            {insights.map((insight) => {
+              const isOpen = Boolean(openMap[insight.id])
+              const preview = buildInsightPreview(insight.content)
+              return (
+                <div
+                  key={insight.id}
+                  className="app-surface-row overflow-hidden"
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleOpen(insight.id)}
+                    className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-start justify-between gap-3 text-left"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 app-accent-text">
+                        <Sparkles size={18} />
+                        <span className="text-sm text-gray-500">
+                          {new Date(insight.date).toLocaleString()}
+                        </span>
+                      </div>
+                      {!isOpen && (
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                          {preview || 'Tap to view insight'}
+                        </p>
+                      )}
+                    </div>
+                    {isOpen ? (
+                      <ChevronUp size={16} className="text-gray-500 shrink-0" />
+                    ) : (
+                      <ChevronDown size={16} className="text-gray-500 shrink-0" />
+                    )}
+                  </button>
+                  {isOpen && (
+                    <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4 space-y-3">
+                      <MarkdownContent content={insight.content} />
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => deleteInsight(insight.id)}
+                          className="text-gray-500 hover:text-red-400 transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
-                {isOpen ? (
-                  <ChevronUp size={16} className="text-gray-500 shrink-0" />
-                ) : (
-                  <ChevronDown size={16} className="text-gray-500 shrink-0" />
-                )}
-              </button>
-              {isOpen && (
-                <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4 space-y-3">
-                  <MarkdownContent content={insight.content} />
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => deleteInsight(insight.id)}
-                      className="text-gray-500 hover:text-red-400 transition-colors"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

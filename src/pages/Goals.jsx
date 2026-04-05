@@ -317,7 +317,20 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
   }
 
   return (
-    <div className="flex flex-col gap-5 sm:gap-6">
+    <div className="page-shell flex flex-col gap-5 sm:gap-6">
+      <section className="order-0 page-top-ui">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="page-top-ui-kicker">Goals Planner</p>
+            <h2 className="page-top-ui-title">Sectioned goal roadmap</h2>
+            <p className="page-top-ui-meta">Track financial and personal milestones together.</p>
+          </div>
+          <span className="page-top-ui-pill">
+            {normalizedGoals.length} goal{normalizedGoals.length === 1 ? '' : 's'}
+          </span>
+        </div>
+      </section>
+
       {/* Header */}
       <div className="order-1 flex justify-end">
         <button
@@ -341,57 +354,71 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
       )}
 
       {/* Financial context strip */}
-      <div className="order-2 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3">
-          <div className="flex items-center gap-1.5 text-green-400 mb-0.5">
-            <PiggyBank size={14} />
-            <span className="text-xs font-medium">Net Worth</span>
-          </div>
-          <p className="text-base sm:text-lg font-bold text-white">{GBP(netWorth)}</p>
+      <section className="page-group order-2">
+        <div className="section-header-inline">
+          <p className="section-header-title">Context</p>
+          <p className="section-header-meta">Financial baseline</p>
         </div>
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3">
-          <div className="flex items-center gap-1.5 text-blue-400 mb-0.5">
-            <Wallet size={14} />
-            <span className="text-xs font-medium">Liquid</span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+          <div className="app-grid-stat p-3">
+            <div className="flex items-center gap-1.5 text-green-400 mb-0.5">
+              <PiggyBank size={14} />
+              <span className="text-xs font-medium">Net Worth</span>
+            </div>
+            <p className="text-base sm:text-lg font-bold text-white">{GBP(netWorth)}</p>
           </div>
-          <p className="text-base sm:text-lg font-bold text-white">{GBP(totalSavings)}</p>
-        </div>
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3">
-          <div className="flex items-center gap-1.5 text-purple-400 mb-0.5">
-            <Target size={14} />
-            <span className="text-xs font-medium">Financial Targets</span>
+          <div className="app-grid-stat p-3">
+            <div className="flex items-center gap-1.5 text-blue-400 mb-0.5">
+              <Wallet size={14} />
+              <span className="text-xs font-medium">Liquid</span>
+            </div>
+            <p className="text-base sm:text-lg font-bold text-white">{GBP(totalSavings)}</p>
           </div>
-          <p className="text-base sm:text-lg font-bold text-white">{GBP(totalGoalTarget)}</p>
-        </div>
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3">
-          <div className="flex items-center gap-1.5 text-amber-400 mb-0.5">
-            <TrendingUp size={14} />
-            <span className="text-xs font-medium">Avg Completion</span>
+          <div className="app-grid-stat p-3">
+            <div className="flex items-center gap-1.5 text-purple-400 mb-0.5">
+              <Target size={14} />
+              <span className="text-xs font-medium">Financial Targets</span>
+            </div>
+            <p className="text-base sm:text-lg font-bold text-white">{GBP(totalGoalTarget)}</p>
           </div>
-          <p className="text-base sm:text-lg font-bold text-white">
-            {avgCompletion !== null ? `${avgCompletion}%` : '—'}
-          </p>
+          <div className="app-grid-stat p-3">
+            <div className="flex items-center gap-1.5 text-amber-400 mb-0.5">
+              <TrendingUp size={14} />
+              <span className="text-xs font-medium">Avg Completion</span>
+            </div>
+            <p className="text-base sm:text-lg font-bold text-white">
+              {avgCompletion !== null ? `${avgCompletion}%` : '—'}
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* Overall AI strategy */}
       {aiResult.all?.overall && (
-        <div className="app-accent-panel bg-purple-900/20 border border-purple-800/40 rounded-xl p-3 sm:p-4 flex gap-3 order-2">
-          <Sparkles size={18} className="app-accent-text shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold text-white mb-1">Overall Strategy</p>
-            <p className="text-sm text-gray-300 leading-relaxed">{aiResult.all.overall}</p>
-            {aiResult.all.date && (
-              <p className="text-xs text-gray-600 mt-2">
-                Last analysed: {new Date(aiResult.all.date).toLocaleDateString()}
-              </p>
-            )}
+        <section className="page-group order-2">
+          <div className="section-header-inline">
+            <p className="section-header-title">Strategy</p>
+            <p className="section-header-meta">AI overview</p>
           </div>
-        </div>
+          <div className="app-accent-panel app-strip-cell p-3 sm:p-4 flex gap-3">
+            <Sparkles size={18} className="app-accent-text shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-white mb-1">Overall Strategy</p>
+              <p className="text-sm text-gray-300 leading-relaxed">{aiResult.all.overall}</p>
+              {aiResult.all.date && (
+                <p className="text-xs text-gray-600 mt-2">
+                  Last analysed: {new Date(aiResult.all.date).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
       )}
 
       {/* Add goal form */}
-      <div className="order-3 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl">
+      <section className="page-group order-3">
+        <p className="page-group-kicker">Create</p>
+        <div className="app-surface-sheet">
         <button
           onClick={() => setAddOpen((prev) => !prev)}
           className="app-section-toggle w-full px-4 py-3 flex items-center justify-between text-left"
@@ -414,7 +441,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
             onSubmit={addGoal}
             className="border-t border-gray-700/60 px-4 py-4 space-y-3"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+            <div className="input-shell grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -464,7 +491,8 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
             </button>
           </form>
         )}
-      </div>
+        </div>
+      </section>
 
       {/* Goals list */}
       {normalizedGoals.length === 0 && !aiResult.all && (
@@ -477,7 +505,13 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
         </div>
       )}
 
-      <div className="order-4 space-y-4">
+      <section className="page-group order-4">
+        <div className="section-header-inline">
+          <p className="section-header-title">Sections</p>
+          <p className="section-header-meta">{sections.length} grouped area(s)</p>
+        </div>
+        <div className="page-group-shell">
+          <div className="app-surface-list">
         {sections.map((section) => {
           const sectionResult = aiResult.sections?.[section.key]
           const sectionLoadingKey = `section:${section.key}`
@@ -492,7 +526,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
           return (
             <div
               key={section.key}
-              className="app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden"
+              className="app-surface-row overflow-hidden"
             >
               <button
                 type="button"
@@ -554,7 +588,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
                       return (
                         <div
                           key={goal.id}
-                          className="app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden"
+                          className="app-strip-cell overflow-hidden"
                         >
                           <button
                             type="button"
@@ -637,7 +671,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
                               </div>
 
                               {/* Goal controls */}
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-sm">
+                              <div className="input-shell grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-sm">
                                 <input
                                   value={goal.section}
                                   onChange={(e) => updateGoal(goal.id, 'section', e.target.value)}
@@ -701,14 +735,16 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
                               </div>
 
                               {/* Notes & plans */}
-                              <textarea
-                                value={goal.details}
-                                onChange={(e) => updateGoal(goal.id, 'details', e.target.value)}
-                                placeholder="Details"
-                                rows={2}
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
-                              />
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <div className="input-shell">
+                                <textarea
+                                  value={goal.details}
+                                  onChange={(e) => updateGoal(goal.id, 'details', e.target.value)}
+                                  placeholder="Details"
+                                  rows={2}
+                                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+                                />
+                              </div>
+                              <div className="input-shell grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <textarea
                                   value={goal.notes}
                                   onChange={(e) => updateGoal(goal.id, 'notes', e.target.value)}
@@ -743,7 +779,9 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
             </div>
           )
         })}
-      </div>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

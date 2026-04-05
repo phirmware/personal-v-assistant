@@ -100,65 +100,83 @@ export default function Tasks({ tasks, setTasks }) {
   })
 
   return (
-    <div className="space-y-6">
-      <div className="app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setAddOpen((prev) => !prev)}
-          className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
-        >
+    <div className="page-shell space-y-5 sm:space-y-6">
+      <section className="page-top-ui">
+        <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-sm sm:text-base font-semibold text-white">Add Task</p>
-            <p className="text-xs text-gray-500">Keep collapsed while focusing on active work.</p>
+            <p className="page-top-ui-kicker">Task Flow</p>
+            <h2 className="page-top-ui-title">Execution board</h2>
+            <p className="page-top-ui-meta">Capture, prioritize, and keep momentum.</p>
           </div>
-          {addOpen ? (
-            <ChevronUp size={16} className="text-gray-500" />
-          ) : (
-            <ChevronDown size={16} className="text-gray-500" />
-          )}
-        </button>
-        {addOpen && (
-          <form
-            onSubmit={addTask}
-            className="border-t border-gray-700/60 p-4 space-y-3"
+          <span className="page-top-ui-pill">
+            {sorted.length} task{sorted.length === 1 ? '' : 's'}
+          </span>
+        </div>
+      </section>
+
+      <section className="page-group">
+        <p className="page-group-kicker">Create</p>
+        <div className="app-surface-sheet overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setAddOpen((prev) => !prev)}
+            className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
           >
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Add a task..."
-                className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-              />
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-gray-300 focus:outline-none focus:border-blue-500"
-              >
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
+            <div>
+              <p className="text-sm sm:text-base font-semibold text-white">Add Task</p>
+              <p className="text-xs text-gray-500">Keep collapsed while focusing on active work.</p>
             </div>
-            <textarea
-              value={details}
-              onChange={(e) => {
-                setDetails(e.target.value)
-                autoResizeTextarea(e.currentTarget)
-              }}
-              ref={(el) => autoResizeTextarea(el)}
-              placeholder="Task details, context, blockers, or plan..."
-              rows={1}
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[5rem]"
-            />
-            <button
-              type="submit"
-              className="app-primary-btn text-white px-4 py-2.5 rounded-lg flex items-center gap-2 transition-colors"
+            {addOpen ? (
+              <ChevronUp size={16} className="text-gray-500" />
+            ) : (
+              <ChevronDown size={16} className="text-gray-500" />
+            )}
+          </button>
+          {addOpen && (
+            <form
+              onSubmit={addTask}
+              className="border-t border-gray-700/60 p-4 space-y-3"
             >
-              <Plus size={18} /> Add Task
-            </button>
-          </form>
-        )}
-      </div>
+              <div className="input-shell flex flex-col sm:flex-row gap-3">
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Add a task..."
+                  className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                />
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-gray-300 focus:outline-none focus:border-blue-500"
+                >
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+              <div className="input-shell">
+                <textarea
+                  value={details}
+                  onChange={(e) => {
+                    setDetails(e.target.value)
+                    autoResizeTextarea(e.currentTarget)
+                  }}
+                  ref={(el) => autoResizeTextarea(el)}
+                  placeholder="Task details, context, blockers, or plan..."
+                  rows={1}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[5rem]"
+                />
+              </div>
+              <button
+                type="submit"
+                className="app-primary-btn text-white px-4 py-2.5 rounded-lg flex items-center gap-2 transition-colors"
+              >
+                <Plus size={18} /> Add Task
+              </button>
+            </form>
+          )}
+        </div>
+      </section>
 
       {aiError && (
         <div className="bg-red-900/30 border border-red-800 rounded-lg p-3 text-red-300 text-sm">
@@ -166,98 +184,108 @@ export default function Tasks({ tasks, setTasks }) {
         </div>
       )}
 
-      <div className="space-y-2">
-        {sorted.length === 0 && (
-          <EmptyState
-            icon={Plus}
-            title="No tasks yet"
-            description="Add your first task to start building momentum."
-          />
-        )}
-        {sorted.map((task) => (
-          <div
-            key={task.id}
-            className={`app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden group ${task.done ? 'opacity-50' : ''}`}
-          >
-            <div className="px-4 py-3 flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={task.done}
-                onChange={() => toggleDone(task.id)}
-                className="w-4 h-4 accent-blue-500 shrink-0"
+      <section className="page-group">
+        <div className="section-header-inline">
+          <p className="section-header-title">Queue</p>
+          <p className="section-header-meta">Pinned first, then priority</p>
+        </div>
+        <div className="page-group-shell">
+          <div className="app-surface-list">
+            {sorted.length === 0 && (
+              <EmptyState
+                icon={Plus}
+                title="No tasks yet"
+                description="Add your first task to start building momentum."
               />
-              <button
-                type="button"
-                onClick={() => toggleOpen(task.id)}
-                className="flex-1 min-w-0 flex items-center gap-3 text-left"
-                title={openMap[task.id] ? 'Collapse task' : 'Expand task'}
+            )}
+            {sorted.map((task) => (
+              <div
+                key={task.id}
+                className={`app-surface-row overflow-hidden group ${task.done ? 'opacity-50' : ''}`}
               >
-                <span
-                  className={`flex-1 text-left min-w-0 break-words ${task.done ? 'line-through text-gray-500' : 'text-white'}`}
-                >
-                  {task.title}
-                </span>
-                <span
-                  className={`text-xs font-medium uppercase ${PRIORITY_COLORS[task.priority]} shrink-0`}
-                >
-                  {task.priority}
-                </span>
-                <span className="text-gray-500 app-accent-hover-text transition-colors shrink-0">
-                  {openMap[task.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </span>
-              </button>
-              <button
-                onClick={() => togglePin(task.id)}
-                className="text-gray-500 hover:text-yellow-400 transition-colors shrink-0"
-                title={task.pinned ? 'Unpin from focus' : 'Pin to focus'}
-              >
-                {task.pinned ? <Star size={16} fill="currentColor" /> : <StarOff size={16} />}
-              </button>
-              <button
-                onClick={() => deleteTask(task.id)}
-                className="text-gray-500 hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100 transition-all shrink-0"
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
-
-            {openMap[task.id] && (
-              <div className="border-t border-gray-700/60 px-4 py-3 space-y-2">
-                <textarea
-                  value={task.details || ''}
-                  onChange={(e) => {
-                    updateTask(task.id, 'details', e.target.value)
-                    autoResizeTextarea(e.currentTarget)
-                  }}
-                  ref={(el) => autoResizeTextarea(el)}
-                  placeholder="Add task details..."
-                  rows={1}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[5rem]"
-                />
-                <div className="flex justify-between items-center gap-2">
+                <div className="px-4 py-3 flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={task.done}
+                    onChange={() => toggleDone(task.id)}
+                    className="w-4 h-4 accent-blue-500 shrink-0"
+                  />
                   <button
-                    onClick={() => handleTaskAI(task)}
-                    disabled={aiLoadingId !== null}
-                    className="app-primary-btn text-xs text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
+                    type="button"
+                    onClick={() => toggleOpen(task.id)}
+                    className="flex-1 min-w-0 flex items-center gap-3 text-left"
+                    title={openMap[task.id] ? 'Collapse task' : 'Expand task'}
                   >
-                    {aiLoadingId === task.id ? (
-                      <Loader2 size={12} className="animate-spin" />
-                    ) : (
-                      <Sparkles size={12} />
-                    )}
-                    {aiLoadingId === task.id ? 'Thinking...' : 'AI Suggest'}
+                    <span
+                      className={`flex-1 text-left min-w-0 break-words ${task.done ? 'line-through text-gray-500' : 'text-white'}`}
+                    >
+                      {task.title}
+                    </span>
+                    <span
+                      className={`text-xs font-medium uppercase ${PRIORITY_COLORS[task.priority]} shrink-0`}
+                    >
+                      {task.priority}
+                    </span>
+                    <span className="text-gray-500 app-accent-hover-text transition-colors shrink-0">
+                      {openMap[task.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => togglePin(task.id)}
+                    className="text-gray-500 hover:text-yellow-400 transition-colors shrink-0"
+                    title={task.pinned ? 'Unpin from focus' : 'Pin to focus'}
+                  >
+                    {task.pinned ? <Star size={16} fill="currentColor" /> : <StarOff size={16} />}
+                  </button>
+                  <button
+                    onClick={() => deleteTask(task.id)}
+                    className="text-gray-500 hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100 transition-all shrink-0"
+                  >
+                    <Trash2 size={16} />
                   </button>
                 </div>
-                {task.aiSuggestion && (
-                  <div className="bg-gray-900/70 border border-gray-700 rounded-lg p-3">
-                    <MarkdownContent content={task.aiSuggestion} />
+
+                {openMap[task.id] && (
+                  <div className="border-t border-gray-700/60 px-4 py-3 space-y-2">
+                    <div className="input-shell">
+                      <textarea
+                        value={task.details || ''}
+                        onChange={(e) => {
+                          updateTask(task.id, 'details', e.target.value)
+                          autoResizeTextarea(e.currentTarget)
+                        }}
+                        ref={(el) => autoResizeTextarea(el)}
+                        placeholder="Add task details..."
+                        rows={1}
+                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[5rem]"
+                      />
+                    </div>
+                    <div className="flex justify-between items-center gap-2">
+                      <button
+                        onClick={() => handleTaskAI(task)}
+                        disabled={aiLoadingId !== null}
+                        className="app-primary-btn text-xs text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
+                      >
+                        {aiLoadingId === task.id ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                          <Sparkles size={12} />
+                        )}
+                        {aiLoadingId === task.id ? 'Thinking...' : 'AI Suggest'}
+                      </button>
+                    </div>
+                    {task.aiSuggestion && (
+                      <div className="bg-gray-900/70 border border-gray-700 rounded-lg p-3">
+                        <MarkdownContent content={task.aiSuggestion} />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      </section>
     </div>
   )
 }

@@ -165,7 +165,7 @@ function AccountSection({
   const total = list.reduce((sum, item) => sum + (item[valueKey] || 0), 0)
 
   return (
-    <div className="app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5 space-y-4">
+    <div className="app-surface-sheet p-4 sm:p-5 space-y-4">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
@@ -184,7 +184,7 @@ function AccountSection({
 
       {open && (
         <>
-          <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-2">
+          <form onSubmit={handleAdd} className="input-shell flex flex-col sm:flex-row gap-2">
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -213,7 +213,7 @@ function AccountSection({
               {list.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between bg-gray-900/50 rounded-lg px-3 sm:px-4 py-2.5 group gap-2"
+                  className="app-strip-cell flex items-center justify-between px-3 sm:px-4 py-2.5 group gap-2"
                 >
                   <input
                     value={item.name}
@@ -337,7 +337,20 @@ export default function Finance({ finances, setFinances, profile }) {
   }
 
   return (
-    <div className="flex flex-col gap-5 sm:gap-6">
+    <div className="page-shell flex flex-col gap-5 sm:gap-6">
+      <section className="order-0 page-top-ui">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="page-top-ui-kicker">Finance Hub</p>
+            <h2 className="page-top-ui-title">Money control center</h2>
+            <p className="page-top-ui-meta">Assets, liabilities, setup, and upcoming pressure.</p>
+          </div>
+          <span className="page-top-ui-pill">
+            {GBP(netWorth)}
+          </span>
+        </div>
+      </section>
+
       <div className="order-1 flex justify-end">
         <button
           onClick={handleFinanceAI}
@@ -360,7 +373,12 @@ export default function Finance({ finances, setFinances, profile }) {
       )}
 
       {/* Core snapshot */}
-      <div className="order-2 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+      <section className="page-group order-2">
+        <div className="section-header-inline">
+          <p className="section-header-title">Overview</p>
+          <p className="section-header-meta">Position and pressure</p>
+        </div>
+        <div className="page-group-shell app-surface-sheet overflow-hidden">
         <button
           type="button"
           onClick={() => setCoreOpen((prev) => !prev)}
@@ -380,7 +398,7 @@ export default function Finance({ finances, setFinances, profile }) {
         {coreOpen && (
           <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 border-t border-gray-700/50 pt-4">
             {/* Net Worth banner */}
-            <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+            <div className="app-strip-cell p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
               <div className="flex items-center gap-2">
                 <Landmark size={20} className="text-indigo-400" />
                 <span className="text-sm font-medium text-gray-400">Total Net Worth</span>
@@ -392,35 +410,35 @@ export default function Finance({ finances, setFinances, profile }) {
 
             {/* Overview cards */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
+              <div className="app-grid-stat p-3 sm:p-4">
                 <div className="flex items-center gap-1.5 text-green-400 mb-1">
                   <PiggyBank size={14} />
                   <span className="text-xs font-medium">Liquid Savings</span>
                 </div>
                 <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalSavings)}</p>
               </div>
-              <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
+              <div className="app-grid-stat p-3 sm:p-4">
                 <div className="flex items-center gap-1.5 text-cyan-400 mb-1">
                   <LineChart size={14} />
                   <span className="text-xs font-medium">Invested</span>
                 </div>
                 <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalInvested)}</p>
               </div>
-              <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
+              <div className="app-grid-stat p-3 sm:p-4">
                 <div className="flex items-center gap-1.5 text-amber-400 mb-1">
                   <Shield size={14} />
                   <span className="text-xs font-medium">Pension</span>
                 </div>
                 <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalPension)}</p>
               </div>
-              <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
+              <div className="app-grid-stat p-3 sm:p-4">
                 <div className="flex items-center gap-1.5 text-red-400 mb-1">
                   <CreditCard size={14} />
                   <span className="text-xs font-medium">Total Debt</span>
                 </div>
                 <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalDebt)}</p>
               </div>
-              <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
+              <div className="app-grid-stat p-3 sm:p-4">
                 <div className="flex items-center gap-1.5 text-blue-400 mb-1">
                   <Wallet size={14} />
                   <span className="text-xs font-medium">Liquid Net</span>
@@ -429,7 +447,7 @@ export default function Finance({ finances, setFinances, profile }) {
                   {GBP(netPosition)}
                 </p>
               </div>
-              <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
+              <div className="app-grid-stat p-3 sm:p-4">
                 <div className="flex items-center gap-1.5 text-purple-400 mb-1">
                   <TrendingUp size={14} />
                   <span className="text-xs font-medium">Monthly Income</span>
@@ -455,11 +473,17 @@ export default function Finance({ finances, setFinances, profile }) {
             </div>
           </div>
         )}
-      </div>
+        </div>
+      </section>
 
       {/* AI Score + Overall */}
       {aiResult?.score && (
-        <div className="order-3 app-section-card app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl overflow-hidden">
+        <section className="page-group order-3">
+          <div className="section-header-inline">
+            <p className="section-header-title">AI Summary</p>
+            <p className="section-header-meta">Health scoring</p>
+          </div>
+          <div className="page-group-shell app-surface-sheet app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl overflow-hidden">
           <button
             type="button"
             onClick={() => setAiSummaryOpen((prev) => !prev)}
@@ -488,11 +512,14 @@ export default function Finance({ finances, setFinances, profile }) {
               </div>
             </div>
           )}
-        </div>
+          </div>
+        </section>
       )}
 
       {/* Setup */}
-      <div className="order-4 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+      <section className="page-group order-4">
+        <p className="page-group-kicker">Setup</p>
+        <div className="page-group-shell app-surface-sheet overflow-hidden">
         <button
           type="button"
           onClick={() => setSetupOpen((prev) => !prev)}
@@ -512,9 +539,9 @@ export default function Finance({ finances, setFinances, profile }) {
 
         {setupOpen && (
           <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 border-t border-gray-700/50 pt-4">
-            <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5 space-y-3">
+            <div className="app-strip-cell p-4 sm:p-5 space-y-3">
               <h2 className="text-lg font-semibold text-white">Monthly Income</h2>
-              <form onSubmit={setIncome} className="flex gap-2">
+              <form onSubmit={setIncome} className="input-shell flex gap-2">
                 <input
                   type="number"
                   step="0.01"
@@ -564,17 +591,22 @@ export default function Finance({ finances, setFinances, profile }) {
               tipLabel="Contributions"
             />
             {mcList.length > 0 && (
-              <div className="flex items-center justify-between bg-gray-800/60 border border-gray-700/50 rounded-lg px-4 py-2.5 -mt-3 text-sm">
+              <div className="app-strip-cell flex items-center justify-between px-4 py-2.5 -mt-3 text-sm">
                 <span className="text-gray-400">Total monthly contributions</span>
                 <span className="text-emerald-400 font-bold">{GBP(totalMonthlyContributions)}</span>
               </div>
             )}
           </div>
         )}
-      </div>
+        </div>
+      </section>
 
       {/* Savings Accounts */}
-      <div className="order-5">
+      <section className="page-group order-5">
+        <div className="section-header-inline">
+          <p className="section-header-title">Accounts</p>
+          <p className="section-header-meta">Savings and debt</p>
+        </div>
         <AccountSection
         icon={<PiggyBank size={20} className="text-green-400" />}
         title="Savings Accounts"
@@ -605,7 +637,7 @@ export default function Finance({ finances, setFinances, profile }) {
         tip={aiResult?.savings}
         tipLabel="Savings"
         />
-      </div>
+      </section>
 
       {/* Credit Cards */}
       <div className="order-6">
@@ -710,7 +742,12 @@ export default function Finance({ finances, setFinances, profile }) {
       </div>
 
       {/* Upcoming Expenses */}
-      <div className="order-9 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+      <section className="page-group order-9">
+        <div className="section-header-inline">
+          <p className="section-header-title">Upcoming</p>
+          <p className="section-header-meta">Deadlines and affordability</p>
+        </div>
+        <div className="page-group-shell app-surface-sheet overflow-hidden">
         <button
           type="button"
           onClick={() => setUpcomingOpen((prev) => !prev)}
@@ -732,7 +769,7 @@ export default function Finance({ finances, setFinances, profile }) {
 
         {upcomingOpen && (
           <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 border-t border-gray-700/50 pt-4">
-            <form onSubmit={addUpcoming} className="flex flex-col sm:flex-row gap-2">
+            <form onSubmit={addUpcoming} className="input-shell flex flex-col sm:flex-row gap-2">
               <input
                 value={expName}
                 onChange={(e) => setExpName(e.target.value)}
@@ -773,7 +810,7 @@ export default function Finance({ finances, setFinances, profile }) {
                   return (
                     <div
                       key={exp.id}
-                      className="bg-gray-900/50 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 group space-y-2"
+                      className="app-strip-cell px-3 sm:px-4 py-2.5 sm:py-3 group space-y-2"
                     >
                       <div className="flex items-start sm:items-center justify-between gap-2">
                         <input
@@ -811,7 +848,8 @@ export default function Finance({ finances, setFinances, profile }) {
             <AiTip tip={aiResult?.upcoming} label="Upcoming" />
           </div>
         )}
-      </div>
+        </div>
+      </section>
     </div>
   )
 }

@@ -351,14 +351,14 @@ export default function Home({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="page-shell flex flex-col gap-6">
       {error && (
         <div className="order-0 bg-red-900/30 border border-red-800 rounded-lg p-4 text-red-300 text-sm">
           {error}
         </div>
       )}
 
-      <div className="order-1 relative overflow-hidden rounded-2xl border border-blue-800/40 bg-gradient-to-br from-blue-900/30 via-indigo-900/20 to-gray-900/70 px-4 sm:px-5 py-4 sm:py-5">
+      <div className="order-1 page-top-ui relative overflow-hidden rounded-2xl border border-blue-800/40 bg-gradient-to-br from-blue-900/30 via-indigo-900/20 to-gray-900/70 px-4 sm:px-5 py-4 sm:py-5">
         <div className="absolute -top-8 -right-8 h-24 w-24 rounded-full bg-blue-400/10 blur-2xl" />
         <div className="relative">
           <p className="text-xs uppercase tracking-[0.12em] text-blue-300/80">Welcome back</p>
@@ -375,7 +375,9 @@ export default function Home({
         </div>
       </div>
 
-      <div className="order-6 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+      <section className="page-group order-6">
+        <p className="page-group-kicker">Workspace</p>
+        <div className="page-group-shell app-surface-sheet overflow-hidden">
         <button
           type="button"
           onClick={() => toggleSection('controls')}
@@ -394,12 +396,12 @@ export default function Home({
         {openSections.controls && (
           <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4">
             <div className="space-y-4">
-              <div className="bg-gray-900/40 border border-gray-700/50 rounded-xl p-3 sm:p-4 space-y-3">
+              <div className="app-strip-cell p-3 sm:p-4 space-y-3">
                 <div>
                   <p className="text-sm font-semibold text-white">Your profile</p>
                   <p className="text-xs text-gray-500">Used for Finance and Goals AI analysis context.</p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="input-shell grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">Name</label>
                     <input
@@ -421,7 +423,7 @@ export default function Home({
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="input-shell grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">Life Stage</label>
                     <input
@@ -446,7 +448,7 @@ export default function Home({
                     </select>
                   </div>
                 </div>
-                <div>
+                <div className="input-shell">
                   <label className="block text-xs text-gray-500 mb-1">Profile Notes</label>
                   <textarea
                     value={profile.profileNotes || ''}
@@ -498,11 +500,17 @@ export default function Home({
             </div>
           </div>
         )}
-      </div>
+        </div>
+      </section>
 
       {/* Alerts */}
       {alerts.length > 0 && (
-        <div className="order-2 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+        <section className="page-group order-2">
+          <div className="section-header-inline">
+            <p className="section-header-title">Alerts</p>
+            <p className="section-header-meta">Risk watch</p>
+          </div>
+          <div className="page-group-shell app-surface-sheet overflow-hidden">
           <button
             type="button"
             onClick={() => toggleSection('alerts')}
@@ -535,11 +543,17 @@ export default function Home({
               ))}
             </div>
           )}
-        </div>
+          </div>
+        </section>
       )}
 
       {/* Today's Focus */}
-      <div className="order-3 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+      <section className="page-group order-3">
+        <div className="section-header-inline">
+          <p className="section-header-title">Focus</p>
+          <p className="section-header-meta">Today&apos;s queue</p>
+        </div>
+        <div className="page-group-shell app-surface-sheet overflow-hidden">
         <button
           type="button"
           onClick={() => toggleSection('focus')}
@@ -577,7 +591,7 @@ export default function Home({
                 {focusTasks.map((task, i) => (
                   <div
                     key={task.id}
-                    className="flex items-center gap-3 bg-gray-900/50 rounded-lg px-4 py-2.5"
+                    className="app-strip-cell flex items-center gap-3 px-4 py-2.5"
                   >
                     <span className="app-accent-text font-bold text-sm w-5">
                       {i + 1}.
@@ -600,10 +614,16 @@ export default function Home({
             )}
           </div>
         )}
-      </div>
+        </div>
+      </section>
 
       {/* Metrics Row */}
-      <div className="order-5 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+      <section className="page-group order-5">
+        <div className="section-header-inline">
+          <p className="section-header-title">Snapshot</p>
+          <p className="section-header-meta">Quick totals</p>
+        </div>
+        <div className="page-group-shell app-surface-sheet overflow-hidden">
         <button
           type="button"
           onClick={() => toggleSection('metrics')}
@@ -623,7 +643,7 @@ export default function Home({
         </button>
         {openSections.metrics && (
           <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-5">
+            <div className="app-grid-stat p-5">
               <div className="flex items-center gap-2 text-green-400 mb-1">
                 <TrendingUp size={18} />
                 <span className="text-sm font-medium">Tasks Done</span>
@@ -635,7 +655,7 @@ export default function Home({
                 </span>
               </p>
             </div>
-            <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-5">
+            <div className="app-grid-stat p-5">
               <div className="flex items-center gap-2 text-blue-400 mb-1">
                 <PiggyBank size={18} />
                 <span className="text-sm font-medium">Net Worth</span>
@@ -644,7 +664,7 @@ export default function Home({
                 {netWorth.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}
               </p>
             </div>
-            <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-5">
+            <div className="app-grid-stat p-5">
               <div className="flex items-center gap-2 text-purple-400 mb-1">
                 <Target size={18} />
                 <span className="text-sm font-medium">Goal Progress</span>
@@ -655,11 +675,17 @@ export default function Home({
             </div>
           </div>
         )}
-      </div>
+        </div>
+      </section>
 
       {/* Latest AI Insight */}
       {latestInsight && (
-        <div className="order-4 app-section-card app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl overflow-hidden">
+        <section className="page-group order-4">
+          <div className="section-header-inline">
+            <p className="section-header-title">Guidance</p>
+            <p className="section-header-meta">Latest AI recommendation</p>
+          </div>
+          <div className="page-group-shell app-surface-sheet app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl overflow-hidden">
           <button
             type="button"
             onClick={() => toggleSection('insight')}
@@ -697,7 +723,8 @@ export default function Home({
               </div>
             </div>
           )}
-        </div>
+          </div>
+        </section>
       )}
     </div>
   )

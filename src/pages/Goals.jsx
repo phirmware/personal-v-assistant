@@ -112,6 +112,8 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
   const [addOpen, setAddOpen] = useState(false)
   const [aiLoadingScope, setAiLoadingScope] = useState(null)
   const [aiError, setAiError] = useState(null)
+  const [sectionOpenMap, setSectionOpenMap] = useState({})
+  const [goalOpenMap, setGoalOpenMap] = useState({})
   const [aiResult, setAiResult] = useState(() => {
     try {
       const stored = localStorage.getItem('va-goals-insight')
@@ -153,6 +155,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
   }
   const sections = Array.from(groupedBySection.values())
   const sectionNames = sections.map((s) => s.name)
+  const firstSectionKey = sections[0]?.key || null
 
   const allAiGoalMap = buildAiGoalMap(aiResult.all)
   const sectionAiGoalMaps = {}
@@ -288,6 +291,30 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
   function getGoalAi(goal, sectionId) {
     const sectionMap = sectionAiGoalMaps[sectionId] || {}
     return sectionMap[String(goal.id)] || allAiGoalMap[String(goal.id)] || null
+  }
+
+  function isSectionOpen(key) {
+    if (Object.prototype.hasOwnProperty.call(sectionOpenMap, key)) {
+      return sectionOpenMap[key]
+    }
+    return key === firstSectionKey
+  }
+
+  function toggleSection(key) {
+    setSectionOpenMap((prev) => {
+      const current = Object.prototype.hasOwnProperty.call(prev, key)
+        ? prev[key]
+        : key === firstSectionKey
+      return { ...prev, [key]: !current }
+    })
+  }
+
+  function isGoalOpen(key) {
+    return Boolean(goalOpenMap[key])
+  }
+
+  function toggleGoal(key) {
+    setGoalOpenMap((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
   return (
@@ -450,191 +477,269 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
         />
       )}
 
-      <div className="space-y-5">
+      <div className="space-y-4">
         {sections.map((section) => {
           const sectionResult = aiResult.sections?.[section.key]
           const sectionLoadingKey = `section:${section.key}`
+          const sectionOpen = isSectionOpen(section.key)
+          const sectionAverage = section.goals.length
+            ? Math.round(
+                section.goals.reduce((sum, goal) => sum + getGoalCompletion(goal), 0) /
+                  section.goals.length
+              )
+            : 0
 
           return (
-            <div key={section.key} className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm sm:text-base font-semibold text-white">{section.name}</h2>
-                <button
-                  onClick={() => handleGoalsAI(section.name)}
-                  disabled={aiLoadingScope !== null}
-                  className="text-xs bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-200 px-3 py-1.5 rounded-lg border border-gray-700 transition-colors flex items-center gap-1.5"
-                >
-                  {aiLoadingScope === sectionLoadingKey ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <Brain size={12} />
-                  )}
-                  {aiLoadingScope === sectionLoadingKey ? 'Analysing...' : 'Analyse Section'}
-                </button>
-              </div>
-
-              {sectionResult?.overall && (
-                <div className="bg-gray-900/60 border border-purple-900/40 rounded-lg p-3 text-sm text-gray-300">
-                  {sectionResult.overall}
-                  {sectionResult.date && (
-                    <p className="text-xs text-gray-600 mt-1">
-                      Last analysed: {new Date(sectionResult.date).toLocaleDateString()}
-                    </p>
-                  )}
+            <div
+              key={section.key}
+              className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden"
+            >
+              <button
+                type="button"
+                onClick={() => toggleSection(section.key)}
+                className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between gap-3 text-left"
+              >
+                <div className="min-w-0">
+                  <h2 className="text-sm sm:text-base font-semibold text-white">{section.name}</h2>
+                  <p className="text-xs text-gray-500">
+                    {section.goals.length} goal{section.goals.length === 1 ? '' : 's'} · {sectionAverage}% avg
+                    completion
+                  </p>
                 </div>
-              )}
+                <div className="flex items-center gap-2 text-gray-500 shrink-0">
+                  {sectionOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </div>
+              </button>
 
-              <div className="space-y-3">
-                {section.goals.map((goal) => {
-                  const pct = getGoalCompletion(goal)
-                  const aiGoal = getGoalAi(goal, section.key)
-                  const status = aiGoal?.status || getLocalStatus(goal)
-                  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.needs_work
-                  const StatusIcon = cfg.icon
-                  const days = goal.deadline ? daysUntil(goal.deadline) : null
-                  const remaining = Math.max(0, (goal.target || 0) - (goal.current || 0))
-
-                  return (
-                    <div
-                      key={goal.id}
-                      className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5 group space-y-3"
+              {sectionOpen && (
+                <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4 space-y-3">
+                  <div className="flex items-center justify-end">
+                    <button
+                      onClick={() => handleGoalsAI(section.name)}
+                      disabled={aiLoadingScope !== null}
+                      className="text-xs bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-200 px-3 py-1.5 rounded-lg border border-gray-700 transition-colors flex items-center gap-1.5"
                     >
-                      {/* Header */}
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <Target size={18} className="text-purple-400 shrink-0" />
-                          <input
-                            value={goal.title}
-                            onChange={(e) => updateGoal(goal.id, 'title', e.target.value)}
-                            className="bg-transparent text-white font-semibold text-sm min-w-0 flex-1 focus:outline-none focus:bg-gray-900 focus:rounded px-1 -ml-1"
-                          />
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 ${cfg.badge}`}>
-                            <StatusIcon size={12} />
-                            <span className="hidden sm:inline">{cfg.label}</span>
-                          </span>
-                          <button
-                            onClick={() => deleteGoal(goal.id)}
-                            className="text-gray-600 hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
+                      {aiLoadingScope === sectionLoadingKey ? (
+                        <Loader2 size={12} className="animate-spin" />
+                      ) : (
+                        <Brain size={12} />
+                      )}
+                      {aiLoadingScope === sectionLoadingKey ? 'Analysing...' : 'Analyse Section'}
+                    </button>
+                  </div>
 
-                      {/* Progress bar */}
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 bg-gray-900 rounded-full h-2.5 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium text-gray-400 w-12 text-right">
-                          {pct.toFixed(0)}%
-                        </span>
-                      </div>
-
-                      {/* Goal controls */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-sm">
-                        <input
-                          value={goal.section}
-                          onChange={(e) => updateGoal(goal.id, 'section', e.target.value)}
-                          placeholder="Section"
-                          className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
-                        />
-                        {goal.target > 0 || goal.current > 0 ? (
-                          <>
-                            <input
-                              type="number"
-                              step="any"
-                              value={goal.target}
-                              onChange={(e) => updateGoal(goal.id, 'target', e.target.value)}
-                              placeholder="Target £"
-                              className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
-                            />
-                            <div className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-gray-300">
-                              Current: <span className="text-white font-medium">{GBP(goal.current)}</span>
-                            </div>
-                          </>
-                        ) : (
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={goal.progress}
-                            onChange={(e) => updateGoal(goal.id, 'progress', e.target.value)}
-                            placeholder="Progress %"
-                            className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
-                          />
-                        )}
-                        <input
-                          type="date"
-                          value={goal.deadline || ''}
-                          onChange={(e) => updateGoal(goal.id, 'deadline', e.target.value)}
-                          className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
-                        />
-                      </div>
-
-                      {/* Timing / amount summaries */}
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        {goal.target > 0 && remaining > 0 ? (
-                          <span>
-                            Need: <strong className="text-white">{GBP(remaining)}</strong>
-                          </span>
-                        ) : (
-                          <span>
-                            Progress: <strong className="text-white">{pct.toFixed(0)}%</strong>
-                          </span>
-                        )}
-                        {days !== null && (
-                          <span
-                            className={
-                              days < 0 ? 'text-red-400' : days < 60 ? 'text-yellow-400' : ''
-                            }
-                          >
-                            {days < 0 ? `${Math.abs(days)}d overdue` : `${days}d left`}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Notes & plans */}
-                      <textarea
-                        value={goal.details}
-                        onChange={(e) => updateGoal(goal.id, 'details', e.target.value)}
-                        placeholder="Details"
-                        rows={2}
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
-                      />
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <textarea
-                          value={goal.notes}
-                          onChange={(e) => updateGoal(goal.id, 'notes', e.target.value)}
-                          placeholder="Notes"
-                          rows={2}
-                          className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
-                        />
-                        <textarea
-                          value={goal.plan}
-                          onChange={(e) => updateGoal(goal.id, 'plan', e.target.value)}
-                          placeholder="Plan"
-                          rows={2}
-                          className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
-                        />
-                      </div>
-
-                      {/* AI insight for this goal */}
-                      {aiGoal && (
-                        <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 space-y-1 border-l-2 border-purple-500/50">
-                          <p className="text-sm text-gray-300">{aiGoal.summary}</p>
-                          <p className="text-sm text-purple-300 font-medium">{aiGoal.action}</p>
-                        </div>
+                  {sectionResult?.overall && (
+                    <div className="bg-gray-900/60 border border-purple-900/40 rounded-lg p-3 text-sm text-gray-300">
+                      {sectionResult.overall}
+                      {sectionResult.date && (
+                        <p className="text-xs text-gray-600 mt-1">
+                          Last analysed: {new Date(sectionResult.date).toLocaleDateString()}
+                        </p>
                       )}
                     </div>
-                  )
-                })}
-              </div>
+                  )}
+
+                  <div className="space-y-3">
+                    {section.goals.map((goal) => {
+                      const pct = getGoalCompletion(goal)
+                      const aiGoal = getGoalAi(goal, section.key)
+                      const status = aiGoal?.status || getLocalStatus(goal)
+                      const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.needs_work
+                      const StatusIcon = cfg.icon
+                      const days = goal.deadline ? daysUntil(goal.deadline) : null
+                      const remaining = Math.max(0, (goal.target || 0) - (goal.current || 0))
+                      const goalEntryKey = `${section.key}:${goal.id}`
+                      const goalOpen = isGoalOpen(goalEntryKey)
+
+                      return (
+                        <div
+                          key={goal.id}
+                          className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => toggleGoal(goalEntryKey)}
+                            className="w-full px-4 sm:px-5 py-3.5 flex items-start justify-between gap-3 text-left"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Target size={18} className="text-purple-400 shrink-0" />
+                                <span className="text-sm font-semibold text-white truncate">
+                                  {goal.title || 'Untitled goal'}
+                                </span>
+                                <span
+                                  className={`text-xs font-semibold px-2 py-0.5 rounded-full border hidden sm:inline-flex items-center gap-1 ${cfg.badge}`}
+                                >
+                                  <StatusIcon size={12} />
+                                  {cfg.label}
+                                </span>
+                              </div>
+                              <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                                <span>{pct.toFixed(0)}% complete</span>
+                                {goal.target > 0 && <span>Target {GBP(goal.target)}</span>}
+                                {days !== null && (
+                                  <span
+                                    className={
+                                      days < 0 ? 'text-red-400' : days < 60 ? 'text-yellow-400' : ''
+                                    }
+                                  >
+                                    {days < 0 ? `${Math.abs(days)}d overdue` : `${days}d left`}
+                                  </span>
+                                )}
+                              </div>
+                              {aiGoal?.summary && !goalOpen && (
+                                <p className="text-xs text-gray-500 mt-1 truncate">{aiGoal.summary}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-gray-500 shrink-0">
+                              {goalOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            </div>
+                          </button>
+
+                          {goalOpen && (
+                            <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4 group space-y-3">
+                              {/* Editable header */}
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                  <input
+                                    value={goal.title}
+                                    onChange={(e) => updateGoal(goal.id, 'title', e.target.value)}
+                                    className="bg-transparent text-white font-semibold text-sm min-w-0 flex-1 focus:outline-none focus:bg-gray-900 focus:rounded px-1 -ml-1"
+                                  />
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span
+                                    className={`text-xs font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 ${cfg.badge}`}
+                                  >
+                                    <StatusIcon size={12} />
+                                    <span className="hidden sm:inline">{cfg.label}</span>
+                                  </span>
+                                  <button
+                                    onClick={() => deleteGoal(goal.id)}
+                                    className="text-gray-600 hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Progress bar */}
+                              <div className="flex items-center gap-3">
+                                <div className="flex-1 bg-gray-900 rounded-full h-2.5 overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
+                                    style={{ width: `${pct}%` }}
+                                  />
+                                </div>
+                                <span className="text-sm font-medium text-gray-400 w-12 text-right">
+                                  {pct.toFixed(0)}%
+                                </span>
+                              </div>
+
+                              {/* Goal controls */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-sm">
+                                <input
+                                  value={goal.section}
+                                  onChange={(e) => updateGoal(goal.id, 'section', e.target.value)}
+                                  placeholder="Section"
+                                  className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
+                                />
+                                {goal.target > 0 || goal.current > 0 ? (
+                                  <>
+                                    <input
+                                      type="number"
+                                      step="any"
+                                      value={goal.target}
+                                      onChange={(e) => updateGoal(goal.id, 'target', e.target.value)}
+                                      placeholder="Target £"
+                                      className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
+                                    />
+                                    <div className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-gray-300">
+                                      Current:{' '}
+                                      <span className="text-white font-medium">{GBP(goal.current)}</span>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={goal.progress}
+                                    onChange={(e) => updateGoal(goal.id, 'progress', e.target.value)}
+                                    placeholder="Progress %"
+                                    className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
+                                  />
+                                )}
+                                <input
+                                  type="date"
+                                  value={goal.deadline || ''}
+                                  onChange={(e) => updateGoal(goal.id, 'deadline', e.target.value)}
+                                  className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
+                                />
+                              </div>
+
+                              {/* Timing / amount summaries */}
+                              <div className="flex items-center justify-between text-xs text-gray-500">
+                                {goal.target > 0 && remaining > 0 ? (
+                                  <span>
+                                    Need: <strong className="text-white">{GBP(remaining)}</strong>
+                                  </span>
+                                ) : (
+                                  <span>
+                                    Progress: <strong className="text-white">{pct.toFixed(0)}%</strong>
+                                  </span>
+                                )}
+                                {days !== null && (
+                                  <span
+                                    className={
+                                      days < 0 ? 'text-red-400' : days < 60 ? 'text-yellow-400' : ''
+                                    }
+                                  >
+                                    {days < 0 ? `${Math.abs(days)}d overdue` : `${days}d left`}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Notes & plans */}
+                              <textarea
+                                value={goal.details}
+                                onChange={(e) => updateGoal(goal.id, 'details', e.target.value)}
+                                placeholder="Details"
+                                rows={2}
+                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+                              />
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <textarea
+                                  value={goal.notes}
+                                  onChange={(e) => updateGoal(goal.id, 'notes', e.target.value)}
+                                  placeholder="Notes"
+                                  rows={2}
+                                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+                                />
+                                <textarea
+                                  value={goal.plan}
+                                  onChange={(e) => updateGoal(goal.id, 'plan', e.target.value)}
+                                  placeholder="Plan"
+                                  rows={2}
+                                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+                                />
+                              </div>
+
+                              {/* AI insight for this goal */}
+                              {aiGoal && (
+                                <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 space-y-1 border-l-2 border-purple-500/50">
+                                  <p className="text-sm text-gray-300">{aiGoal.summary}</p>
+                                  <p className="text-sm text-purple-300 font-medium">{aiGoal.action}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )
         })}

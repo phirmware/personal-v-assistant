@@ -85,6 +85,7 @@ function AccountSection({
 }) {
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
+  const [open, setOpen] = useState(() => list.length === 0)
 
   function handleAdd(e) {
     e.preventDefault()
@@ -107,67 +108,84 @@ function AccountSection({
     cyan: 'bg-cyan-600 hover:bg-cyan-500',
     amber: 'bg-amber-600 hover:bg-amber-500',
   }
+  const total = list.reduce((sum, item) => sum + (item[valueKey] || 0), 0)
 
   return (
     <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5 space-y-4">
-      <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-        {icon}
-        {title}
-      </h2>
-      <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-2">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={placeholderName}
-          className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-        />
-        <div className="flex gap-2">
-          <input
-            type="number"
-            step="0.01"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder={placeholderValue}
-            className="flex-1 sm:w-32 sm:flex-none bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-          />
-          <button
-            type="submit"
-            className={`${btnMap[color]} text-white px-4 py-2.5 rounded-lg flex items-center gap-1 transition-colors shrink-0`}
-          >
-            <Plus size={16} />
-          </button>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="w-full flex items-center justify-between gap-3 text-left"
+      >
+        <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+          {icon}
+          {title}
+        </h2>
+        <div className="flex items-center gap-2 text-xs text-gray-500 shrink-0">
+          {list.length > 0 && <span>{list.length} item(s)</span>}
+          {total > 0 && <span className="text-white">{GBP(total)}</span>}
+          {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </div>
-      </form>
-      {list.length > 0 && (
-        <div className="space-y-2">
-          {list.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between bg-gray-900/50 rounded-lg px-3 sm:px-4 py-2.5 group gap-2"
-            >
+      </button>
+
+      {open && (
+        <>
+          <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-2">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={placeholderName}
+              className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+            />
+            <div className="flex gap-2">
               <input
-                value={item.name}
-                onChange={(e) => onRename(item.id, e.target.value)}
-                className="bg-transparent text-gray-300 text-sm truncate min-w-0 flex-1 focus:outline-none focus:bg-gray-800 focus:rounded px-1 -ml-1"
+                type="number"
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder={placeholderValue}
+                className="flex-1 sm:w-32 sm:flex-none bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
               />
-              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                <input
-                  type="number"
-                  step="0.01"
-                  value={item[valueKey]}
-                  onChange={(e) => onUpdate(item.id, e.target.value)}
-                  className={`w-24 sm:w-28 bg-gray-800 border border-gray-700 rounded px-2 py-1 ${colorMap[color]} text-sm text-right font-medium focus:outline-none focus:border-blue-500`}
-                />
-                <button
-                  onClick={() => onRemove(item.id)}
-                  className="text-gray-600 hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
+              <button
+                type="submit"
+                className={`${btnMap[color]} text-white px-4 py-2.5 rounded-lg flex items-center gap-1 transition-colors shrink-0`}
+              >
+                <Plus size={16} />
+              </button>
             </div>
-          ))}
-        </div>
+          </form>
+          {list.length > 0 && (
+            <div className="space-y-2">
+              {list.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between bg-gray-900/50 rounded-lg px-3 sm:px-4 py-2.5 group gap-2"
+                >
+                  <input
+                    value={item.name}
+                    onChange={(e) => onRename(item.id, e.target.value)}
+                    className="bg-transparent text-gray-300 text-sm truncate min-w-0 flex-1 focus:outline-none focus:bg-gray-800 focus:rounded px-1 -ml-1"
+                  />
+                  <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={item[valueKey]}
+                      onChange={(e) => onUpdate(item.id, e.target.value)}
+                      className={`w-24 sm:w-28 bg-gray-800 border border-gray-700 rounded px-2 py-1 ${colorMap[color]} text-sm text-right font-medium focus:outline-none focus:border-blue-500`}
+                    />
+                    <button
+                      onClick={() => onRemove(item.id)}
+                      className="text-gray-600 hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   )
@@ -187,6 +205,8 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
     } catch { return null }
   })
   const [profileOpen, setProfileOpen] = useState(!profile.birthday)
+  const [coreOpen, setCoreOpen] = useState(true)
+  const [setupOpen, setSetupOpen] = useState(false)
 
   const saList = finances.savingsAccounts || []
   const ccList = finances.creditCards || []
@@ -346,6 +366,104 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
         )}
       </div>
 
+      {/* Core snapshot */}
+      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setCoreOpen((prev) => !prev)}
+          className="w-full flex items-center justify-between p-4 sm:p-5 text-left"
+        >
+          <div className="flex items-center gap-2">
+            <Landmark size={18} className="text-indigo-400" />
+            <span className="text-sm font-semibold text-white">Core Snapshot</span>
+            <span className="text-xs text-gray-500 ml-1">Net worth, overview, upcoming impact</span>
+          </div>
+          {coreOpen ? (
+            <ChevronUp size={16} className="text-gray-500" />
+          ) : (
+            <ChevronDown size={16} className="text-gray-500" />
+          )}
+        </button>
+        {coreOpen && (
+          <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 border-t border-gray-700/50 pt-4">
+            {/* Net Worth banner */}
+            <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+              <div className="flex items-center gap-2">
+                <Landmark size={20} className="text-indigo-400" />
+                <span className="text-sm font-medium text-gray-400">Total Net Worth</span>
+              </div>
+              <p className={`text-2xl font-bold ${netWorth >= 0 ? 'text-white' : 'text-red-400'}`}>
+                {GBP(netWorth)}
+              </p>
+            </div>
+
+            {/* Overview cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
+                <div className="flex items-center gap-1.5 text-green-400 mb-1">
+                  <PiggyBank size={14} />
+                  <span className="text-xs font-medium">Liquid Savings</span>
+                </div>
+                <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalSavings)}</p>
+              </div>
+              <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
+                <div className="flex items-center gap-1.5 text-cyan-400 mb-1">
+                  <LineChart size={14} />
+                  <span className="text-xs font-medium">Invested</span>
+                </div>
+                <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalInvested)}</p>
+              </div>
+              <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
+                <div className="flex items-center gap-1.5 text-amber-400 mb-1">
+                  <Shield size={14} />
+                  <span className="text-xs font-medium">Pension</span>
+                </div>
+                <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalPension)}</p>
+              </div>
+              <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
+                <div className="flex items-center gap-1.5 text-red-400 mb-1">
+                  <CreditCard size={14} />
+                  <span className="text-xs font-medium">Total Debt</span>
+                </div>
+                <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalDebt)}</p>
+              </div>
+              <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
+                <div className="flex items-center gap-1.5 text-blue-400 mb-1">
+                  <Wallet size={14} />
+                  <span className="text-xs font-medium">Liquid Net</span>
+                </div>
+                <p className={`text-lg sm:text-xl font-bold ${netPosition >= 0 ? 'text-white' : 'text-red-400'}`}>
+                  {GBP(netPosition)}
+                </p>
+              </div>
+              <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
+                <div className="flex items-center gap-1.5 text-purple-400 mb-1">
+                  <TrendingUp size={14} />
+                  <span className="text-xs font-medium">Monthly Income</span>
+                </div>
+                <p className="text-lg sm:text-xl font-bold text-white">{GBP(incomeVal)}</p>
+              </div>
+            </div>
+
+            {/* After upcoming commitments */}
+            <div
+              className={`rounded-xl p-3 sm:p-4 border flex items-center gap-3 ${
+                availableAfterUpcoming >= 0
+                  ? 'bg-green-900/20 border-green-800/50 text-green-300'
+                  : 'bg-red-900/20 border-red-800/50 text-red-300'
+              }`}
+            >
+              <AlertCircle size={18} className="shrink-0" />
+              <span className="text-sm">
+                After all upcoming expenses:{' '}
+                <strong className="text-white">{GBP(availableAfterUpcoming)}</strong>{' '}
+                {availableAfterUpcoming >= 0 ? 'remaining' : 'shortfall'}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* AI Score + Overall */}
       {aiResult?.score && (
         <div className="app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl p-4 sm:p-5 space-y-2">
@@ -368,138 +486,86 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
         </div>
       )}
 
-      {/* Net Worth banner */}
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-        <div className="flex items-center gap-2">
-          <Landmark size={20} className="text-indigo-400" />
-          <span className="text-sm font-medium text-gray-400">Total Net Worth</span>
-        </div>
-        <p className={`text-2xl font-bold ${netWorth >= 0 ? 'text-white' : 'text-red-400'}`}>
-          {GBP(netWorth)}
-        </p>
-      </div>
+      {/* Setup */}
+      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setSetupOpen((prev) => !prev)}
+          className="w-full flex items-center justify-between p-4 sm:p-5 text-left"
+        >
+          <div className="flex items-center gap-2">
+            <TrendingUp size={18} className="text-purple-400" />
+            <span className="text-sm font-semibold text-white">Income & Contributions Setup</span>
+            <span className="text-xs text-gray-500 ml-1">Usually updated less often</span>
+          </div>
+          {setupOpen ? (
+            <ChevronUp size={16} className="text-gray-500" />
+          ) : (
+            <ChevronDown size={16} className="text-gray-500" />
+          )}
+        </button>
 
-      {/* Overview cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
-          <div className="flex items-center gap-1.5 text-green-400 mb-1">
-            <PiggyBank size={14} />
-            <span className="text-xs font-medium">Liquid Savings</span>
-          </div>
-          <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalSavings)}</p>
-        </div>
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
-          <div className="flex items-center gap-1.5 text-cyan-400 mb-1">
-            <LineChart size={14} />
-            <span className="text-xs font-medium">Invested</span>
-          </div>
-          <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalInvested)}</p>
-        </div>
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
-          <div className="flex items-center gap-1.5 text-amber-400 mb-1">
-            <Shield size={14} />
-            <span className="text-xs font-medium">Pension</span>
-          </div>
-          <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalPension)}</p>
-        </div>
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
-          <div className="flex items-center gap-1.5 text-red-400 mb-1">
-            <CreditCard size={14} />
-            <span className="text-xs font-medium">Total Debt</span>
-          </div>
-          <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalDebt)}</p>
-        </div>
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
-          <div className="flex items-center gap-1.5 text-blue-400 mb-1">
-            <Wallet size={14} />
-            <span className="text-xs font-medium">Liquid Net</span>
-          </div>
-          <p className={`text-lg sm:text-xl font-bold ${netPosition >= 0 ? 'text-white' : 'text-red-400'}`}>
-            {GBP(netPosition)}
-          </p>
-        </div>
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3 sm:p-4">
-          <div className="flex items-center gap-1.5 text-purple-400 mb-1">
-            <TrendingUp size={14} />
-            <span className="text-xs font-medium">Monthly Income</span>
-          </div>
-          <p className="text-lg sm:text-xl font-bold text-white">{GBP(incomeVal)}</p>
-        </div>
-      </div>
+        {setupOpen && (
+          <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 border-t border-gray-700/50 pt-4">
+            <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5 space-y-3">
+              <h2 className="text-lg font-semibold text-white">Monthly Income</h2>
+              <form onSubmit={setIncome} className="flex gap-2">
+                <input
+                  type="number"
+                  step="0.01"
+                  value={incomeInput}
+                  onChange={(e) => setIncomeInput(e.target.value)}
+                  placeholder="Update monthly income..."
+                  className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                />
+                <button
+                  type="submit"
+                  className="app-primary-btn text-white px-4 py-2.5 rounded-lg transition-colors text-sm"
+                >
+                  Set
+                </button>
+              </form>
+            </div>
 
-      {/* After upcoming commitments */}
-      <div
-        className={`rounded-xl p-3 sm:p-4 border flex items-center gap-3 ${
-          availableAfterUpcoming >= 0
-            ? 'bg-green-900/20 border-green-800/50 text-green-300'
-            : 'bg-red-900/20 border-red-800/50 text-red-300'
-        }`}
-      >
-        <AlertCircle size={18} className="shrink-0" />
-        <span className="text-sm">
-          After all upcoming expenses:{' '}
-          <strong className="text-white">{GBP(availableAfterUpcoming)}</strong>{' '}
-          {availableAfterUpcoming >= 0 ? 'remaining' : 'shortfall'}
-        </span>
+            {/* Monthly Contributions */}
+            <AccountSection
+              icon={<Repeat size={20} className="text-emerald-400" />}
+              title="Monthly Contributions"
+              color="green"
+              list={mcList}
+              valueKey="amount"
+              placeholderName="Category (e.g. ISA, Pension, S&P 500)..."
+              placeholderValue="Monthly £..."
+              onAdd={(name, val) =>
+                updateList('monthlyContributions', [
+                  ...mcList,
+                  { id: Date.now(), name, amount: val },
+                ])
+              }
+              onUpdate={(id, val) =>
+                updateList('monthlyContributions', mcList.map((c) =>
+                  c.id === id ? { ...c, amount: parseFloat(val) || 0 } : c
+                ))
+              }
+              onRename={(id, name) =>
+                updateList('monthlyContributions', mcList.map((c) =>
+                  c.id === id ? { ...c, name } : c
+                ))
+              }
+              onRemove={(id) =>
+                updateList('monthlyContributions', mcList.filter((c) => c.id !== id))
+              }
+            />
+            {mcList.length > 0 && (
+              <div className="flex items-center justify-between bg-gray-800/60 border border-gray-700/50 rounded-lg px-4 py-2.5 -mt-3 text-sm">
+                <span className="text-gray-400">Total monthly contributions</span>
+                <span className="text-emerald-400 font-bold">{GBP(totalMonthlyContributions)}</span>
+              </div>
+            )}
+            <AiTip tip={aiResult?.contributions} />
+          </div>
+        )}
       </div>
-
-      {/* Monthly Income */}
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5 space-y-3">
-        <h2 className="text-lg font-semibold text-white">Monthly Income</h2>
-        <form onSubmit={setIncome} className="flex gap-2">
-          <input
-            type="number"
-            step="0.01"
-            value={incomeInput}
-            onChange={(e) => setIncomeInput(e.target.value)}
-            placeholder="Update monthly income..."
-            className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-          />
-          <button
-            type="submit"
-            className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-lg transition-colors text-sm"
-          >
-            Set
-          </button>
-        </form>
-      </div>
-
-      {/* Monthly Contributions */}
-      <AccountSection
-        icon={<Repeat size={20} className="text-emerald-400" />}
-        title="Monthly Contributions"
-        color="green"
-        list={mcList}
-        valueKey="amount"
-        placeholderName="Category (e.g. ISA, Pension, S&P 500)..."
-        placeholderValue="Monthly £..."
-        onAdd={(name, val) =>
-          updateList('monthlyContributions', [
-            ...mcList,
-            { id: Date.now(), name, amount: val },
-          ])
-        }
-        onUpdate={(id, val) =>
-          updateList('monthlyContributions', mcList.map((c) =>
-            c.id === id ? { ...c, amount: parseFloat(val) || 0 } : c
-          ))
-        }
-        onRename={(id, name) =>
-          updateList('monthlyContributions', mcList.map((c) =>
-            c.id === id ? { ...c, name } : c
-          ))
-        }
-        onRemove={(id) =>
-          updateList('monthlyContributions', mcList.filter((c) => c.id !== id))
-        }
-      />
-      {mcList.length > 0 && (
-        <div className="flex items-center justify-between bg-gray-800/60 border border-gray-700/50 rounded-lg px-4 py-2.5 -mt-3 text-sm">
-          <span className="text-gray-400">Total monthly contributions</span>
-          <span className="text-emerald-400 font-bold">{GBP(totalMonthlyContributions)}</span>
-        </div>
-      )}
-      <AiTip tip={aiResult?.contributions} />
 
       {/* Savings Accounts */}
       <AccountSection

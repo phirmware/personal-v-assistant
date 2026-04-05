@@ -22,6 +22,16 @@ import { runFinanceAnalysis } from '../ai'
 const GBP = (v) =>
   (v || 0).toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })
 
+function AiTip({ tip }) {
+  if (!tip) return null
+  return (
+    <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 space-y-1 border-l-2 border-blue-500/50 -mt-3">
+      <p className="text-sm text-gray-300">{tip.summary}</p>
+      <p className="text-sm text-blue-300 font-medium">{tip.action}</p>
+    </div>
+  )
+}
+
 function StatusBadge({ status }) {
   const styles = {
     green: 'bg-green-900/40 border-green-700 text-green-400',
@@ -169,7 +179,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
   const [incomeInput, setIncomeInput] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState(null)
-  const [aiInsight, setAiInsight] = useState(() => {
+  const [aiResult, setAiResult] = useState(() => {
     try {
       const stored = localStorage.getItem('va-finance-insight')
       return stored ? JSON.parse(stored) : null
@@ -235,10 +245,10 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
     setAiLoading(true)
     setAiError(null)
     try {
-      const content = await runFinanceAnalysis({ profile, finances, goals })
-      const insight = { content, date: new Date().toISOString() }
-      setAiInsight(insight)
-      localStorage.setItem('va-finance-insight', JSON.stringify(insight))
+      const result = await runFinanceAnalysis({ profile, finances, goals })
+      const stored = { ...result, date: new Date().toISOString() }
+      setAiResult(stored)
+      localStorage.setItem('va-finance-insight', JSON.stringify(stored))
     } catch (err) {
       setAiError(err.message)
     } finally {
@@ -332,21 +342,25 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
         )}
       </div>
 
-      {/* AI Financial Insight */}
-      {aiInsight && (
-        <div className="bg-gray-800/60 border border-blue-800/30 rounded-xl p-4 sm:p-5 space-y-3">
+      {/* AI Score + Overall */}
+      {aiResult?.score && (
+        <div className="bg-gray-800/60 border border-blue-800/30 rounded-xl p-4 sm:p-5 space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-blue-400">
-              <Brain size={18} />
-              <h2 className="text-sm sm:text-base font-semibold text-white">Financial Analysis</h2>
+            <div className="flex items-center gap-3">
+              <div className={`text-2xl font-bold ${aiResult.score.value >= 7 ? 'text-green-400' : aiResult.score.value >= 4 ? 'text-yellow-400' : 'text-red-400'}`}>
+                {aiResult.score.value}/10
+              </div>
+              <p className="text-sm text-gray-300">{aiResult.score.label}</p>
             </div>
             <span className="text-xs text-gray-600">
-              {new Date(aiInsight.date).toLocaleDateString()}
+              {aiResult.date ? new Date(aiResult.date).toLocaleDateString() : ''}
             </span>
           </div>
-          <div className="text-gray-300 text-sm whitespace-pre-wrap text-left leading-relaxed max-h-[500px] overflow-y-auto prose-sm prose-headings:text-white prose-headings:font-semibold prose-headings:mt-4 prose-headings:mb-2">
-            {aiInsight.content}
-          </div>
+          {aiResult.overall && (
+            <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 border-l-2 border-blue-500/50">
+              <p className="text-sm text-blue-300">{aiResult.overall}</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -475,6 +489,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
           updateList('savingsAccounts', saList.filter((a) => a.id !== id))
         }
       />
+      <AiTip tip={aiResult?.savings} />
 
       {/* Credit Cards */}
       <AccountSection
@@ -505,6 +520,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
           updateList('creditCards', ccList.filter((c) => c.id !== id))
         }
       />
+      <AiTip tip={aiResult?.debt} />
 
       {/* Investments */}
       <AccountSection
@@ -535,6 +551,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
           updateList('investments', invList.filter((i) => i.id !== id))
         }
       />
+      <AiTip tip={aiResult?.investments} />
 
       {/* Pensions */}
       <AccountSection
@@ -565,6 +582,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
           updateList('pensions', penList.filter((p) => p.id !== id))
         }
       />
+      <AiTip tip={aiResult?.pensions} />
 
       {/* Upcoming Expenses */}
       <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5 space-y-4">
@@ -653,6 +671,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
           </div>
         )}
       </div>
+      <AiTip tip={aiResult?.upcoming} />
     </div>
   )
 }

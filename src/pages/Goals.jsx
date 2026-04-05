@@ -325,16 +325,10 @@ export default function Goals({ goals, setGoals, finances, profile }) {
               </div>
 
               {/* Details */}
-              <div className="grid grid-cols-2 sm:flex sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
-                <div className="flex items-center gap-1.5">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
+                <div className="flex items-center gap-3">
                   <span className="text-gray-500 text-xs">Current</span>
-                  <input
-                    type="number"
-                    step="any"
-                    value={goal.current}
-                    onChange={(e) => updateGoal(goal.id, 'current', e.target.value)}
-                    className="w-full sm:w-24 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:border-blue-500"
-                  />
+                  <span className="text-white font-medium">{GBP(goal.current)}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-gray-500 text-xs">Target</span>
@@ -343,10 +337,10 @@ export default function Goals({ goals, setGoals, finances, profile }) {
                     step="any"
                     value={goal.target}
                     onChange={(e) => updateGoal(goal.id, 'target', e.target.value)}
-                    className="w-full sm:w-24 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:border-blue-500"
+                    className="w-24 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
-                <div className="flex items-center gap-1.5 col-span-2 sm:col-span-1">
+                <div className="flex items-center gap-1.5">
                   <span className="text-gray-500 text-xs">By</span>
                   <input
                     type="date"

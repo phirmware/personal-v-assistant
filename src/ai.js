@@ -23,7 +23,6 @@ async function callOpenAI(prompt, maxTokens = 1000) {
   return data.choices[0].message.content
 }
 
-// Build a detailed financial breakdown so the AI sees every account
 function buildFinanceSummary(finances) {
   const sa = finances.savingsAccounts || []
   const cc = finances.creditCards || []
@@ -38,13 +37,12 @@ function buildFinanceSummary(finances) {
   const totalDebt = cc.reduce((s, c) => s + c.balance, 0)
   const totalUpcoming = ue.reduce((s, e) => s + e.amount, 0)
   const netWorth = totalSavings + totalInvested + totalPension - totalDebt
-  const liquidNet = totalSavings - totalDebt
 
   return `
 FINANCIAL BREAKDOWN:
 Monthly Income: £${income.toFixed(2)}
 
-Savings Accounts (Liquid — Total: £${totalSavings.toFixed(2)}):
+Savings Accounts (Total: £${totalSavings.toFixed(2)}):
 ${sa.length ? sa.map(a => `  - ${a.name}: £${a.amount.toFixed(2)}`).join('\n') : '  (none)'}
 
 Investment Accounts (Total: £${totalInvested.toFixed(2)}):
@@ -59,10 +57,8 @@ ${cc.length ? cc.map(c => `  - ${c.name}: £${c.balance.toFixed(2)}`).join('\n')
 Upcoming Expenses (Total: £${totalUpcoming.toFixed(2)}):
 ${ue.length ? ue.map(e => `  - ${e.name}: £${e.amount.toFixed(2)} by ${e.deadline}`).join('\n') : '  (none)'}
 
-SUMMARY:
-  Net Worth: £${netWorth.toFixed(2)}
-  Liquid Net (savings - debt): £${liquidNet.toFixed(2)}
-  After upcoming expenses: £${(liquidNet - totalUpcoming).toFixed(2)}
+Net Worth: £${netWorth.toFixed(2)}
+Liquid (savings - debt): £${(totalSavings - totalDebt).toFixed(2)}
 `
 }
 
@@ -72,13 +68,21 @@ function getAgeContext(profile) {
   const now = new Date()
   const age = now.getFullYear() - birth.getFullYear() -
     (now < new Date(now.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0)
-  const yearsToRetirement = Math.max(0, 67 - age)
-  return `Age: ${age} years old (born ${profile.birthday}). Years to state pension age (67): ${yearsToRetirement}.`
+  return `Age: ${age}. Years to pension age (67): ${Math.max(0, 67 - age)}.`
+}
+
+function parseJSON(raw) {
+  const match = raw.match(/\{[\s\S]*\}/)
+  if (!match) throw new Error('AI did not return valid JSON')
+  try {
+    return JSON.parse(match[0])
+  } catch {
+    throw new Error('Failed to parse AI response')
+  }
 }
 
 export async function runAnalysis({ tasks, goals, finances, notes }) {
   const userData = JSON.stringify({ tasks, goals, finances, notes }, null, 2)
-
   const prompt = `You are a highly strategic personal advisor.
 
 Analyze the following user data and provide:
@@ -91,7 +95,6 @@ Be concise, direct, and practical.
 
 User Data:
 ${userData}`
-
   return callOpenAI(prompt)
 }
 
@@ -100,42 +103,29 @@ export async function runFinanceAnalysis({ profile, finances, goals }) {
   const ageCtx = getAgeContext(profile)
   const finSummary = buildFinanceSummary(finances)
 
-  const prompt = `You are an expert financial advisor and wealth strategist. Today is ${today}.
-
-You are analysing the financial position of ${profile.name || 'the user'}.
-${ageCtx}
+  const prompt = `You are a concise financial advisor. Today is ${today}. ${ageCtx}
 
 ${finSummary}
 
 Goals:
-${goals.length ? goals.map(g => `- ${g.title}: target £${(g.target||0).toFixed(2)}, current £${(g.current||0).toFixed(2)}${g.deadline ? ` by ${g.deadline}` : ''}`).join('\n') : '(none set)'}
+${goals.length ? goals.map(g => `- ${g.title}: target £${(g.target||0).toFixed(2)}${g.deadline ? ` by ${g.deadline}` : ''}`).join('\n') : '(none)'}
 
-Provide a comprehensive but concise financial analysis. Structure your response EXACTLY with these sections:
+Respond with ONLY valid JSON, no markdown:
 
-## Financial Health Score
-Give an overall score out of 10 and a one-line verdict.
+{
+  "score": { "value": <1-10>, "label": "<one-line verdict>" },
+  "savings": { "summary": "<1 sentence on savings position>", "action": "<1 specific action with numbers>" },
+  "investments": { "summary": "<1 sentence on investment position>", "action": "<1 specific action>" },
+  "pensions": { "summary": "<1 sentence on pension position>", "action": "<1 specific action>" },
+  "debt": { "summary": "<1 sentence on debt position>", "action": "<1 specific action>" },
+  "upcoming": { "summary": "<1 sentence on upcoming expenses feasibility>", "action": "<1 specific action>" },
+  "overall": "<2 sentences: biggest risk + single most impactful next step this week>"
+}
 
-## Core Insights
-3-5 bullet points on the current financial state. Include net worth breakdown, savings rate assessment, debt-to-income ratio if applicable, and how their position compares to where someone their age should be.
+Rules: Be brutally concise. Use £. Reference their actual account names and numbers. Every sentence must be specific to their data, not generic.`
 
-## Red Flags — Act Now
-List anything that needs urgent attention. If nothing is critical, say so.
-
-## Targets to Improve
-3-5 specific, actionable recommendations with precise numbers.
-
-## Projections
-Based on current income, savings rate, investment growth (7% annual for investments, 4% for pensions):
-- Estimated net worth in 1 year, 5 years, and 10 years
-- Whether they're on track for their goals
-- Retirement readiness estimate
-
-## Next Steps
-The single most impactful thing they should do THIS WEEK.
-
-Be direct, specific, and practical. Use £ for currency. Every sentence must reference their actual numbers.`
-
-  return callOpenAI(prompt, 2000)
+  const raw = await callOpenAI(prompt, 1200)
+  return parseJSON(raw)
 }
 
 export async function runGoalsAnalysis({ profile, finances, goals }) {
@@ -147,50 +137,40 @@ export async function runGoalsAnalysis({ profile, finances, goals }) {
     id: g.id,
     title: g.title,
     target: g.target || 0,
-    current: g.current || 0,
     deadline: g.deadline || null,
   })))
 
-  const prompt = `You are a concise, goal-focused financial coach. Today is ${today}. ${ageCtx}
+  const prompt = `You are a concise financial coach. Today is ${today}. ${ageCtx}
 
 ${finSummary}
 
 GOALS:
 ${goalsJSON}
 
-TASK: Analyse each goal against the financial data above.
+For each goal, read the goal title carefully and estimate their current standing based on the financial data. Examples:
+- "Emergency fund" → look at liquid savings
+- "Pay off credit cards" → look at how much debt remains vs original (estimate current progress)
+- "Save for house deposit" → look at total savings + relevant accounts
+- "Invest £X" → look at investment account totals
+- "Pension pot £X" → look at pension totals
 
-You MUST respond with ONLY valid JSON in this exact format — no markdown, no explanation before or after:
+Respond with ONLY valid JSON:
 
 {
   "goals": [
     {
-      "id": <goal id number>,
-      "current_estimate": <number — your best estimate of where they currently stand toward this goal based on their financial data. For example if goal is "Emergency fund £5000" and they have £3000 in savings, current_estimate is 3000. For debt payoff goals use amount already paid. Use 0 if no clear mapping.>,
+      "id": <goal id>,
+      "current_estimate": <number — estimated current progress toward target based on their financial data and goal title. Must be a real number from their data, not 0 unless truly nothing applies.>,
       "status": "on_track" | "needs_work" | "off_track",
-      "summary": "<1 sentence — where they stand with real numbers>",
-      "action": "<1 sentence — the specific next step with a number>"
+      "summary": "<1 sentence with real numbers>",
+      "action": "<1 sentence — specific next step with a number>"
     }
   ],
-  "overall": "<2-3 sentences connecting the dots — priorities, biggest lever to pull>"
+  "overall": "<2 sentences max — priorities and biggest lever to pull>"
 }
 
-Rules:
-- current_estimate must be a number derived from their actual financial data
-- Reference specific account names and amounts
-- Be brutally concise
-- Use £ for currency in summary/action strings
-- If they have no goals, suggest 3 in the goals array with id: 0`
+Rules: Be concise. Use £. Map goal titles to real account data intelligently.`
 
   const raw = await callOpenAI(prompt, 1500)
-
-  // Extract JSON from response (handle markdown code blocks)
-  const jsonMatch = raw.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) throw new Error('AI did not return valid JSON')
-
-  try {
-    return JSON.parse(jsonMatch[0])
-  } catch {
-    throw new Error('Failed to parse AI response')
-  }
+  return parseJSON(raw)
 }

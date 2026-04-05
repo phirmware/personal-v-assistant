@@ -41,13 +41,22 @@ function AiTip({ tip, label }) {
   const [open, setOpen] = useState(false)
   if (!tip || (!tip.summary && !tip.action)) return null
 
-  const compactAction = clampText(firstSentence(tip.action), 120)
-  const compactSummary = clampText(firstSentence(tip.summary), 140)
-  const primaryText = compactAction || compactSummary
-  const secondaryText =
-    compactAction && compactSummary && compactAction !== compactSummary
-      ? compactSummary
-      : null
+  const actionText = typeof tip.action === 'string' ? tip.action.replace(/\s+/g, ' ').trim() : ''
+  const summaryText = typeof tip.summary === 'string' ? tip.summary.replace(/\s+/g, ' ').trim() : ''
+
+  const primaryFull = actionText || summaryText
+  const primarySentence = firstSentence(primaryFull)
+  const primaryCompact = clampText(primarySentence, 120)
+  const primaryTruncated = primaryCompact !== primarySentence
+
+  const secondaryFull =
+    actionText && summaryText && summaryText !== actionText
+      ? summaryText
+      : ''
+  const secondarySentence = firstSentence(secondaryFull)
+  const secondaryCompact = secondarySentence ? clampText(secondarySentence, 140) : ''
+  const secondaryTruncated = secondaryCompact && secondaryCompact !== secondarySentence
+  const canExpand = Boolean(secondaryFull || primaryTruncated || secondaryTruncated)
 
   return (
     <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 border border-gray-700/50 -mt-2">
@@ -55,18 +64,24 @@ function AiTip({ tip, label }) {
         <p className="text-[11px] uppercase tracking-[0.1em] text-gray-500">
           {label ? `${label} • AI next step` : 'AI next step'}
         </p>
-        {secondaryText && (
+        {canExpand && (
           <button
             type="button"
             onClick={() => setOpen((prev) => !prev)}
             className="text-[11px] text-blue-300 hover:text-blue-200 transition-colors"
           >
-            {open ? 'Less' : 'Why'}
+            {open ? 'Less' : 'More'}
           </button>
         )}
       </div>
-      {primaryText && <p className="text-sm text-blue-300 font-medium mt-1">{primaryText}</p>}
-      {open && secondaryText && <p className="text-xs text-gray-400 mt-1">{secondaryText}</p>}
+      {primaryFull && (
+        <p className="text-sm text-blue-300 font-medium mt-1">
+          {open ? primaryFull : primaryCompact}
+        </p>
+      )}
+      {open && secondaryFull && (
+        <p className="text-xs text-gray-400 mt-1">{secondaryFull}</p>
+      )}
     </div>
   )
 }

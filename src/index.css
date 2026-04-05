@@ -23,6 +23,11 @@ body,
   height: 100%;
 }
 
+html,
+body {
+  overscroll-behavior: none;
+}
+
 .app-shell {
   background:
     radial-gradient(1200px 500px at 50% -120px, rgba(59, 130, 246, 0.08), transparent 60%),

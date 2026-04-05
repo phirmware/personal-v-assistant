@@ -33,6 +33,7 @@ export default function App() {
   const [swUpdateReady, setSwUpdateReady] = useState(false)
   const touchStartRef = useRef({ x: 0, y: 0 })
   const navAudioCtxRef = useRef(null)
+  const mainScrollRef = useRef(null)
   const [tasks, setTasks] = useLocalStorage('va-tasks', [])
   const [finances, setFinances] = useLocalStorage('va-finances', {
     monthlyIncome: 0,
@@ -80,6 +81,40 @@ export default function App() {
       window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt)
       window.removeEventListener('appinstalled', onInstalled)
       window.removeEventListener('va-sw-update-ready', onSwUpdateReady)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    const mainEl = mainScrollRef.current
+    if (!mainEl) return undefined
+
+    const isCoarsePointer = window.matchMedia?.('(pointer: coarse)').matches
+    if (!isCoarsePointer) return undefined
+
+    let startY = 0
+
+    const onTouchStart = (event) => {
+      const touch = event.touches?.[0]
+      if (!touch) return
+      startY = touch.clientY
+    }
+
+    const onTouchMove = (event) => {
+      const touch = event.touches?.[0]
+      if (!touch) return
+      const deltaY = touch.clientY - startY
+      if (mainEl.scrollTop <= 0 && deltaY > 0) {
+        event.preventDefault()
+      }
+    }
+
+    mainEl.addEventListener('touchstart', onTouchStart, { passive: true })
+    mainEl.addEventListener('touchmove', onTouchMove, { passive: false })
+
+    return () => {
+      mainEl.removeEventListener('touchstart', onTouchStart)
+      mainEl.removeEventListener('touchmove', onTouchMove)
     }
   }, [])
 
@@ -272,9 +307,9 @@ export default function App() {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 overflow-y-auto pb-32 lg:pb-0">
+      <main ref={mainScrollRef} className="flex-1 overflow-y-auto overscroll-y-none pb-32 lg:pb-0">
         <div
-          className="lg:hidden fixed top-0 inset-x-0 z-40 px-3 pb-2 pointer-events-none bg-gradient-to-b from-gray-950 via-gray-950/95 to-transparent backdrop-blur-sm"
+          className="lg:hidden fixed top-0 inset-x-0 z-40 px-3 pb-2 pointer-events-none bg-transparent"
           style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.1rem)' }}
         >
           <div className="mobile-topbar-shell pointer-events-auto rounded-3xl border border-gray-700/80 bg-gray-900/90 backdrop-blur shadow-[0_8px_24px_rgba(0,0,0,0.35)] px-4 py-3">

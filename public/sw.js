@@ -1,4 +1,4 @@
-const CACHE_NAME = 'v-assistant-v2'
+const CACHE_NAME = 'v-assistant-v3'
 const PRECACHE = ['/', '/index.html', '/manifest.json']
 
 self.addEventListener('install', (e) => {

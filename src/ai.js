@@ -106,6 +106,24 @@ ${userData}`
   return callOpenAI(prompt)
 }
 
+export async function runTaskSuggestion({ task }) {
+  const prompt = `You are a concise productivity coach.
+
+Give practical guidance for this single task:
+- Title: ${task?.title || 'Untitled'}
+- Priority: ${task?.priority || 'medium'}
+- Details: ${task?.details || '(none)'}
+
+Respond in concise markdown with:
+1) Three actionable suggestions
+2) One likely blocker to watch
+3) The best first step to do in the next 15 minutes
+
+Keep total response under 120 words.`
+
+  return callOpenAI(prompt, 500)
+}
+
 export async function runFinanceAnalysis({ profile, finances, goals }) {
   const today = new Date().toISOString().split('T')[0]
   const ageCtx = getAgeContext(profile)

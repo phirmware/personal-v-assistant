@@ -207,7 +207,7 @@ export default function Tasks({ tasks, setTasks }) {
               </button>
               <button
                 onClick={() => deleteTask(task.id)}
-                className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                className="text-gray-500 hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100 transition-all shrink-0"
               >
                 <Trash2 size={16} />
               </button>
@@ -215,13 +215,13 @@ export default function Tasks({ tasks, setTasks }) {
 
             {openMap[task.id] && (
               <div className="border-t border-gray-700/60 px-4 py-3 space-y-2">
-                <textarea
-                  value={task.details || ''}
-                  onChange={(e) => updateTask(task.id, 'details', e.target.value)}
-                  placeholder="Add task details..."
-                  rows={2}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
-                />
+                  <textarea
+                    value={task.details || ''}
+                    onChange={(e) => updateTask(task.id, 'details', e.target.value)}
+                    placeholder="Add task details..."
+                    rows={2}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y min-h-[5rem] max-h-56 overflow-y-auto touch-pan-y"
+                  />
                 <div className="flex justify-between items-center gap-2">
                   <button
                     onClick={() => handleTaskAI(task)}

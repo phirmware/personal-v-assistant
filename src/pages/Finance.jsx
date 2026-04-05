@@ -165,11 +165,11 @@ function AccountSection({
   const total = list.reduce((sum, item) => sum + (item[valueKey] || 0), 0)
 
   return (
-    <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5 space-y-4">
+    <div className="app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5 space-y-4">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="w-full flex items-center justify-between gap-3 text-left"
+        className="app-section-toggle w-full flex items-center justify-between gap-3 text-left"
       >
         <h2 className="text-lg font-semibold text-white flex items-center gap-2">
           {icon}
@@ -337,13 +337,12 @@ export default function Finance({ finances, setFinances, profile }) {
   }
 
   return (
-    <div className="space-y-5 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Financial Position</h1>
+    <div className="flex flex-col gap-5 sm:gap-6">
+      <div className="order-1 flex justify-end">
         <button
           onClick={handleFinanceAI}
           disabled={aiLoading}
-          className="app-primary-btn text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors self-start sm:self-auto"
+          className="app-primary-btn text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors"
         >
           {aiLoading ? (
             <Loader2 size={16} className="animate-spin" />
@@ -355,17 +354,17 @@ export default function Finance({ finances, setFinances, profile }) {
       </div>
 
       {aiError && (
-        <div className="bg-red-900/30 border border-red-800 rounded-lg p-4 text-red-300 text-sm">
+        <div className="order-0 bg-red-900/30 border border-red-800 rounded-lg p-4 text-red-300 text-sm">
           {aiError}
         </div>
       )}
 
       {/* Core snapshot */}
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+      <div className="order-2 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
         <button
           type="button"
           onClick={() => setCoreOpen((prev) => !prev)}
-          className="w-full flex items-center justify-between p-4 sm:p-5 text-left"
+          className="app-section-toggle w-full flex items-center justify-between p-4 sm:p-5 text-left"
         >
           <div className="flex items-center gap-2">
             <Landmark size={18} className="text-indigo-400" />
@@ -460,11 +459,11 @@ export default function Finance({ finances, setFinances, profile }) {
 
       {/* AI Score + Overall */}
       {aiResult?.score && (
-        <div className="app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl overflow-hidden">
+        <div className="order-3 app-section-card app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl overflow-hidden">
           <button
             type="button"
             onClick={() => setAiSummaryOpen((prev) => !prev)}
-            className="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left"
+            className="app-section-toggle w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left"
           >
             <div className="flex items-center gap-3 min-w-0">
               <div className={`text-2xl font-bold shrink-0 ${aiResult.score.value >= 7 ? 'text-green-400' : aiResult.score.value >= 4 ? 'text-yellow-400' : 'text-red-400'}`}>
@@ -493,11 +492,11 @@ export default function Finance({ finances, setFinances, profile }) {
       )}
 
       {/* Setup */}
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+      <div className="order-4 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
         <button
           type="button"
           onClick={() => setSetupOpen((prev) => !prev)}
-          className="w-full flex items-center justify-between p-4 sm:p-5 text-left"
+          className="app-section-toggle w-full flex items-center justify-between p-4 sm:p-5 text-left"
         >
           <div className="flex items-center gap-2">
             <TrendingUp size={18} className="text-purple-400" />
@@ -575,7 +574,8 @@ export default function Finance({ finances, setFinances, profile }) {
       </div>
 
       {/* Savings Accounts */}
-      <AccountSection
+      <div className="order-5">
+        <AccountSection
         icon={<PiggyBank size={20} className="text-green-400" />}
         title="Savings Accounts"
         color="green"
@@ -604,10 +604,12 @@ export default function Finance({ finances, setFinances, profile }) {
         }
         tip={aiResult?.savings}
         tipLabel="Savings"
-      />
+        />
+      </div>
 
       {/* Credit Cards */}
-      <AccountSection
+      <div className="order-6">
+        <AccountSection
         icon={<CreditCard size={20} className="text-red-400" />}
         title="Credit Cards"
         color="red"
@@ -636,10 +638,12 @@ export default function Finance({ finances, setFinances, profile }) {
         }
         tip={aiResult?.debt}
         tipLabel="Debt"
-      />
+        />
+      </div>
 
       {/* Investments */}
-      <AccountSection
+      <div className="order-7">
+        <AccountSection
         icon={<LineChart size={20} className="text-cyan-400" />}
         title="Investments"
         color="cyan"
@@ -668,10 +672,12 @@ export default function Finance({ finances, setFinances, profile }) {
         }
         tip={aiResult?.investments}
         tipLabel="Investments"
-      />
+        />
+      </div>
 
       {/* Pensions */}
-      <AccountSection
+      <div className="order-8">
+        <AccountSection
         icon={<Shield size={20} className="text-amber-400" />}
         title="Pensions"
         color="amber"
@@ -700,14 +706,15 @@ export default function Finance({ finances, setFinances, profile }) {
         }
         tip={aiResult?.pensions}
         tipLabel="Pensions"
-      />
+        />
+      </div>
 
       {/* Upcoming Expenses */}
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+      <div className="order-9 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
         <button
           type="button"
           onClick={() => setUpcomingOpen((prev) => !prev)}
-          className="w-full flex items-start sm:items-center justify-between gap-2 p-4 sm:p-5 text-left"
+          className="app-section-toggle w-full flex items-start sm:items-center justify-between gap-2 p-4 sm:p-5 text-left"
         >
           <div className="flex items-center gap-2 min-w-0">
             <Calendar size={20} className="text-amber-400 shrink-0" />

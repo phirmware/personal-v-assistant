@@ -27,13 +27,11 @@ export default function Notes({ notes, setNotes }) {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Quick Notes</h1>
-
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+      <div className="app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
         <button
           type="button"
           onClick={() => setAddOpen((prev) => !prev)}
-          className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
+          className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
         >
           <div>
             <p className="text-sm sm:text-base font-semibold text-white">Add Note</p>
@@ -79,12 +77,12 @@ export default function Notes({ notes, setNotes }) {
           return (
             <div
               key={note.id}
-              className="bg-gray-800/60 border border-gray-700/50 rounded-lg overflow-hidden"
+              className="app-section-card bg-gray-800/60 border border-gray-700/50 rounded-lg overflow-hidden"
             >
               <button
                 type="button"
                 onClick={() => toggleOpen(note.id)}
-                className="w-full px-4 py-3 flex items-start justify-between gap-3 text-left"
+                className="app-section-toggle w-full px-4 py-3 flex items-start justify-between gap-3 text-left"
               >
                 <div className="flex items-start gap-2 min-w-0">
                   <StickyNote size={16} className="text-amber-400 mt-0.5 shrink-0" />

@@ -317,14 +317,13 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
   }
 
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <div className="flex flex-col gap-5 sm:gap-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Goals & Plans</h1>
+      <div className="order-1 flex justify-end">
         <button
           onClick={() => handleGoalsAI()}
           disabled={aiLoadingScope !== null}
-          className="app-primary-btn text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors self-start sm:self-auto"
+          className="app-primary-btn text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors"
         >
           {aiLoadingScope === 'all' ? (
             <Loader2 size={16} className="animate-spin" />
@@ -336,13 +335,13 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
       </div>
 
       {aiError && (
-        <div className="bg-red-900/30 border border-red-800 rounded-lg p-3 sm:p-4 text-red-300 text-sm">
+        <div className="order-0 bg-red-900/30 border border-red-800 rounded-lg p-3 sm:p-4 text-red-300 text-sm">
           {aiError}
         </div>
       )}
 
       {/* Financial context strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+      <div className="order-2 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3">
           <div className="flex items-center gap-1.5 text-green-400 mb-0.5">
             <PiggyBank size={14} />
@@ -377,7 +376,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
 
       {/* Overall AI strategy */}
       {aiResult.all?.overall && (
-        <div className="app-accent-panel bg-purple-900/20 border border-purple-800/40 rounded-xl p-3 sm:p-4 flex gap-3">
+        <div className="app-accent-panel bg-purple-900/20 border border-purple-800/40 rounded-xl p-3 sm:p-4 flex gap-3 order-2">
           <Sparkles size={18} className="app-accent-text shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-semibold text-white mb-1">Overall Strategy</p>
@@ -392,10 +391,10 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
       )}
 
       {/* Add goal form */}
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl">
+      <div className="order-3 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl">
         <button
           onClick={() => setAddOpen((prev) => !prev)}
-          className="w-full px-4 py-3 flex items-center justify-between text-left"
+          className="app-section-toggle w-full px-4 py-3 flex items-center justify-between text-left"
         >
           <div>
             <p className="text-sm font-semibold text-white">Add New Goal</p>
@@ -469,14 +468,16 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
 
       {/* Goals list */}
       {normalizedGoals.length === 0 && !aiResult.all && (
-        <EmptyState
+        <div className="order-4">
+          <EmptyState
           icon={Target}
           title="No goals yet"
           description="Add a goal and run AI for direction and next steps."
-        />
+          />
+        </div>
       )}
 
-      <div className="space-y-4">
+      <div className="order-4 space-y-4">
         {sections.map((section) => {
           const sectionResult = aiResult.sections?.[section.key]
           const sectionLoadingKey = `section:${section.key}`
@@ -491,12 +492,12 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
           return (
             <div
               key={section.key}
-              className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden"
+              className="app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden"
             >
               <button
                 type="button"
                 onClick={() => toggleSection(section.key)}
-                className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between gap-3 text-left"
+                className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-center justify-between gap-3 text-left"
               >
                 <div className="min-w-0">
                   <h2 className="text-sm sm:text-base font-semibold text-white">{section.name}</h2>
@@ -553,12 +554,12 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
                       return (
                         <div
                           key={goal.id}
-                          className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden"
+                          className="app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden"
                         >
                           <button
                             type="button"
                             onClick={() => toggleGoal(goalEntryKey)}
-                            className="w-full px-4 sm:px-5 py-3.5 flex items-start justify-between gap-3 text-left"
+                            className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-start justify-between gap-3 text-left"
                           >
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2 min-w-0">

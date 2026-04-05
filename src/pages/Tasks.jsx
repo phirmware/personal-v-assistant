@@ -101,13 +101,11 @@ export default function Tasks({ tasks, setTasks }) {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Tasks</h1>
-
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+      <div className="app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
         <button
           type="button"
           onClick={() => setAddOpen((prev) => !prev)}
-          className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
+          className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
         >
           <div>
             <p className="text-sm sm:text-base font-semibold text-white">Add Task</p>
@@ -179,7 +177,7 @@ export default function Tasks({ tasks, setTasks }) {
         {sorted.map((task) => (
           <div
             key={task.id}
-            className={`bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden group ${task.done ? 'opacity-50' : ''}`}
+            className={`app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden group ${task.done ? 'opacity-50' : ''}`}
           >
             <div className="px-4 py-3 flex items-center gap-3">
               <input

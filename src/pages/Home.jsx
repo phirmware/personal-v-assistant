@@ -344,14 +344,14 @@ export default function Home({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {error && (
-        <div className="bg-red-900/30 border border-red-800 rounded-lg p-4 text-red-300 text-sm">
+        <div className="order-0 bg-red-900/30 border border-red-800 rounded-lg p-4 text-red-300 text-sm">
           {error}
         </div>
       )}
 
-      <div className="relative overflow-hidden rounded-2xl border border-blue-800/40 bg-gradient-to-br from-blue-900/30 via-indigo-900/20 to-gray-900/70 px-4 sm:px-5 py-4 sm:py-5">
+      <div className="order-1 relative overflow-hidden rounded-2xl border border-blue-800/40 bg-gradient-to-br from-blue-900/30 via-indigo-900/20 to-gray-900/70 px-4 sm:px-5 py-4 sm:py-5">
         <div className="absolute -top-8 -right-8 h-24 w-24 rounded-full bg-blue-400/10 blur-2xl" />
         <div className="relative">
           <p className="text-xs uppercase tracking-[0.12em] text-blue-300/80">Welcome back</p>
@@ -368,11 +368,11 @@ export default function Home({
         </div>
       </div>
 
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+      <div className="order-6 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
         <button
           type="button"
           onClick={() => toggleSection('controls')}
-          className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
+          className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
         >
           <div>
             <p className="text-sm sm:text-base font-semibold text-white">Profile & App Controls</p>
@@ -495,11 +495,11 @@ export default function Home({
 
       {/* Alerts */}
       {alerts.length > 0 && (
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+        <div className="order-2 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
           <button
             type="button"
             onClick={() => toggleSection('alerts')}
-            className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
+            className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
           >
             <div>
               <p className="text-sm sm:text-base font-semibold text-white">Alerts</p>
@@ -532,11 +532,11 @@ export default function Home({
       )}
 
       {/* Today's Focus */}
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+      <div className="order-3 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
         <button
           type="button"
           onClick={() => toggleSection('focus')}
-          className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
+          className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
         >
           <div className="flex items-center gap-2 min-w-0">
             <Zap size={20} className="text-yellow-400 shrink-0" />
@@ -596,11 +596,11 @@ export default function Home({
       </div>
 
       {/* Metrics Row */}
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+      <div className="order-5 app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
         <button
           type="button"
           onClick={() => toggleSection('metrics')}
-          className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
+          className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
         >
           <div>
             <p className="text-sm sm:text-base font-semibold text-white">At a glance</p>
@@ -652,11 +652,11 @@ export default function Home({
 
       {/* Latest AI Insight */}
       {latestInsight && (
-        <div className="app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl overflow-hidden">
+        <div className="order-4 app-section-card app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl overflow-hidden">
           <button
             type="button"
             onClick={() => toggleSection('insight')}
-            className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
+            className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
           >
             <div className="flex items-center gap-2 app-accent-text min-w-0">
               <Sparkles size={18} />

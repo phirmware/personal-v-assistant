@@ -61,6 +61,41 @@ body,
   background: color-mix(in srgb, var(--app-accent-500) 8%, rgba(17, 24, 39, 0.7));
 }
 
+.app-section-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.app-section-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--app-accent-400) 42%, #374151),
+    transparent
+  );
+  opacity: 0.38;
+}
+
+.app-section-toggle {
+  min-height: 3.4rem;
+  transition: background-color 180ms ease;
+}
+
+.app-section-toggle:active {
+  background: color-mix(in srgb, var(--app-accent-500) 8%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .app-section-toggle:hover {
+    background: color-mix(in srgb, var(--app-accent-500) 10%, transparent);
+  }
+}
+
 .app-primary-btn {
   background: color-mix(in srgb, var(--app-accent-500) 88%, #0f172a);
   color: #fff;

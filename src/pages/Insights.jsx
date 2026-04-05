@@ -43,17 +43,16 @@ export default function Insights({ insights, setInsights }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">AI Insights</h1>
-        {insights.length > 0 && (
+      {insights.length > 0 && (
+        <div className="flex justify-end">
           <button
             onClick={clearAll}
             className="text-sm text-gray-500 hover:text-red-400 transition-colors"
           >
             Clear All
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {insights.length === 0 && (
         <EmptyState
@@ -70,12 +69,12 @@ export default function Insights({ insights, setInsights }) {
           return (
             <div
               key={insight.id}
-              className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden"
+              className="app-section-card bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden"
             >
               <button
                 type="button"
                 onClick={() => toggleOpen(insight.id)}
-                className="w-full px-4 sm:px-5 py-3.5 flex items-start justify-between gap-3 text-left"
+                className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-start justify-between gap-3 text-left"
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 app-accent-text">

@@ -8,7 +8,7 @@ async function callOpenAI(prompt, maxTokens = 1000) {
       Authorization: `Bearer ${OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5.4-mini',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: maxTokens,
     }),

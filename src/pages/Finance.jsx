@@ -244,7 +244,7 @@ function AccountSection({
   )
 }
 
-export default function Finance({ finances, setFinances, goals, profile, setProfile }) {
+export default function Finance({ finances, setFinances, profile, setProfile }) {
   const [expName, setExpName] = useState('')
   const [expAmount, setExpAmount] = useState('')
   const [expDeadline, setExpDeadline] = useState('')
@@ -323,7 +323,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
     setAiLoading(true)
     setAiError(null)
     try {
-      const result = await runFinanceAnalysis({ profile, finances, goals })
+      const result = await runFinanceAnalysis({ profile, finances })
       const stored = { ...result, date: new Date().toISOString() }
       setAiResult(stored)
       localStorage.setItem('va-finance-insight', JSON.stringify(stored))

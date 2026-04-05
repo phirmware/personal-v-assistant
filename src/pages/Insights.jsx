@@ -3,6 +3,29 @@ import { useState } from 'react'
 import MarkdownContent from '../components/MarkdownContent'
 import EmptyState from '../components/EmptyState'
 
+function buildInsightPreview(content) {
+  const raw = String(content || '')
+  if (!raw.trim()) return ''
+
+  const cleaned = raw
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^\s*>\s?/gm, '')
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/^\s*\d+\.\s+/gm, '')
+    .replace(/(\*\*|__)(.*?)\1/g, '$2')
+    .replace(/(\*|_)(.*?)\1/g, '$2')
+    .replace(/^\s*[-*_]{3,}\s*$/gm, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  if (cleaned.length <= 180) return cleaned
+  return `${cleaned.slice(0, 179).trimEnd()}…`
+}
+
 export default function Insights({ insights, setInsights }) {
   const [openMap, setOpenMap] = useState({})
 
@@ -43,6 +66,7 @@ export default function Insights({ insights, setInsights }) {
       <div className="space-y-4">
         {insights.map((insight) => {
           const isOpen = Boolean(openMap[insight.id])
+          const preview = buildInsightPreview(insight.content)
           return (
             <div
               key={insight.id}
@@ -62,7 +86,7 @@ export default function Insights({ insights, setInsights }) {
                   </div>
                   {!isOpen && (
                     <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-                      {String(insight.content || '').replace(/\s+/g, ' ').trim()}
+                      {preview || 'Tap to view insight'}
                     </p>
                   )}
                 </div>

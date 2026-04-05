@@ -124,7 +124,7 @@ Keep total response under 120 words.`
   return callOpenAI(prompt, 500)
 }
 
-export async function runFinanceAnalysis({ profile, finances, goals }) {
+export async function runFinanceAnalysis({ profile, finances }) {
   const today = new Date().toISOString().split('T')[0]
   const ageCtx = getAgeContext(profile)
   const finSummary = buildFinanceSummary(finances)
@@ -132,9 +132,6 @@ export async function runFinanceAnalysis({ profile, finances, goals }) {
   const prompt = `You are a concise financial advisor. Today is ${today}. ${ageCtx}
 
 ${finSummary}
-
-Goals:
-${goals.length ? goals.map(g => `- ${g.title}: target £${(g.target||0).toFixed(2)}${g.deadline ? ` by ${g.deadline}` : ''}`).join('\n') : '(none)'}
 
 Respond with ONLY valid JSON, no markdown:
 
@@ -152,6 +149,8 @@ Respond with ONLY valid JSON, no markdown:
 Rules:
 - Be brutally concise.
 - Use £ and exact numbers from user data.
+- Focus ONLY on current financial health (cashflow, savings, debt, investments, pensions, upcoming expenses).
+- Do not consider goals, target amounts, or future goal deadlines in this analysis.
 - For each section:
   - summary: max 10 words.
   - action: max 14 words, one clear step only.

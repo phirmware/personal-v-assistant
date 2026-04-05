@@ -1,4 +1,4 @@
-import { Trash2, Brain, ChevronDown, ChevronUp } from 'lucide-react'
+import { Trash2, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
 import MarkdownContent from '../components/MarkdownContent'
 import EmptyState from '../components/EmptyState'
@@ -57,7 +57,7 @@ export default function Insights({ insights, setInsights }) {
 
       {insights.length === 0 && (
         <EmptyState
-          icon={Brain}
+          icon={Sparkles}
           title="No insights yet"
           description="Run AI analysis from Home to generate your first recommendation."
         />
@@ -79,7 +79,7 @@ export default function Insights({ insights, setInsights }) {
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 app-accent-text">
-                    <Brain size={18} />
+                    <Sparkles size={18} />
                     <span className="text-sm text-gray-500">
                       {new Date(insight.date).toLocaleString()}
                     </span>

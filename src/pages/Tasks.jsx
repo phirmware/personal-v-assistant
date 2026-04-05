@@ -4,7 +4,7 @@ import {
   Trash2,
   Star,
   StarOff,
-  Brain,
+  Sparkles,
   Loader2,
   ChevronDown,
   ChevronUp,
@@ -245,7 +245,7 @@ export default function Tasks({ tasks, setTasks }) {
                     {aiLoadingId === task.id ? (
                       <Loader2 size={12} className="animate-spin" />
                     ) : (
-                      <Brain size={12} />
+                      <Sparkles size={12} />
                     )}
                     {aiLoadingId === task.id ? 'Thinking...' : 'AI Suggest'}
                   </button>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   Zap,
-  Brain,
+  Sparkles,
   AlertTriangle,
   TrendingUp,
   Target,
@@ -460,7 +460,7 @@ export default function Home({
                   {loading ? (
                     <Loader2 size={16} className="animate-spin" />
                   ) : (
-                    <Brain size={16} />
+                    <Sparkles size={16} />
                   )}
                   <span className="sm:hidden">{loading ? 'Analyzing...' : 'AI Analysis'}</span>
                   <span className="hidden sm:inline">{loading ? 'Analyzing...' : 'Run AI Analysis'}</span>
@@ -659,7 +659,7 @@ export default function Home({
             className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
           >
             <div className="flex items-center gap-2 app-accent-text min-w-0">
-              <Brain size={18} />
+              <Sparkles size={18} />
               <div className="min-w-0">
                 <h2 className="text-sm sm:text-base font-semibold text-white">
                   Latest AI Recommendation

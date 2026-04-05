@@ -3,7 +3,7 @@ import {
   Plus,
   Trash2,
   Target,
-  Brain,
+  Sparkles,
   Loader2,
   ChevronDown,
   ChevronUp,
@@ -329,7 +329,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
           {aiLoadingScope === 'all' ? (
             <Loader2 size={16} className="animate-spin" />
           ) : (
-            <Brain size={16} />
+            <Sparkles size={16} />
           )}
           {aiLoadingScope === 'all' ? 'Analysing...' : 'Analyse All Goals'}
         </button>
@@ -378,7 +378,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
       {/* Overall AI strategy */}
       {aiResult.all?.overall && (
         <div className="app-accent-panel bg-purple-900/20 border border-purple-800/40 rounded-xl p-3 sm:p-4 flex gap-3">
-          <Brain size={18} className="app-accent-text shrink-0 mt-0.5" />
+          <Sparkles size={18} className="app-accent-text shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-semibold text-white mb-1">Overall Strategy</p>
             <p className="text-sm text-gray-300 leading-relaxed">{aiResult.all.overall}</p>
@@ -521,7 +521,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
                       {aiLoadingScope === sectionLoadingKey ? (
                         <Loader2 size={12} className="animate-spin" />
                       ) : (
-                        <Brain size={12} />
+                        <Sparkles size={12} />
                       )}
                       {aiLoadingScope === sectionLoadingKey ? 'Analysing...' : 'Analyse Section'}
                     </button>

@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react'
 import {
   Home as HomeIcon,
-  CheckSquare,
-  DollarSign,
+  ListTodo,
+  Wallet,
   Target,
   StickyNote,
-  Brain,
+  Sparkles,
 } from 'lucide-react'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import Home from './pages/Home'
@@ -17,11 +17,11 @@ import Insights from './pages/Insights'
 
 const NAV = [
   { id: 'home', label: 'Home', icon: HomeIcon },
-  { id: 'tasks', label: 'Tasks', icon: CheckSquare },
-  { id: 'finance', label: 'Finance', icon: DollarSign },
+  { id: 'tasks', label: 'Tasks', icon: ListTodo },
+  { id: 'finance', label: 'Finance', icon: Wallet },
   { id: 'goals', label: 'Goals', icon: Target },
   { id: 'notes', label: 'Notes', icon: StickyNote },
-  { id: 'insights', label: 'Insights', icon: Brain },
+  { id: 'insights', label: 'Insights', icon: Sparkles },
 ]
 
 export default function App() {
@@ -180,7 +180,7 @@ export default function App() {
       <aside className="hidden lg:block h-full w-64 p-3">
         <div className="h-full rounded-3xl border border-gray-700/70 bg-gray-900/80 backdrop-blur-xl shadow-[0_12px_36px_rgba(0,0,0,0.35)] flex flex-col">
           <div className="flex items-center gap-2 px-5 py-5 border-b border-gray-700/70">
-            <Brain size={24} className="app-accent-text" />
+            <Sparkles size={22} strokeWidth={2.4} className="app-accent-text" />
             <span className="font-bold text-lg text-white tracking-tight">
               V-Assistant
             </span>
@@ -198,9 +198,17 @@ export default function App() {
                       ? 'app-nav-active border-r-2'
                       : 'text-gray-400 hover:text-white hover:bg-gray-800'
                   }`}
+                  aria-current={active ? 'page' : undefined}
                 >
-                  <Icon size={18} />
-                  {item.label}
+                  <span className="desktop-nav-icon-shell rounded-xl p-1.5">
+                    <Icon
+                      size={20}
+                      strokeWidth={active ? 2.5 : 2.2}
+                      fill={active ? 'currentColor' : 'none'}
+                      fillOpacity={active ? 0.16 : 0}
+                    />
+                  </span>
+                  <span className="desktop-nav-label">{item.label}</span>
                 </button>
               )
             })}
@@ -265,13 +273,17 @@ export default function App() {
                   className={`mobile-tab-button rounded-2xl flex flex-col items-center justify-center gap-1.5 py-2.5 min-h-[58px] text-[12px] font-medium transition-all duration-200 ${
                     active ? 'is-active' : 'text-gray-400 hover:text-white'
                   }`}
+                  aria-current={active ? 'page' : undefined}
                 >
                   <span
-                    className={`tab-icon-shell relative rounded-full p-1.5 transition-all duration-200 ${
-                      active ? 'scale-105' : ''
-                    }`}
+                    className="tab-icon-shell relative rounded-full p-1.5 transition-all duration-200"
                   >
-                    <Icon size={19} />
+                    <Icon
+                      size={20}
+                      strokeWidth={active ? 2.5 : 2.2}
+                      fill={active ? 'currentColor' : 'none'}
+                      fillOpacity={active ? 0.16 : 0}
+                    />
                     {tapFx === item.id && (
                       <span className="tab-ripple absolute inset-0 rounded-full border app-accent-border" />
                     )}
@@ -279,7 +291,7 @@ export default function App() {
                       <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full app-accent-dot" />
                     )}
                   </span>
-                  <span>{item.label}</span>
+                  <span className="tab-label">{item.label}</span>
                 </button>
               )
             })}

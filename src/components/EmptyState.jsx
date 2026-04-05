@@ -9,7 +9,7 @@ export default function EmptyState({
     <div className="empty-state">
       {Icon && (
         <div className="empty-state-icon">
-          <Icon size={18} />
+          <Icon size={20} strokeWidth={2.2} />
         </div>
       )}
       <p className="empty-state-title">{title}</p>

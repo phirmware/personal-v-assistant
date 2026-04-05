@@ -94,6 +94,22 @@ body,
   );
 }
 
+.desktop-nav-icon-shell {
+  color: inherit;
+  background: transparent;
+  transform: translateZ(0);
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), background-color 180ms ease;
+}
+
+.desktop-nav-label {
+  transition: opacity 180ms ease;
+}
+
+.app-nav-active .desktop-nav-icon-shell {
+  background: color-mix(in srgb, var(--app-accent-500) 26%, transparent);
+  transform: scale(1.06);
+}
+
 .mobile-tab-button.is-active {
   color: var(--app-accent-300);
   background: color-mix(in srgb, var(--app-accent-500) 12%, transparent);
@@ -101,6 +117,35 @@ body,
 
 .mobile-tab-button.is-active .tab-icon-shell {
   background: color-mix(in srgb, var(--app-accent-500) 24%, transparent);
+  transform: scale(1.08);
+}
+
+.tab-icon-shell {
+  transform: translateZ(0);
+}
+
+.tab-label {
+  letter-spacing: 0.01em;
+}
+
+.mobile-tab-button .tab-icon-shell,
+.mobile-tab-button .tab-label {
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease,
+    color 180ms ease;
+}
+
+.mobile-tab-button.is-active .tab-label {
+  transform: translateY(-0.5px);
+}
+
+.mobile-tab-button:active .tab-icon-shell {
+  transform: scale(0.96);
+}
+
+.mobile-tab-button:active.is-active .tab-icon-shell {
+  transform: scale(1.01);
 }
 
 .page-theme-home {

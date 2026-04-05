@@ -11,7 +11,7 @@ import {
   LineChart,
   Landmark,
   Shield,
-  Brain,
+  Sparkles,
   Loader2,
   ChevronDown,
   ChevronUp,
@@ -348,7 +348,7 @@ export default function Finance({ finances, setFinances, profile }) {
           {aiLoading ? (
             <Loader2 size={16} className="animate-spin" />
           ) : (
-            <Brain size={16} />
+            <Sparkles size={16} />
           )}
           {aiLoading ? 'Analysing...' : 'Run Financial Analysis'}
         </button>

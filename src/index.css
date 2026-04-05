@@ -5,6 +5,7 @@
 body {
   margin: 0;
   min-height: 100vh;
+  overscroll-behavior-y: contain;
 }
 
 .markdown-content h1,
@@ -91,4 +92,109 @@ body {
   border: 0;
   border-top: 1px solid rgba(75, 85, 99, 0.7);
   margin: 0.8rem 0;
+}
+
+.nav-chip-enter {
+  animation: nav-chip-enter 180ms ease-out;
+}
+
+.mobile-topbar-shell {
+  animation: mobile-topbar-enter 220ms ease-out;
+}
+
+.mobile-page-title-enter {
+  animation: mobile-page-title-enter 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mobile-tab-button:active {
+  transform: scale(0.97);
+}
+
+.tab-ripple {
+  animation: tab-ripple 300ms ease-out;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter-forward {
+  animation: page-enter-forward 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.page-enter-back {
+  animation: page-enter-back 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes page-enter-forward {
+  from {
+    opacity: 0;
+    transform: translateX(16px) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes page-enter-back {
+  from {
+    opacity: 0;
+    transform: translateX(-16px) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes nav-chip-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mobile-topbar-enter {
+  from {
+    opacity: 0.7;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mobile-page-title-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tab-ripple {
+  from {
+    opacity: 0.75;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.5);
+  }
 }

@@ -132,6 +132,63 @@ Keep total response under 120 words.`
   return callOpenAI(prompt, 500)
 }
 
+export async function runNotesInsight({ notes }) {
+  const notesSummary = (notes || [])
+    .slice(0, 40)
+    .map((note, index) => {
+      const text = String(note?.text || '').replace(/\s+/g, ' ').trim()
+      return `${index + 1}. ${text || '(empty note)'}`
+    })
+    .join('\n')
+
+  const prompt = `You are a concise personal productivity coach.
+
+Analyze these notes and respond in compact markdown using this structure:
+
+## Key themes
+- 2 to 4 bullets
+
+## Risks to watch
+- 1 to 3 bullets
+
+## Next actions
+- 3 concrete actions for this week
+
+## Focus line
+One sentence with the single biggest focus.
+
+Rules:
+- Keep the full response under 140 words.
+- Be specific and practical.
+- Use direct language.
+
+NOTES:
+${notesSummary || '(none)'}`
+
+  return callOpenAI(prompt, 700)
+}
+
+export async function runNoteSuggestion({ note }) {
+  const prompt = `You are a concise execution coach.
+
+Review this note and provide practical next-step guidance.
+
+Note:
+${String(note?.text || '').trim() || '(empty)'}
+
+Respond in markdown with:
+- One-sentence interpretation
+- Three concrete next steps
+- One blocker to watch
+
+Rules:
+- Keep response under 90 words.
+- No filler or generic advice.
+- If the note is vague, suggest a clarifying question as the first step.`
+
+  return callOpenAI(prompt, 500)
+}
+
 export async function runFinanceAnalysis({ profile, finances }) {
   const today = new Date().toISOString().split('T')[0]
   const ageCtx = getAgeContext(profile)

@@ -174,6 +174,7 @@ export default function Home({
         'va-profile': profile,
         'va-finance-insight': localStorage.getItem('va-finance-insight'),
         'va-goals-insight': localStorage.getItem('va-goals-insight'),
+        'va-notes-meta': localStorage.getItem('va-notes-meta'),
       },
     }
   }
@@ -326,6 +327,7 @@ export default function Home({
 
       const financeInsight = payload['va-finance-insight']
       const goalsInsight = payload['va-goals-insight']
+      const notesMeta = payload['va-notes-meta']
       if (typeof financeInsight === 'string') {
         localStorage.setItem('va-finance-insight', financeInsight)
       } else {
@@ -335,6 +337,11 @@ export default function Home({
         localStorage.setItem('va-goals-insight', goalsInsight)
       } else {
         localStorage.removeItem('va-goals-insight')
+      }
+      if (typeof notesMeta === 'string') {
+        localStorage.setItem('va-notes-meta', notesMeta)
+      } else {
+        localStorage.removeItem('va-notes-meta')
       }
     } catch (err) {
       setError(err.message || 'Failed to import snapshot.')

@@ -222,8 +222,8 @@ export default function App() {
       {/* Main */}
       <main className="flex-1 overflow-y-auto pb-32 lg:pb-0">
         <div
-          className="lg:hidden sticky top-0 z-20 px-3 pt-2 pb-2 pointer-events-none bg-gradient-to-b from-gray-950 via-gray-950/95 to-transparent backdrop-blur-sm"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.35rem)' }}
+          className="lg:hidden fixed top-0 inset-x-0 z-40 px-3 pb-2 pointer-events-none bg-gradient-to-b from-gray-950 via-gray-950/95 to-transparent backdrop-blur-sm"
+          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.1rem)' }}
         >
           <div className="mobile-topbar-shell pointer-events-auto rounded-3xl border border-gray-700/80 bg-gray-900/90 backdrop-blur shadow-[0_8px_24px_rgba(0,0,0,0.35)] px-4 py-3">
             <div className="flex items-start justify-between gap-3">
@@ -246,7 +246,7 @@ export default function App() {
           </div>
         </div>
         <div
-          className="max-w-3xl mx-auto px-4 sm:px-6 py-6"
+          className="max-w-3xl mx-auto px-4 sm:px-6 pb-6 pt-[calc(env(safe-area-inset-top)+5.2rem)] lg:py-6"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >

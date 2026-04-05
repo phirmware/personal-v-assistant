@@ -5,6 +5,8 @@ import {
   Target,
   Brain,
   Loader2,
+  ChevronDown,
+  ChevronUp,
   Wallet,
   TrendingUp,
   PiggyBank,
@@ -106,6 +108,7 @@ export default function Goals({ goals, setGoals, finances, profile }) {
   const [target, setTarget] = useState('')
   const [deadline, setDeadline] = useState('')
   const [details, setDetails] = useState('')
+  const [addOpen, setAddOpen] = useState(false)
   const [aiLoadingScope, setAiLoadingScope] = useState(null)
   const [aiError, setAiError] = useState(null)
   const [aiResult, setAiResult] = useState(() => {
@@ -130,10 +133,6 @@ export default function Goals({ goals, setGoals, finances, profile }) {
   const netWorth = totalSavings + totalInvested + totalPension - totalDebt
 
   const totalGoalTarget = normalizedGoals.reduce((s, g) => s + (g.target || 0), 0)
-  const totalGoalCurrent = normalizedGoals.reduce(
-    (s, g) => s + (g.target > 0 ? g.current || 0 : 0),
-    0
-  )
   const avgCompletion =
     normalizedGoals.length > 0
       ? (
@@ -365,56 +364,80 @@ export default function Goals({ goals, setGoals, finances, profile }) {
       )}
 
       {/* Add goal form */}
-      <form onSubmit={addGoal} className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Goal title (e.g. Learn to drive)"
-            className="sm:col-span-2 lg:col-span-1 min-w-0 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-          />
-          <input
-            list="goal-sections"
-            value={sectionName}
-            onChange={(e) => setSectionName(e.target.value)}
-            placeholder="Section (e.g. Personal)"
-            className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-          />
-          <input
-            type="number"
-            step="any"
-            value={target}
-            onChange={(e) => setTarget(e.target.value)}
-            placeholder="Target £ (optional)"
-            className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-          />
-          <input
-            type="date"
-            value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
-            className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
-          />
-        </div>
-        <datalist id="goal-sections">
-          {sectionNames.map((name) => (
-            <option key={name} value={name} />
-          ))}
-        </datalist>
-        <textarea
-          value={details}
-          onChange={(e) => setDetails(e.target.value)}
-          placeholder="Details (why this goal matters, constraints, milestones...)"
-          rows={2}
-          className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
-        />
+      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl">
         <button
-          type="submit"
-          className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-lg flex items-center gap-1 transition-colors shrink-0"
+          onClick={() => setAddOpen((prev) => !prev)}
+          className="w-full px-4 py-3 flex items-center justify-between text-left"
         >
-          <Plus size={16} />
-          Add Goal
+          <div>
+            <p className="text-sm font-semibold text-white">Add New Goal</p>
+            <p className="text-xs text-gray-500">
+              Keep this collapsed while reviewing existing plans.
+            </p>
+          </div>
+          {addOpen ? (
+            <ChevronUp size={16} className="text-gray-400" />
+          ) : (
+            <ChevronDown size={16} className="text-gray-400" />
+          )}
         </button>
-      </form>
+
+        {addOpen && (
+          <form
+            onSubmit={addGoal}
+            className="border-t border-gray-700/60 px-4 py-4 space-y-3"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Goal title (e.g. Learn to drive)"
+                className="sm:col-span-2 lg:col-span-1 min-w-0 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+              />
+              <input
+                list="goal-sections"
+                value={sectionName}
+                onChange={(e) => setSectionName(e.target.value)}
+                placeholder="Section (e.g. Personal)"
+                className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+              />
+              <input
+                type="number"
+                step="any"
+                value={target}
+                onChange={(e) => setTarget(e.target.value)}
+                placeholder="Target £ (optional)"
+                className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+              />
+              <input
+                type="date"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
+              />
+            </div>
+            <datalist id="goal-sections">
+              {sectionNames.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
+            <textarea
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              placeholder="Details (why this goal matters, constraints, milestones...)"
+              rows={2}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+            />
+            <button
+              type="submit"
+              className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-lg flex items-center gap-1 transition-colors shrink-0"
+            >
+              <Plus size={16} />
+              Add Goal
+            </button>
+          </form>
+        )}
+      </div>
 
       {/* Goals list */}
       {normalizedGoals.length === 0 && !aiResult.all && (

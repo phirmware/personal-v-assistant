@@ -69,11 +69,17 @@ export default function App() {
         return (
           <Home
             tasks={tasks}
+            setTasks={setTasks}
             goals={goals}
+            setGoals={setGoals}
             finances={finances}
+            setFinances={setFinances}
             notes={notes}
+            setNotes={setNotes}
             insights={insights}
             setInsights={setInsights}
+            profile={profile}
+            setProfile={setProfile}
             setPage={setPage}
           />
         )

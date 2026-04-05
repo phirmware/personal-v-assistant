@@ -627,13 +627,13 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
 
       {/* Upcoming Expenses */}
       <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5 space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start sm:items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-white flex items-center gap-2">
             <Calendar size={20} className="text-amber-400" />
             Upcoming Expenses
           </h2>
           {ueList.length > 0 && (
-            <span className="text-sm font-bold text-white">{GBP(totalUpcoming)}</span>
+            <span className="text-sm font-bold text-white shrink-0">{GBP(totalUpcoming)}</span>
           )}
         </div>
         <form onSubmit={addUpcoming} className="flex flex-col sm:flex-row gap-2">
@@ -643,26 +643,27 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
             placeholder="What for..."
             className="flex-1 min-w-0 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
           />
-          <div className="flex gap-2">
+          <div className="grid grid-cols-1 sm:flex gap-2">
             <input
               type="number"
               step="0.01"
               value={expAmount}
               onChange={(e) => setExpAmount(e.target.value)}
               placeholder="Amount..."
-              className="flex-1 sm:w-28 sm:flex-none bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+              className="w-full sm:w-28 sm:flex-none bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
             />
             <input
               type="date"
               value={expDeadline}
               onChange={(e) => setExpDeadline(e.target.value)}
-              className="flex-1 sm:flex-none bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
+              className="w-full sm:flex-none bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
             />
             <button
               type="submit"
-              className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-lg flex items-center gap-1 transition-colors shrink-0"
+              className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-1 transition-colors shrink-0 w-full sm:w-auto"
             >
               <Plus size={16} />
+              <span className="sm:hidden">Add Expense</span>
             </button>
           </div>
         </form>
@@ -676,9 +677,9 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
               return (
                 <div
                   key={exp.id}
-                  className="flex items-center justify-between bg-gray-900/50 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 group gap-2"
+                  className="bg-gray-900/50 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 group space-y-2"
                 >
-                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <div className="flex items-start sm:items-center justify-between gap-2">
                     <input
                       value={exp.name}
                       onChange={(e) =>
@@ -686,11 +687,17 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
                           u.id === exp.id ? { ...u, name: e.target.value } : u
                         ))
                       }
-                      className="bg-transparent text-white font-medium text-sm truncate min-w-0 flex-1 focus:outline-none focus:bg-gray-800 focus:rounded px-1 -ml-1"
+                      className="bg-transparent text-white font-medium text-sm min-w-0 flex-1 focus:outline-none focus:bg-gray-800 focus:rounded px-1 -ml-1 break-words"
                     />
-                    <StatusBadge status={status} />
+                    <button
+                      onClick={() => removeUpcoming(exp.id)}
+                      className="text-gray-600 hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100 transition-all shrink-0"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
-                  <div className="flex items-center gap-3 sm:gap-4 shrink-0 text-sm">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm">
+                    <StatusBadge status={status} />
                     <span className="text-white font-medium">{GBP(exp.amount)}</span>
                     <span
                       className={`text-xs ${days < 0 ? 'text-red-400' : days < 30 ? 'text-yellow-400' : 'text-gray-500'}`}
@@ -699,12 +706,6 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
                         ? `${Math.abs(days)}d overdue`
                         : `${days}d left`}
                     </span>
-                    <button
-                      onClick={() => removeUpcoming(exp.id)}
-                      className="text-gray-600 hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
-                    >
-                      <Trash2 size={14} />
-                    </button>
                   </div>
                 </div>
               )

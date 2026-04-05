@@ -1,11 +1,10 @@
-const CACHE_NAME = 'v-assistant-v1'
-const PRECACHE = ['/', '/index.html']
+const CACHE_NAME = 'v-assistant-v2'
+const PRECACHE = ['/', '/index.html', '/manifest.json']
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE))
   )
-  self.skipWaiting()
 })
 
 self.addEventListener('activate', (e) => {
@@ -17,16 +16,35 @@ self.addEventListener('activate', (e) => {
   self.clients.claim()
 })
 
+self.addEventListener('message', (e) => {
+  if (e.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
+})
+
 self.addEventListener('fetch', (e) => {
   // Skip non-GET and API calls
   if (e.request.method !== 'GET') return
+  const url = new URL(e.request.url)
+  if (url.origin !== self.location.origin) return
   if (e.request.url.includes('api.openai.com')) return
+  if (e.request.cache === 'only-if-cached' && e.request.mode !== 'same-origin') return
+
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).catch(async () => {
+        const cachedPage = await caches.match('/index.html')
+        return cachedPage || Response.error()
+      })
+    )
+    return
+  }
 
   e.respondWith(
     caches.match(e.request).then((cached) => {
       const fetchPromise = fetch(e.request)
         .then((res) => {
-          if (res.ok) {
+          if (res.ok && (url.protocol === 'http:' || url.protocol === 'https:')) {
             const clone = res.clone()
             caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone))
           }

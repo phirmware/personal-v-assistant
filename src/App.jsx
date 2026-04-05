@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Home as HomeIcon,
   ListTodo,
@@ -28,6 +28,9 @@ export default function App() {
   const [page, setPage] = useState('home')
   const [transitionDir, setTransitionDir] = useState('forward')
   const [tapFx, setTapFx] = useState(null)
+  const [installPromptEvent, setInstallPromptEvent] = useState(null)
+  const [installStatus, setInstallStatus] = useState('idle')
+  const [swUpdateReady, setSwUpdateReady] = useState(false)
   const touchStartRef = useRef({ x: 0, y: 0 })
   const navAudioCtxRef = useRef(null)
   const [tasks, setTasks] = useLocalStorage('va-tasks', [])
@@ -51,6 +54,55 @@ export default function App() {
     riskPreference: '',
     profileNotes: '',
   })
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+
+    const onBeforeInstallPrompt = (event) => {
+      event.preventDefault()
+      setInstallPromptEvent(event)
+    }
+
+    const onInstalled = () => {
+      setInstallStatus('installed')
+      setInstallPromptEvent(null)
+    }
+
+    const onSwUpdateReady = () => {
+      setSwUpdateReady(true)
+    }
+
+    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt)
+    window.addEventListener('appinstalled', onInstalled)
+    window.addEventListener('va-sw-update-ready', onSwUpdateReady)
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', onInstalled)
+      window.removeEventListener('va-sw-update-ready', onSwUpdateReady)
+    }
+  }, [])
+
+  async function handleInstallApp() {
+    if (!installPromptEvent) return
+    setInstallStatus('prompting')
+    const promptEvent = installPromptEvent
+    promptEvent.prompt()
+    const choice = await promptEvent.userChoice.catch(() => null)
+    setInstallPromptEvent(null)
+    if (choice?.outcome === 'accepted') {
+      setInstallStatus('accepted')
+    } else {
+      setInstallStatus('dismissed')
+    }
+  }
+
+  function handleRefreshForUpdate() {
+    if (navigator.serviceWorker?.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' })
+    }
+    window.location.reload()
+  }
 
   function navigate(id) {
     if (id === page) return
@@ -250,6 +302,38 @@ export default function App() {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
+          {swUpdateReady && (
+            <div className="lg:hidden mb-3 bg-indigo-900/30 border border-indigo-700/50 rounded-xl px-3 py-2 flex items-center justify-between gap-3">
+              <p className="text-xs text-indigo-200">New app update is ready.</p>
+              <button
+                type="button"
+                onClick={handleRefreshForUpdate}
+                className="app-primary-btn text-white px-3 py-1.5 rounded-lg text-xs"
+              >
+                Refresh
+              </button>
+            </div>
+          )}
+          {installPromptEvent && (
+            <div className="lg:hidden mb-3 bg-gray-900/80 border border-gray-700 rounded-xl px-3 py-2.5 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs text-white font-medium">Install V-Assistant</p>
+                <p className="text-[11px] text-gray-400 truncate">Add to home screen for a native feel.</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleInstallApp}
+                className="app-primary-btn text-white px-3 py-1.5 rounded-lg text-xs shrink-0"
+              >
+                {installStatus === 'prompting' ? 'Opening...' : 'Install'}
+              </button>
+            </div>
+          )}
+          {installStatus === 'accepted' && !installPromptEvent && (
+            <div className="lg:hidden mb-3 bg-emerald-900/30 border border-emerald-700/40 rounded-xl px-3 py-2 text-xs text-emerald-200">
+              App install started. Check your home screen.
+            </div>
+          )}
           <div key={page} className={`page-enter-${transitionDir}`}>
             {renderPage()}
           </div>

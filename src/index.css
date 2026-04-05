@@ -412,6 +412,7 @@ body {
   isolation: isolate;
   position: relative;
   overflow: hidden;
+  min-height: 72px;
 }
 
 .mobile-topbar-shell::before {
@@ -425,6 +426,39 @@ body {
     rgba(17, 24, 39, 0.9) 100%
   );
   z-index: -1;
+}
+
+.mobile-topbar-shell.is-refreshing {
+  border-color: color-mix(in srgb, var(--app-accent-400) 58%, #374151);
+}
+
+.mobile-topbar-refresh-wave {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      180px 26px at center 2px,
+      color-mix(in srgb, var(--app-accent-300) 76%, #ffffff) 0%,
+      color-mix(in srgb, var(--app-accent-400) 55%, transparent) 50%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--app-accent-400) 72%, transparent) 0,
+      transparent 4px
+    );
+  background-repeat: no-repeat;
+  background-size:
+    180px 26px,
+    100% 100%;
+  background-position:
+    -180px 0,
+    0 0;
+  mix-blend-mode: screen;
+  opacity: 0.9;
+  animation: topbar-refresh-wave 900ms linear infinite;
 }
 
 .mobile-page-title-enter {
@@ -454,6 +488,10 @@ body {
   }
 
   .tab-ripple {
+    animation: none !important;
+  }
+
+  .mobile-topbar-refresh-wave {
     animation: none !important;
   }
 }
@@ -540,5 +578,20 @@ body {
   to {
     opacity: 0;
     transform: scale(1.5);
+  }
+}
+
+@keyframes topbar-refresh-wave {
+  from {
+    background-position:
+      -180px 0,
+      0 0;
+    filter: saturate(1) brightness(1);
+  }
+  to {
+    background-position:
+      calc(100% + 180px) 0,
+      0 0;
+    filter: saturate(1.2) brightness(1.1);
   }
 }

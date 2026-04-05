@@ -376,20 +376,25 @@ export default function App() {
           className="lg:hidden fixed top-0 inset-x-0 z-40 px-3 pb-2 pointer-events-none bg-transparent"
           style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.1rem)' }}
         >
-          <div className="mobile-topbar-shell pointer-events-auto rounded-3xl border border-gray-700/80 bg-gray-900/90 backdrop-blur shadow-[0_8px_24px_rgba(0,0,0,0.35)] px-4 py-3">
-            <div className="flex items-start justify-between gap-3">
+          <div
+            className={`mobile-topbar-shell pointer-events-auto rounded-3xl border border-gray-700/80 bg-gray-900/90 backdrop-blur shadow-[0_8px_24px_rgba(0,0,0,0.35)] px-4 py-3.5 ${
+              pullRefreshing ? 'is-refreshing' : ''
+            }`}
+          >
+            {pullRefreshing && <span aria-hidden="true" className="mobile-topbar-refresh-wave" />}
+            <div className="relative z-[1] flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-[0.12em] text-gray-500">V-Assistant</p>
+                <p className="text-[11px] uppercase tracking-[0.12em] text-gray-500">V-Assistant</p>
                 <h1
                   key={activeNav.id}
-                  className="mobile-page-title-enter text-lg font-semibold text-white leading-tight"
+                  className="mobile-page-title-enter text-[19px] font-semibold text-white leading-tight"
                 >
                   {activeNav.label}
                 </h1>
               </div>
               <span
                 key={`${activeNav.id}-chip`}
-                className="nav-chip-enter app-accent-soft mt-0.5 text-[10px] px-2 py-1 rounded-full border shrink-0"
+                className="nav-chip-enter app-accent-soft mt-0.5 text-[10px] px-2.5 py-1 rounded-full border shrink-0"
               >
                 Active
               </span>
@@ -397,7 +402,7 @@ export default function App() {
           </div>
         </div>
         <div
-          className="max-w-3xl mx-auto px-4 sm:px-6 pb-6 pt-[calc(env(safe-area-inset-top)+5.2rem)] lg:py-6"
+          className="max-w-3xl mx-auto px-4 sm:px-6 pb-6 pt-[calc(env(safe-area-inset-top)+5.75rem)] lg:py-6"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >

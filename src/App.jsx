@@ -29,6 +29,7 @@ export default function App() {
   const [transitionDir, setTransitionDir] = useState('forward')
   const [tapFx, setTapFx] = useState(null)
   const touchStartRef = useRef({ x: 0, y: 0 })
+  const navAudioCtxRef = useRef(null)
   const [tasks, setTasks] = useLocalStorage('va-tasks', [])
   const [finances, setFinances] = useLocalStorage('va-finances', {
     monthlyIncome: 0,
@@ -95,11 +96,49 @@ export default function App() {
   }
 
   function handleTabTap(id) {
+    triggerNavFeedback()
     setTapFx(id)
     navigate(id)
     window.setTimeout(() => {
       setTapFx((prev) => (prev === id ? null : prev))
     }, 320)
+  }
+
+  function triggerNavFeedback() {
+    if (typeof window === 'undefined') return
+    const isCoarsePointer = window.matchMedia?.('(pointer: coarse)').matches
+    if (!isCoarsePointer) return
+
+    if (navigator.vibrate) navigator.vibrate(8)
+
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext
+    if (!AudioContextClass) return
+
+    try {
+      if (!navAudioCtxRef.current) navAudioCtxRef.current = new AudioContextClass()
+      const ctx = navAudioCtxRef.current
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {})
+      }
+      const now = ctx.currentTime
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(180, now)
+      osc.frequency.exponentialRampToValueAtTime(120, now + 0.03)
+
+      gain.gain.setValueAtTime(0.0001, now)
+      gain.gain.exponentialRampToValueAtTime(0.035, now + 0.008)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05)
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now)
+      osc.stop(now + 0.055)
+    } catch {
+      // Ignore feedback API failures on unsupported devices/browsers.
+    }
   }
 
   function renderPage() {
@@ -173,12 +212,12 @@ export default function App() {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 overflow-y-auto pb-28 lg:pb-0">
+      <main className="flex-1 overflow-y-auto pb-32 lg:pb-0">
         <div
-          className="lg:hidden sticky top-0 z-20 px-3 pt-2 pb-2 bg-gradient-to-b from-gray-950 via-gray-950/95 to-transparent backdrop-blur-sm"
+          className="lg:hidden sticky top-0 z-20 px-3 pt-2 pb-2 pointer-events-none bg-gradient-to-b from-gray-950 via-gray-950/95 to-transparent backdrop-blur-sm"
           style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.35rem)' }}
         >
-          <div className="mobile-topbar-shell rounded-3xl border border-gray-700/80 bg-gray-900/90 backdrop-blur shadow-[0_8px_24px_rgba(0,0,0,0.35)] px-4 py-3">
+          <div className="mobile-topbar-shell pointer-events-auto rounded-3xl border border-gray-700/80 bg-gray-900/90 backdrop-blur shadow-[0_8px_24px_rgba(0,0,0,0.35)] px-4 py-3">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[10px] uppercase tracking-[0.12em] text-gray-500">V-Assistant</p>
@@ -212,10 +251,10 @@ export default function App() {
       {/* Mobile tab bar */}
       <nav
         className="lg:hidden fixed bottom-0 inset-x-0 z-30 px-3 pointer-events-none"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.55rem)' }}
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.7rem)' }}
       >
         <div className="pointer-events-auto rounded-3xl border border-gray-700/80 bg-gray-900/92 backdrop-blur shadow-[0_8px_28px_rgba(0,0,0,0.45)]">
-          <div className="grid grid-cols-6 gap-1 p-1.5">
+          <div className="grid grid-cols-6 gap-1.5 p-2">
             {NAV.map((item) => {
               const Icon = item.icon
               const active = page === item.id
@@ -223,16 +262,16 @@ export default function App() {
                 <button
                   key={item.id}
                   onClick={() => handleTabTap(item.id)}
-                  className={`mobile-tab-button rounded-2xl flex flex-col items-center justify-center gap-1 py-2 text-[11px] transition-all duration-200 ${
+                  className={`mobile-tab-button rounded-2xl flex flex-col items-center justify-center gap-1.5 py-2.5 min-h-[58px] text-[12px] font-medium transition-all duration-200 ${
                     active ? 'is-active' : 'text-gray-400 hover:text-white'
                   }`}
                 >
                   <span
-                    className={`tab-icon-shell relative rounded-full p-1 transition-all duration-200 ${
+                    className={`tab-icon-shell relative rounded-full p-1.5 transition-all duration-200 ${
                       active ? 'scale-105' : ''
                     }`}
                   >
-                    <Icon size={17} />
+                    <Icon size={19} />
                     {tapFx === item.id && (
                       <span className="tab-ripple absolute inset-0 rounded-full border app-accent-border" />
                     )}

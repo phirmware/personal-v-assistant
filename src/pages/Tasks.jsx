@@ -28,6 +28,12 @@ export default function Tasks({ tasks, setTasks }) {
   const [aiLoadingId, setAiLoadingId] = useState(null)
   const [aiError, setAiError] = useState(null)
 
+  function autoResizeTextarea(el) {
+    if (!el) return
+    el.style.height = '0px'
+    el.style.height = `${el.scrollHeight}px`
+  }
+
   function addTask(e) {
     e.preventDefault()
     if (!title.trim()) return
@@ -137,10 +143,14 @@ export default function Tasks({ tasks, setTasks }) {
             </div>
             <textarea
               value={details}
-              onChange={(e) => setDetails(e.target.value)}
+              onChange={(e) => {
+                setDetails(e.target.value)
+                autoResizeTextarea(e.currentTarget)
+              }}
+              ref={(el) => autoResizeTextarea(el)}
               placeholder="Task details, context, blockers, or plan..."
-              rows={2}
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+              rows={1}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[5rem]"
             />
             <button
               type="submit"
@@ -215,13 +225,17 @@ export default function Tasks({ tasks, setTasks }) {
 
             {openMap[task.id] && (
               <div className="border-t border-gray-700/60 px-4 py-3 space-y-2">
-                  <textarea
-                    value={task.details || ''}
-                    onChange={(e) => updateTask(task.id, 'details', e.target.value)}
-                    placeholder="Add task details..."
-                    rows={2}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y min-h-[5rem] max-h-56 overflow-y-auto touch-pan-y"
-                  />
+                <textarea
+                  value={task.details || ''}
+                  onChange={(e) => {
+                    updateTask(task.id, 'details', e.target.value)
+                    autoResizeTextarea(e.currentTarget)
+                  }}
+                  ref={(el) => autoResizeTextarea(el)}
+                  placeholder="Add task details..."
+                  rows={1}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[5rem]"
+                />
                 <div className="flex justify-between items-center gap-2">
                   <button
                     onClick={() => handleTaskAI(task)}

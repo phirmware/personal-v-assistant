@@ -155,7 +155,6 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
   }
   const sections = Array.from(groupedBySection.values())
   const sectionNames = sections.map((s) => s.name)
-  const firstSectionKey = sections[0]?.key || null
 
   const allAiGoalMap = buildAiGoalMap(aiResult.all)
   const sectionAiGoalMaps = {}
@@ -297,14 +296,14 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
     if (Object.prototype.hasOwnProperty.call(sectionOpenMap, key)) {
       return sectionOpenMap[key]
     }
-    return key === firstSectionKey
+    return false
   }
 
   function toggleSection(key) {
     setSectionOpenMap((prev) => {
       const current = Object.prototype.hasOwnProperty.call(prev, key)
         ? prev[key]
-        : key === firstSectionKey
+        : false
       return { ...prev, [key]: !current }
     })
   }

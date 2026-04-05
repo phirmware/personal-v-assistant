@@ -59,7 +59,7 @@ function AiTip({ tip, label }) {
   const canExpand = Boolean(secondaryFull || primaryTruncated || secondaryTruncated)
 
   return (
-    <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 border border-gray-700/50 -mt-2">
+    <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 border border-gray-700/50">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] uppercase tracking-[0.1em] text-gray-500">
           {label ? `${label} • AI next step` : 'AI next step'}
@@ -135,6 +135,8 @@ function AccountSection({
   onUpdate,
   onRename,
   onRemove,
+  tip,
+  tipLabel,
 }) {
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
@@ -238,6 +240,7 @@ function AccountSection({
               ))}
             </div>
           )}
+          <AiTip tip={tip} label={tipLabel || title} />
         </>
       )}
     </div>
@@ -261,6 +264,7 @@ export default function Finance({ finances, setFinances, profile, setProfile }) 
   const [coreOpen, setCoreOpen] = useState(true)
   const [setupOpen, setSetupOpen] = useState(false)
   const [upcomingOpen, setUpcomingOpen] = useState(false)
+  const [aiSummaryOpen, setAiSummaryOpen] = useState(false)
 
   const saList = finances.savingsAccounts || []
   const ccList = finances.creditCards || []
@@ -520,21 +524,33 @@ export default function Finance({ finances, setFinances, profile, setProfile }) 
 
       {/* AI Score + Overall */}
       {aiResult?.score && (
-        <div className="app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl p-4 sm:p-5 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`text-2xl font-bold ${aiResult.score.value >= 7 ? 'text-green-400' : aiResult.score.value >= 4 ? 'text-yellow-400' : 'text-red-400'}`}>
+        <div className="app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setAiSummaryOpen((prev) => !prev)}
+            className="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className={`text-2xl font-bold shrink-0 ${aiResult.score.value >= 7 ? 'text-green-400' : aiResult.score.value >= 4 ? 'text-yellow-400' : 'text-red-400'}`}>
                 {aiResult.score.value}/10
               </div>
-              <p className="text-sm text-gray-300">{aiResult.score.label}</p>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white">AI Health Summary</p>
+                <p className="text-sm text-gray-300 truncate">{aiResult.score.label}</p>
+              </div>
             </div>
-            <span className="text-xs text-gray-600">
-              {aiResult.date ? new Date(aiResult.date).toLocaleDateString() : ''}
-            </span>
-          </div>
-          {aiResult.overall && (
-            <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 border-l-2 border-blue-500/50">
-              <p className="text-sm text-blue-300">{aiResult.overall}</p>
+            <div className="flex items-center gap-2 shrink-0 text-gray-500">
+              <span className="text-xs text-gray-600">
+                {aiResult.date ? new Date(aiResult.date).toLocaleDateString() : ''}
+              </span>
+              {aiSummaryOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </div>
+          </button>
+          {aiSummaryOpen && aiResult.overall && (
+            <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4">
+              <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 border-l-2 border-blue-500/50">
+                <p className="text-sm text-blue-300">{aiResult.overall}</p>
+              </div>
             </div>
           )}
         </div>
@@ -609,6 +625,8 @@ export default function Finance({ finances, setFinances, profile, setProfile }) 
               onRemove={(id) =>
                 updateList('monthlyContributions', mcList.filter((c) => c.id !== id))
               }
+              tip={aiResult?.contributions}
+              tipLabel="Contributions"
             />
             {mcList.length > 0 && (
               <div className="flex items-center justify-between bg-gray-800/60 border border-gray-700/50 rounded-lg px-4 py-2.5 -mt-3 text-sm">
@@ -616,7 +634,6 @@ export default function Finance({ finances, setFinances, profile, setProfile }) 
                 <span className="text-emerald-400 font-bold">{GBP(totalMonthlyContributions)}</span>
               </div>
             )}
-            <AiTip tip={aiResult?.contributions} label="Contributions" />
           </div>
         )}
       </div>
@@ -649,8 +666,9 @@ export default function Finance({ finances, setFinances, profile, setProfile }) 
         onRemove={(id) =>
           updateList('savingsAccounts', saList.filter((a) => a.id !== id))
         }
+        tip={aiResult?.savings}
+        tipLabel="Savings"
       />
-      <AiTip tip={aiResult?.savings} label="Savings" />
 
       {/* Credit Cards */}
       <AccountSection
@@ -680,8 +698,9 @@ export default function Finance({ finances, setFinances, profile, setProfile }) 
         onRemove={(id) =>
           updateList('creditCards', ccList.filter((c) => c.id !== id))
         }
+        tip={aiResult?.debt}
+        tipLabel="Debt"
       />
-      <AiTip tip={aiResult?.debt} label="Debt" />
 
       {/* Investments */}
       <AccountSection
@@ -711,8 +730,9 @@ export default function Finance({ finances, setFinances, profile, setProfile }) 
         onRemove={(id) =>
           updateList('investments', invList.filter((i) => i.id !== id))
         }
+        tip={aiResult?.investments}
+        tipLabel="Investments"
       />
-      <AiTip tip={aiResult?.investments} label="Investments" />
 
       {/* Pensions */}
       <AccountSection
@@ -742,8 +762,9 @@ export default function Finance({ finances, setFinances, profile, setProfile }) 
         onRemove={(id) =>
           updateList('pensions', penList.filter((p) => p.id !== id))
         }
+        tip={aiResult?.pensions}
+        tipLabel="Pensions"
       />
-      <AiTip tip={aiResult?.pensions} label="Pensions" />
 
       {/* Upcoming Expenses */}
       <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
@@ -844,10 +865,10 @@ export default function Finance({ finances, setFinances, profile, setProfile }) 
                 })}
               </div>
             )}
+            <AiTip tip={aiResult?.upcoming} label="Upcoming" />
           </div>
         )}
       </div>
-      <AiTip tip={aiResult?.upcoming} label="Upcoming" />
     </div>
   )
 }

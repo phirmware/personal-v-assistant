@@ -29,6 +29,7 @@ function buildFinanceSummary(finances) {
   const inv = finances.investments || []
   const pen = finances.pensions || []
   const ue = finances.upcomingExpenses || []
+  const mc = finances.monthlyContributions || []
   const income = finances.monthlyIncome || 0
 
   const totalSavings = sa.reduce((s, a) => s + a.amount, 0)
@@ -36,11 +37,15 @@ function buildFinanceSummary(finances) {
   const totalPension = pen.reduce((s, p) => s + p.value, 0)
   const totalDebt = cc.reduce((s, c) => s + c.balance, 0)
   const totalUpcoming = ue.reduce((s, e) => s + e.amount, 0)
+  const totalContributions = mc.reduce((s, c) => s + c.amount, 0)
   const netWorth = totalSavings + totalInvested + totalPension - totalDebt
+  const monthlySurplus = income - totalContributions
 
   return `
 FINANCIAL BREAKDOWN:
 Monthly Income: £${income.toFixed(2)}
+Monthly Contributions/Savings: £${totalContributions.toFixed(2)}
+Monthly Surplus (income - contributions): £${monthlySurplus.toFixed(2)}
 
 Savings Accounts (Total: £${totalSavings.toFixed(2)}):
 ${sa.length ? sa.map(a => `  - ${a.name}: £${a.amount.toFixed(2)}`).join('\n') : '  (none)'}
@@ -53,6 +58,9 @@ ${pen.length ? pen.map(p => `  - ${p.name}: £${p.value.toFixed(2)}`).join('\n')
 
 Credit Card Debt (Total: £${totalDebt.toFixed(2)}):
 ${cc.length ? cc.map(c => `  - ${c.name}: £${c.balance.toFixed(2)}`).join('\n') : '  (none)'}
+
+Monthly Contributions (Total: £${totalContributions.toFixed(2)}/month):
+${mc.length ? mc.map(c => `  - ${c.name}: £${c.amount.toFixed(2)}/month`).join('\n') : '  (none)'}
 
 Upcoming Expenses (Total: £${totalUpcoming.toFixed(2)}):
 ${ue.length ? ue.map(e => `  - ${e.name}: £${e.amount.toFixed(2)} by ${e.deadline}`).join('\n') : '  (none)'}
@@ -119,10 +127,12 @@ Respond with ONLY valid JSON, no markdown:
   "pensions": { "summary": "<1 sentence on pension position>", "action": "<1 specific action>" },
   "debt": { "summary": "<1 sentence on debt position>", "action": "<1 specific action>" },
   "upcoming": { "summary": "<1 sentence on upcoming expenses feasibility>", "action": "<1 specific action>" },
+  "contributions": { "summary": "<1 sentence on monthly contribution strategy>", "action": "<1 specific action>" },
   "overall": "<2 sentences: biggest risk + single most impactful next step this week>"
 }
 
-Rules: Be brutally concise. Use £. Reference their actual account names and numbers. Every sentence must be specific to their data, not generic.`
+Rules: Be brutally concise. Use £. Reference their actual account names and numbers. Every sentence must be specific to their data, not generic.
+For upcoming expenses: calculate whether the user can afford each expense by its deadline. Use monthly surplus (income minus contributions) to project how much they can accumulate by each deadline. Example: if surplus is £500/month and expense is £2000 in 3 months, they can save £1500 from surplus alone — factor in existing liquid savings too.`
 
   const raw = await callOpenAI(prompt, 1200)
   return parseJSON(raw)

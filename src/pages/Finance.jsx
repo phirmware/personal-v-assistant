@@ -16,6 +16,7 @@ import {
   User,
   ChevronDown,
   ChevronUp,
+  Repeat,
 } from 'lucide-react'
 import { runFinanceAnalysis } from '../ai'
 
@@ -56,13 +57,13 @@ function daysUntil(dateStr) {
   return Math.ceil((target - now) / (1000 * 60 * 60 * 24))
 }
 
-function getExpenseStatus(expense, availableFunds, monthlyIncome) {
+function getExpenseStatus(expense, availableFunds, monthlySurplus) {
   const days = daysUntil(expense.deadline)
   const months = Math.max(1, days / 30)
 
   if (availableFunds >= expense.amount) return 'green'
 
-  const potentialFunds = availableFunds + monthlyIncome * 0.3 * months
+  const potentialFunds = availableFunds + monthlySurplus * months
   if (potentialFunds >= expense.amount) return 'amber'
 
   return 'red'
@@ -192,8 +193,11 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
   const ueList = finances.upcomingExpenses || []
   const invList = finances.investments || []
   const penList = finances.pensions || []
+  const mcList = finances.monthlyContributions || []
   const incomeVal = finances.monthlyIncome || 0
 
+  const totalMonthlyContributions = mcList.reduce((s, c) => s + c.amount, 0)
+  const monthlySurplus = incomeVal - totalMonthlyContributions
   const totalSavings = saList.reduce((s, a) => s + a.amount, 0)
   const totalInvested = invList.reduce((s, i) => s + i.value, 0)
   const totalPension = penList.reduce((s, p) => s + p.value, 0)
@@ -460,6 +464,43 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
         </form>
       </div>
 
+      {/* Monthly Contributions */}
+      <AccountSection
+        icon={<Repeat size={20} className="text-emerald-400" />}
+        title="Monthly Contributions"
+        color="green"
+        list={mcList}
+        valueKey="amount"
+        placeholderName="Category (e.g. ISA, Pension, S&P 500)..."
+        placeholderValue="Monthly £..."
+        onAdd={(name, val) =>
+          updateList('monthlyContributions', [
+            ...mcList,
+            { id: Date.now(), name, amount: val },
+          ])
+        }
+        onUpdate={(id, val) =>
+          updateList('monthlyContributions', mcList.map((c) =>
+            c.id === id ? { ...c, amount: parseFloat(val) || 0 } : c
+          ))
+        }
+        onRename={(id, name) =>
+          updateList('monthlyContributions', mcList.map((c) =>
+            c.id === id ? { ...c, name } : c
+          ))
+        }
+        onRemove={(id) =>
+          updateList('monthlyContributions', mcList.filter((c) => c.id !== id))
+        }
+      />
+      {mcList.length > 0 && (
+        <div className="flex items-center justify-between bg-gray-800/60 border border-gray-700/50 rounded-lg px-4 py-2.5 -mt-3 text-sm">
+          <span className="text-gray-400">Total monthly contributions</span>
+          <span className="text-emerald-400 font-bold">{GBP(totalMonthlyContributions)}</span>
+        </div>
+      )}
+      <AiTip tip={aiResult?.contributions} />
+
       {/* Savings Accounts */}
       <AccountSection
         icon={<PiggyBank size={20} className="text-green-400" />}
@@ -630,7 +671,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
           <div className="space-y-2">
             {ueList.map((exp) => {
               const days = daysUntil(exp.deadline)
-              const status = getExpenseStatus(exp, netPosition, incomeVal)
+              const status = getExpenseStatus(exp, netPosition, monthlySurplus)
 
               return (
                 <div

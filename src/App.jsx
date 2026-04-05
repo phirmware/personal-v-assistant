@@ -37,6 +37,7 @@ export default function App() {
     investments: [],
     pensions: [],
     upcomingExpenses: [],
+    monthlyContributions: [],
   })
   const [goals, setGoals] = useLocalStorage('va-goals', [])
   const [notes, setNotes] = useLocalStorage('va-notes', [])

@@ -140,19 +140,27 @@ Respond with ONLY valid JSON, no markdown:
 
 {
   "score": { "value": <1-10>, "label": "<one-line verdict>" },
-  "savings": { "summary": "<1 sentence on savings position>", "action": "<1 specific action with numbers>" },
-  "investments": { "summary": "<1 sentence on investment position>", "action": "<1 specific action>" },
-  "pensions": { "summary": "<1 sentence on pension position>", "action": "<1 specific action>" },
-  "debt": { "summary": "<1 sentence on debt position>", "action": "<1 specific action>" },
-  "upcoming": { "summary": "<1 sentence on upcoming expenses feasibility>", "action": "<1 specific action>" },
-  "contributions": { "summary": "<1 sentence on monthly contribution strategy>", "action": "<1 specific action>" },
+  "savings": { "summary": "<very short context>", "action": "<single priority action>" },
+  "investments": { "summary": "<very short context>", "action": "<single priority action>" },
+  "pensions": { "summary": "<very short context>", "action": "<single priority action>" },
+  "debt": { "summary": "<very short context>", "action": "<single priority action>" },
+  "upcoming": { "summary": "<very short context>", "action": "<single priority action>" },
+  "contributions": { "summary": "<very short context>", "action": "<single priority action>" },
   "overall": "<2 sentences: biggest risk + single most impactful next step this week>"
 }
 
-Rules: Be brutally concise. Use £. Reference their actual account names and numbers. Every sentence must be specific to their data, not generic.
-For upcoming expenses: calculate whether the user can afford each expense by its deadline. Use monthly surplus (income minus contributions) to project how much they can accumulate by each deadline. Example: if surplus is £500/month and expense is £2000 in 3 months, they can save £1500 from surplus alone — factor in existing liquid savings too.`
+Rules:
+- Be brutally concise.
+- Use £ and exact numbers from user data.
+- For each section:
+  - summary: max 10 words.
+  - action: max 14 words, one clear step only.
+- Avoid repeating the same advice across sections.
+- No generic filler.
+- If data is missing, action should say exactly what to add/track.
+For upcoming expenses: calculate affordability per deadline using monthly surplus (income minus contributions) plus current liquid savings.`
 
-  const raw = await callOpenAI(prompt, 1200)
+  const raw = await callOpenAI(prompt, 900)
   return parseJSON(raw)
 }
 

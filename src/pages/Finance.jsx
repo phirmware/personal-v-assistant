@@ -23,12 +23,50 @@ import { runFinanceAnalysis } from '../ai'
 const GBP = (v) =>
   (v || 0).toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })
 
-function AiTip({ tip }) {
-  if (!tip) return null
+function firstSentence(text) {
+  if (typeof text !== 'string') return ''
+  const cleaned = text.replace(/\s+/g, ' ').trim()
+  if (!cleaned) return ''
+  const match = cleaned.match(/^.*?[.!?](?:\s|$)/)
+  return (match ? match[0] : cleaned).trim()
+}
+
+function clampText(text, limit = 130) {
+  if (!text) return ''
+  if (text.length <= limit) return text
+  return `${text.slice(0, limit - 1).trimEnd()}…`
+}
+
+function AiTip({ tip, label }) {
+  const [open, setOpen] = useState(false)
+  if (!tip || (!tip.summary && !tip.action)) return null
+
+  const compactAction = clampText(firstSentence(tip.action), 120)
+  const compactSummary = clampText(firstSentence(tip.summary), 140)
+  const primaryText = compactAction || compactSummary
+  const secondaryText =
+    compactAction && compactSummary && compactAction !== compactSummary
+      ? compactSummary
+      : null
+
   return (
-    <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 space-y-1 border-l-2 border-blue-500/50 -mt-3">
-      <p className="text-sm text-gray-300">{tip.summary}</p>
-      <p className="text-sm text-blue-300 font-medium">{tip.action}</p>
+    <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 border border-gray-700/50 -mt-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] uppercase tracking-[0.1em] text-gray-500">
+          {label ? `${label} • AI next step` : 'AI next step'}
+        </p>
+        {secondaryText && (
+          <button
+            type="button"
+            onClick={() => setOpen((prev) => !prev)}
+            className="text-[11px] text-blue-300 hover:text-blue-200 transition-colors"
+          >
+            {open ? 'Less' : 'Why'}
+          </button>
+        )}
+      </div>
+      {primaryText && <p className="text-sm text-blue-300 font-medium mt-1">{primaryText}</p>}
+      {open && secondaryText && <p className="text-xs text-gray-400 mt-1">{secondaryText}</p>}
     </div>
   )
 }
@@ -207,6 +245,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
   const [profileOpen, setProfileOpen] = useState(!profile.birthday)
   const [coreOpen, setCoreOpen] = useState(true)
   const [setupOpen, setSetupOpen] = useState(false)
+  const [upcomingOpen, setUpcomingOpen] = useState(false)
 
   const saList = finances.savingsAccounts || []
   const ccList = finances.creditCards || []
@@ -562,7 +601,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
                 <span className="text-emerald-400 font-bold">{GBP(totalMonthlyContributions)}</span>
               </div>
             )}
-            <AiTip tip={aiResult?.contributions} />
+            <AiTip tip={aiResult?.contributions} label="Contributions" />
           </div>
         )}
       </div>
@@ -596,7 +635,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
           updateList('savingsAccounts', saList.filter((a) => a.id !== id))
         }
       />
-      <AiTip tip={aiResult?.savings} />
+      <AiTip tip={aiResult?.savings} label="Savings" />
 
       {/* Credit Cards */}
       <AccountSection
@@ -627,7 +666,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
           updateList('creditCards', ccList.filter((c) => c.id !== id))
         }
       />
-      <AiTip tip={aiResult?.debt} />
+      <AiTip tip={aiResult?.debt} label="Debt" />
 
       {/* Investments */}
       <AccountSection
@@ -658,7 +697,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
           updateList('investments', invList.filter((i) => i.id !== id))
         }
       />
-      <AiTip tip={aiResult?.investments} />
+      <AiTip tip={aiResult?.investments} label="Investments" />
 
       {/* Pensions */}
       <AccountSection
@@ -689,97 +728,111 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
           updateList('pensions', penList.filter((p) => p.id !== id))
         }
       />
-      <AiTip tip={aiResult?.pensions} />
+      <AiTip tip={aiResult?.pensions} label="Pensions" />
 
       {/* Upcoming Expenses */}
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5 space-y-4">
-        <div className="flex items-start sm:items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-            <Calendar size={20} className="text-amber-400" />
-            Upcoming Expenses
-          </h2>
-          {ueList.length > 0 && (
-            <span className="text-sm font-bold text-white shrink-0">{GBP(totalUpcoming)}</span>
-          )}
-        </div>
-        <form onSubmit={addUpcoming} className="flex flex-col sm:flex-row gap-2">
-          <input
-            value={expName}
-            onChange={(e) => setExpName(e.target.value)}
-            placeholder="What for..."
-            className="flex-1 min-w-0 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-          />
-          <div className="grid grid-cols-1 sm:flex gap-2">
-            <input
-              type="number"
-              step="0.01"
-              value={expAmount}
-              onChange={(e) => setExpAmount(e.target.value)}
-              placeholder="Amount..."
-              className="w-full sm:w-28 sm:flex-none bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-            />
-            <input
-              type="date"
-              value={expDeadline}
-              onChange={(e) => setExpDeadline(e.target.value)}
-              className="w-full sm:flex-none bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
-            />
-            <button
-              type="submit"
-              className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-1 transition-colors shrink-0 w-full sm:w-auto"
-            >
-              <Plus size={16} />
-              <span className="sm:hidden">Add Expense</span>
-            </button>
+      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setUpcomingOpen((prev) => !prev)}
+          className="w-full flex items-start sm:items-center justify-between gap-2 p-4 sm:p-5 text-left"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <Calendar size={20} className="text-amber-400 shrink-0" />
+            <div className="min-w-0">
+              <h2 className="text-lg font-semibold text-white">Upcoming Expenses</h2>
+              <p className="text-xs text-gray-500">
+                {ueList.length} item(s){ueList.length > 0 ? ` · ${GBP(totalUpcoming)} total` : ''}
+              </p>
+            </div>
           </div>
-        </form>
+          <div className="text-gray-500 shrink-0">
+            {upcomingOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </div>
+        </button>
 
-        {ueList.length > 0 && (
-          <div className="space-y-2">
-            {ueList.map((exp) => {
-              const days = daysUntil(exp.deadline)
-              const status = getExpenseStatus(exp, netPosition, monthlySurplus)
-
-              return (
-                <div
-                  key={exp.id}
-                  className="bg-gray-900/50 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 group space-y-2"
+        {upcomingOpen && (
+          <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 border-t border-gray-700/50 pt-4">
+            <form onSubmit={addUpcoming} className="flex flex-col sm:flex-row gap-2">
+              <input
+                value={expName}
+                onChange={(e) => setExpName(e.target.value)}
+                placeholder="What for..."
+                className="flex-1 min-w-0 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+              />
+              <div className="grid grid-cols-1 sm:flex gap-2">
+                <input
+                  type="number"
+                  step="0.01"
+                  value={expAmount}
+                  onChange={(e) => setExpAmount(e.target.value)}
+                  placeholder="Amount..."
+                  className="w-full sm:w-28 sm:flex-none bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                />
+                <input
+                  type="date"
+                  value={expDeadline}
+                  onChange={(e) => setExpDeadline(e.target.value)}
+                  className="w-full sm:flex-none bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
+                />
+                <button
+                  type="submit"
+                  className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-1 transition-colors shrink-0 w-full sm:w-auto"
                 >
-                  <div className="flex items-start sm:items-center justify-between gap-2">
-                    <input
-                      value={exp.name}
-                      onChange={(e) =>
-                        updateList('upcomingExpenses', ueList.map((u) =>
-                          u.id === exp.id ? { ...u, name: e.target.value } : u
-                        ))
-                      }
-                      className="bg-transparent text-white font-medium text-sm min-w-0 flex-1 focus:outline-none focus:bg-gray-800 focus:rounded px-1 -ml-1 break-words"
-                    />
-                    <button
-                      onClick={() => removeUpcoming(exp.id)}
-                      className="text-gray-600 hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100 transition-all shrink-0"
+                  <Plus size={16} />
+                  <span className="sm:hidden">Add Expense</span>
+                </button>
+              </div>
+            </form>
+
+            {ueList.length > 0 && (
+              <div className="space-y-2">
+                {ueList.map((exp) => {
+                  const days = daysUntil(exp.deadline)
+                  const status = getExpenseStatus(exp, netPosition, monthlySurplus)
+
+                  return (
+                    <div
+                      key={exp.id}
+                      className="bg-gray-900/50 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 group space-y-2"
                     >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm">
-                    <StatusBadge status={status} />
-                    <span className="text-white font-medium">{GBP(exp.amount)}</span>
-                    <span
-                      className={`text-xs ${days < 0 ? 'text-red-400' : days < 30 ? 'text-yellow-400' : 'text-gray-500'}`}
-                    >
-                      {days < 0
-                        ? `${Math.abs(days)}d overdue`
-                        : `${days}d left`}
-                    </span>
-                  </div>
-                </div>
-              )
-            })}
+                      <div className="flex items-start sm:items-center justify-between gap-2">
+                        <input
+                          value={exp.name}
+                          onChange={(e) =>
+                            updateList('upcomingExpenses', ueList.map((u) =>
+                              u.id === exp.id ? { ...u, name: e.target.value } : u
+                            ))
+                          }
+                          className="bg-transparent text-white font-medium text-sm min-w-0 flex-1 focus:outline-none focus:bg-gray-800 focus:rounded px-1 -ml-1 break-words"
+                        />
+                        <button
+                          onClick={() => removeUpcoming(exp.id)}
+                          className="text-gray-600 hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100 transition-all shrink-0"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm">
+                        <StatusBadge status={status} />
+                        <span className="text-white font-medium">{GBP(exp.amount)}</span>
+                        <span
+                          className={`text-xs ${days < 0 ? 'text-red-400' : days < 30 ? 'text-yellow-400' : 'text-gray-500'}`}
+                        >
+                          {days < 0
+                            ? `${Math.abs(days)}d overdue`
+                            : `${days}d left`}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>
-      <AiTip tip={aiResult?.upcoming} />
+      <AiTip tip={aiResult?.upcoming} label="Upcoming" />
     </div>
   )
 }

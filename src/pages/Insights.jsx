@@ -1,4 +1,5 @@
 import { Trash2, Brain } from 'lucide-react'
+import MarkdownContent from '../components/MarkdownContent'
 
 export default function Insights({ insights, setInsights }) {
   function deleteInsight(id) {
@@ -49,9 +50,7 @@ export default function Insights({ insights, setInsights }) {
                 <Trash2 size={16} />
               </button>
             </div>
-            <div className="text-gray-300 text-sm whitespace-pre-wrap text-left leading-relaxed">
-              {insight.content}
-            </div>
+            <MarkdownContent content={insight.content} />
           </div>
         ))}
       </div>

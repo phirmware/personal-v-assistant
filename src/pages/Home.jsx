@@ -10,6 +10,7 @@ import {
   PiggyBank,
 } from 'lucide-react'
 import { runAnalysis } from '../ai'
+import MarkdownContent from '../components/MarkdownContent'
 
 export default function Home({
   tasks,
@@ -264,8 +265,8 @@ export default function Home({
               View All
             </button>
           </div>
-          <div className="text-gray-300 text-sm whitespace-pre-wrap text-left leading-relaxed max-h-64 overflow-y-auto">
-            {latestInsight.content}
+          <div className="max-h-64 overflow-y-auto">
+            <MarkdownContent content={latestInsight.content} />
           </div>
         </div>
       )}

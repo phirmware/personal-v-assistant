@@ -138,17 +138,27 @@ For upcoming expenses: calculate whether the user can afford each expense by its
   return parseJSON(raw)
 }
 
-export async function runGoalsAnalysis({ profile, finances, goals }) {
+export async function runGoalsAnalysis({ profile, finances, goals, section = null }) {
   const today = new Date().toISOString().split('T')[0]
   const ageCtx = getAgeContext(profile)
   const finSummary = buildFinanceSummary(finances)
 
   const goalsJSON = JSON.stringify(goals.map(g => ({
     id: g.id,
+    section: g.section || 'Financial',
     title: g.title,
     target: g.target || 0,
+    current: g.current || 0,
+    progress: g.progress || 0,
     deadline: g.deadline || null,
+    details: g.details || '',
+    notes: g.notes || '',
+    plan: g.plan || '',
   })))
+
+  const scopeText = section
+    ? `Focus only on this section: "${section}".`
+    : 'Analyze all sections together.'
 
   const prompt = `You are a concise financial coach. Today is ${today}. ${ageCtx}
 
@@ -157,12 +167,15 @@ ${finSummary}
 GOALS:
 ${goalsJSON}
 
-For each goal, read the goal title carefully and estimate their current standing based on the financial data. Examples:
+${scopeText}
+
+For each goal, read title + section + details/notes/plan and estimate current standing. Examples:
 - "Emergency fund" → look at liquid savings
 - "Pay off credit cards" → look at how much debt remains vs original (estimate current progress)
 - "Save for house deposit" → look at total savings + relevant accounts
 - "Invest £X" → look at investment account totals
 - "Pension pot £X" → look at pension totals
+- "Learn to drive" or other non-financial goals → estimate completion percentage from details/plans/deadline and context
 
 Respond with ONLY valid JSON:
 
@@ -170,7 +183,7 @@ Respond with ONLY valid JSON:
   "goals": [
     {
       "id": <goal id>,
-      "current_estimate": <number — estimated current progress toward target based on their financial data and goal title. Must be a real number from their data, not 0 unless truly nothing applies.>,
+      "current_estimate": <number — if target > 0 then estimate current amount in £ toward target. If target is 0 then estimate progress % from 0-100. Must be a real number, not 0 unless truly nothing applies.>,
       "status": "on_track" | "needs_work" | "off_track",
       "summary": "<1 sentence with real numbers>",
       "action": "<1 sentence — specific next step with a number>"
@@ -179,7 +192,7 @@ Respond with ONLY valid JSON:
   "overall": "<2 sentences max — priorities and biggest lever to pull>"
 }
 
-Rules: Be concise. Use £. Map goal titles to real account data intelligently.`
+Rules: Be concise. Use £ for money goals and % for non-money goals. Map goal titles to real account data intelligently. Use section/details/notes/plan to make recommendations concrete.`
 
   const raw = await callOpenAI(prompt, 1500)
   return parseJSON(raw)

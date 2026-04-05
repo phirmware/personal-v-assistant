@@ -20,6 +20,19 @@ export default function Home({
   setInsights,
   setPage,
 }) {
+  const clampPercent = (value) => Math.max(0, Math.min(100, value || 0))
+  const toNumber = (value) => {
+    const parsed = parseFloat(value)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+  const getGoalProgress = (goal) => {
+    const target = toNumber(goal?.target)
+    const current = toNumber(goal?.current)
+    const progress = toNumber(goal?.progress)
+    if (target > 0) return clampPercent((current / target) * 100)
+    return clampPercent(progress)
+  }
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -55,8 +68,7 @@ export default function Home({
     goals.length > 0
       ? (
           goals.reduce(
-            (s, g) =>
-              s + (g.target > 0 ? Math.min(100, (g.current / g.target) * 100) : 0),
+            (s, g) => s + getGoalProgress(g),
             0
           ) / goals.length
         ).toFixed(0)
@@ -78,7 +90,7 @@ export default function Home({
     alerts.push({ type: 'danger', msg: `${overdueExpenses.length} upcoming expense(s) are overdue.` })
   if (activeTasks.filter((t) => t.priority === 'high').length > 3)
     alerts.push({ type: 'warning', msg: 'Too many high-priority tasks. Consider trimming.' })
-  if (goals.some((g) => g.target > 0 && g.current / g.target < 0.25))
+  if (goals.some((g) => getGoalProgress(g) < 25))
     alerts.push({ type: 'warning', msg: 'Some goals are well behind target.' })
 
   async function handleAnalysis() {

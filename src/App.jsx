@@ -6,6 +6,7 @@ import {
   Target,
   StickyNote,
   Sparkles,
+  Loader2,
 } from 'lucide-react'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import Home from './pages/Home'
@@ -24,6 +25,10 @@ const NAV = [
   { id: 'insights', label: 'Insights', icon: Sparkles },
 ]
 
+const PULL_TRIGGER_DISTANCE = 72
+const PULL_MAX_DISTANCE = 118
+const PULL_REFRESH_FEEDBACK_MS = 650
+
 export default function App() {
   const [page, setPage] = useState('home')
   const [transitionDir, setTransitionDir] = useState('forward')
@@ -31,6 +36,9 @@ export default function App() {
   const [installPromptEvent, setInstallPromptEvent] = useState(null)
   const [installStatus, setInstallStatus] = useState('idle')
   const [swUpdateReady, setSwUpdateReady] = useState(false)
+  const [pullDistance, setPullDistance] = useState(0)
+  const [pullReady, setPullReady] = useState(false)
+  const [pullRefreshing, setPullRefreshing] = useState(false)
   const touchStartRef = useRef({ x: 0, y: 0 })
   const navAudioCtxRef = useRef(null)
   const mainScrollRef = useRef(null)
@@ -92,31 +100,87 @@ export default function App() {
     const isCoarsePointer = window.matchMedia?.('(pointer: coarse)').matches
     if (!isCoarsePointer) return undefined
 
-    let startY = 0
+    const gesture = {
+      active: false,
+      startY: 0,
+      startX: 0,
+    }
 
     const onTouchStart = (event) => {
+      if (pullRefreshing) return
       const touch = event.touches?.[0]
       if (!touch) return
-      startY = touch.clientY
+      gesture.startY = touch.clientY
+      gesture.startX = touch.clientX
+      gesture.active = mainEl.scrollTop <= 0
     }
 
     const onTouchMove = (event) => {
+      if (!gesture.active || pullRefreshing) return
       const touch = event.touches?.[0]
       if (!touch) return
-      const deltaY = touch.clientY - startY
-      if (mainEl.scrollTop <= 0 && deltaY > 0) {
-        event.preventDefault()
+
+      const deltaY = touch.clientY - gesture.startY
+      const deltaX = Math.abs(touch.clientX - gesture.startX)
+
+      if (mainEl.scrollTop > 0 || deltaY <= 0 || deltaX > Math.abs(deltaY)) {
+        setPullDistance(0)
+        setPullReady(false)
+        return
       }
+
+      event.preventDefault()
+      const dampedDistance = Math.min(PULL_MAX_DISTANCE, deltaY * 0.55)
+      setPullDistance(dampedDistance)
+      setPullReady(dampedDistance >= PULL_TRIGGER_DISTANCE)
+    }
+
+    const onTouchEnd = () => {
+      if (!gesture.active || pullRefreshing) {
+        setPullDistance(0)
+        setPullReady(false)
+        return
+      }
+
+      gesture.active = false
+
+      if (!pullReady) {
+        setPullDistance(0)
+        setPullReady(false)
+        return
+      }
+
+      setPullRefreshing(true)
+      setPullDistance(PULL_TRIGGER_DISTANCE)
+      setPullReady(false)
+      if (navigator.vibrate) navigator.vibrate(12)
+
+      if (navigator.serviceWorker?.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' })
+      }
+
+      // Ensure the user sees the refresh feedback before the reload starts.
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          window.setTimeout(() => {
+            window.location.reload()
+          }, PULL_REFRESH_FEEDBACK_MS)
+        })
+      })
     }
 
     mainEl.addEventListener('touchstart', onTouchStart, { passive: true })
     mainEl.addEventListener('touchmove', onTouchMove, { passive: false })
+    mainEl.addEventListener('touchend', onTouchEnd)
+    mainEl.addEventListener('touchcancel', onTouchEnd)
 
     return () => {
       mainEl.removeEventListener('touchstart', onTouchStart)
       mainEl.removeEventListener('touchmove', onTouchMove)
+      mainEl.removeEventListener('touchend', onTouchEnd)
+      mainEl.removeEventListener('touchcancel', onTouchEnd)
     }
-  }, [])
+  }, [pullReady, pullRefreshing])
 
   async function handleInstallApp() {
     if (!installPromptEvent) return
@@ -337,6 +401,26 @@ export default function App() {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
+          <div
+            className={`lg:hidden flex justify-center transition-all duration-200 overflow-hidden ${
+              pullDistance > 0 || pullRefreshing ? 'max-h-14 opacity-100 mb-3' : 'max-h-0 opacity-0 mb-0'
+            }`}
+          >
+            <div className="bg-gray-900/90 border border-gray-700 rounded-full px-3 py-1.5 flex items-center gap-2 text-[11px] text-gray-300">
+              {pullRefreshing ? (
+                <Loader2 size={12} className="animate-spin text-indigo-300" />
+              ) : (
+                <Sparkles size={12} className={pullReady ? 'text-emerald-300' : 'text-gray-400'} />
+              )}
+              <span className={pullRefreshing ? 'animate-pulse' : ''}>
+                {pullRefreshing
+                  ? 'Refreshing...'
+                  : pullReady
+                    ? 'Release to refresh'
+                    : 'Pull to refresh'}
+              </span>
+            </div>
+          </div>
           {swUpdateReady && (
             <div className="lg:hidden mb-3 bg-indigo-900/30 border border-indigo-700/50 rounded-xl px-3 py-2 flex items-center justify-between gap-3">
               <p className="text-xs text-indigo-200">New app update is ready.</p>

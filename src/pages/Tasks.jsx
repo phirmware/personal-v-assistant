@@ -169,49 +169,52 @@ export default function Tasks({ tasks, setTasks }) {
         {sorted.map((task) => (
           <div
             key={task.id}
-            className={`bg-gray-800/60 border border-gray-700/50 rounded-lg px-4 py-3 group space-y-3 ${task.done ? 'opacity-50' : ''}`}
+            className={`bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden group ${task.done ? 'opacity-50' : ''}`}
           >
-            <div className="flex items-center gap-3">
+            <div className="px-4 py-3 flex items-center gap-3">
               <input
                 type="checkbox"
                 checked={task.done}
                 onChange={() => toggleDone(task.id)}
-                className="w-4 h-4 accent-blue-500"
+                className="w-4 h-4 accent-blue-500 shrink-0"
               />
-              <span
-                className={`flex-1 text-left min-w-0 break-words ${task.done ? 'line-through text-gray-500' : 'text-white'}`}
-              >
-                {task.title}
-              </span>
-              <span
-                className={`text-xs font-medium uppercase ${PRIORITY_COLORS[task.priority]} shrink-0`}
-              >
-                {task.priority}
-              </span>
               <button
+                type="button"
                 onClick={() => toggleOpen(task.id)}
-                className="text-gray-500 app-accent-hover-text transition-colors"
+                className="flex-1 min-w-0 flex items-center gap-3 text-left"
                 title={openMap[task.id] ? 'Collapse task' : 'Expand task'}
               >
-                {openMap[task.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                <span
+                  className={`flex-1 text-left min-w-0 break-words ${task.done ? 'line-through text-gray-500' : 'text-white'}`}
+                >
+                  {task.title}
+                </span>
+                <span
+                  className={`text-xs font-medium uppercase ${PRIORITY_COLORS[task.priority]} shrink-0`}
+                >
+                  {task.priority}
+                </span>
+                <span className="text-gray-500 app-accent-hover-text transition-colors shrink-0">
+                  {openMap[task.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </span>
               </button>
               <button
                 onClick={() => togglePin(task.id)}
-                className="text-gray-500 hover:text-yellow-400 transition-colors"
+                className="text-gray-500 hover:text-yellow-400 transition-colors shrink-0"
                 title={task.pinned ? 'Unpin from focus' : 'Pin to focus'}
               >
                 {task.pinned ? <Star size={16} fill="currentColor" /> : <StarOff size={16} />}
               </button>
               <button
                 onClick={() => deleteTask(task.id)}
-                className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
               >
                 <Trash2 size={16} />
               </button>
             </div>
 
             {openMap[task.id] && (
-              <div className="space-y-2">
+              <div className="border-t border-gray-700/60 px-4 py-3 space-y-2">
                 <textarea
                   value={task.details || ''}
                   onChange={(e) => updateTask(task.id, 'details', e.target.value)}

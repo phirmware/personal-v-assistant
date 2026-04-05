@@ -48,6 +48,7 @@ export default function Home({
   const [importing, setImporting] = useState(false)
   const [error, setError] = useState(null)
   const [openSections, setOpenSections] = useState({
+    controls: false,
     alerts: true,
     focus: true,
     metrics: false,
@@ -114,6 +115,26 @@ export default function Home({
     alerts.push({ type: 'warning', msg: 'Too many high-priority tasks. Consider trimming.' })
   if (goals.some((g) => getGoalProgress(g) < 25))
     alerts.push({ type: 'warning', msg: 'Some goals are well behind target.' })
+
+  const now = new Date()
+  const hour = now.getHours()
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
+  const firstName = (profile?.name || '').trim().split(/\s+/)[0] || 'there'
+  const todayLabel = new Intl.DateTimeFormat('en-GB', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  }).format(now)
+  let age = null
+  if (profile?.birthday) {
+    const birth = new Date(profile.birthday)
+    age = now.getFullYear() - birth.getFullYear() -
+      (now < new Date(now.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0)
+  }
+
+  function updateProfile(field, value) {
+    setProfile({ ...profile, [field]: value })
+  }
 
   async function handleAnalysis() {
     setLoading(true)
@@ -229,6 +250,9 @@ export default function Home({
         name: '',
         birthday: '',
         currency: 'GBP',
+        lifeStage: '',
+        riskPreference: '',
+        profileNotes: '',
       })
 
       setTasks(Array.isArray(nextTasks) ? nextTasks : [])
@@ -251,7 +275,14 @@ export default function Home({
       setProfile(
         nextProfile && typeof nextProfile === 'object'
           ? nextProfile
-          : { name: '', birthday: '', currency: 'GBP' }
+          : {
+              name: '',
+              birthday: '',
+              currency: 'GBP',
+              lifeStage: '',
+              riskPreference: '',
+              profileNotes: '',
+            }
       )
 
       localStorage.setItem('va-tasks', JSON.stringify(Array.isArray(nextTasks) ? nextTasks : []))
@@ -282,7 +313,14 @@ export default function Home({
         JSON.stringify(
           nextProfile && typeof nextProfile === 'object'
             ? nextProfile
-            : { name: '', birthday: '', currency: 'GBP' }
+            : {
+                name: '',
+                birthday: '',
+                currency: 'GBP',
+                lifeStage: '',
+                riskPreference: '',
+                profileNotes: '',
+              }
         )
       )
 
@@ -307,52 +345,153 @@ export default function Home({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Command Center</h1>
-        <div className="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
-          <button
-            onClick={handleAnalysis}
-            disabled={loading}
-            className="app-primary-btn text-white px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors w-full sm:w-auto"
-          >
-            {loading ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <Brain size={16} />
-            )}
-            <span className="sm:hidden">{loading ? 'Analyzing...' : 'AI Analysis'}</span>
-            <span className="hidden sm:inline">{loading ? 'Analyzing...' : 'Run AI Analysis'}</span>
-          </button>
-          <button
-            onClick={handleExportSnapshot}
-            className="bg-green-700 hover:bg-green-600 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1 text-sm transition-colors w-full sm:w-auto"
-          >
-            <Download size={14} /> Export
-          </button>
-          <label className={`bg-indigo-700 hover:bg-indigo-600 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1 text-sm transition-colors cursor-pointer w-full sm:w-auto ${importing ? 'opacity-70' : ''}`}>
-            <Upload size={14} /> {importing ? 'Importing...' : 'Import'}
-            <input
-              type="file"
-              accept="application/json,.json"
-              onChange={handleImportSnapshot}
-              disabled={importing}
-              className="hidden"
-            />
-          </label>
-          <button
-            onClick={clearAll}
-            className="bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-2 rounded-lg flex items-center justify-center gap-1 text-sm transition-colors w-full sm:w-auto"
-          >
-            <Trash2 size={14} /> Reset
-          </button>
-        </div>
-      </div>
-
       {error && (
         <div className="bg-red-900/30 border border-red-800 rounded-lg p-4 text-red-300 text-sm">
           {error}
         </div>
       )}
+
+      <div className="relative overflow-hidden rounded-2xl border border-blue-800/40 bg-gradient-to-br from-blue-900/30 via-indigo-900/20 to-gray-900/70 px-4 sm:px-5 py-4 sm:py-5">
+        <div className="absolute -top-8 -right-8 h-24 w-24 rounded-full bg-blue-400/10 blur-2xl" />
+        <div className="relative">
+          <p className="text-xs uppercase tracking-[0.12em] text-blue-300/80">Welcome back</p>
+          <h2 className="mt-1 text-xl sm:text-2xl font-semibold text-white">
+            {greeting}, {firstName}
+          </h2>
+          <p className="mt-1 text-sm text-gray-300">
+            {todayLabel} · {activeTasks.length} active task(s) · {alerts.length} alert(s)
+          </p>
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-blue-700/40 bg-blue-900/20 px-3 py-1 text-xs text-blue-200">
+            <PiggyBank size={13} />
+            Net worth {netWorth.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+        <button
+          type="button"
+          onClick={() => toggleSection('controls')}
+          className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
+        >
+          <div>
+            <p className="text-sm sm:text-base font-semibold text-white">Profile & App Controls</p>
+            <p className="text-xs text-gray-500">AI analysis, transfer data, and app reset</p>
+          </div>
+          {openSections.controls ? (
+            <ChevronUp size={16} className="text-gray-500" />
+          ) : (
+            <ChevronDown size={16} className="text-gray-500" />
+          )}
+        </button>
+        {openSections.controls && (
+          <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4">
+            <div className="space-y-4">
+              <div className="bg-gray-900/40 border border-gray-700/50 rounded-xl p-3 sm:p-4 space-y-3">
+                <div>
+                  <p className="text-sm font-semibold text-white">Your profile</p>
+                  <p className="text-xs text-gray-500">Used for Finance and Goals AI analysis context.</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Name</label>
+                    <input
+                      value={profile.name || ''}
+                      onChange={(e) => updateProfile('name', e.target.value)}
+                      placeholder="Your name..."
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">
+                      Date of Birth {age !== null && <span className="text-indigo-400">({age} years old)</span>}
+                    </label>
+                    <input
+                      type="date"
+                      value={profile.birthday || ''}
+                      onChange={(e) => updateProfile('birthday', e.target.value)}
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Life Stage</label>
+                    <input
+                      value={profile.lifeStage || ''}
+                      onChange={(e) => updateProfile('lifeStage', e.target.value)}
+                      placeholder="e.g. Early career, Family, Pre-retirement"
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Risk Preference</label>
+                    <select
+                      value={profile.riskPreference || ''}
+                      onChange={(e) => updateProfile('riskPreference', e.target.value)}
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                    >
+                      <option value="">Not set</option>
+                      <option value="conservative">Conservative</option>
+                      <option value="balanced">Balanced</option>
+                      <option value="growth">Growth</option>
+                      <option value="aggressive">Aggressive</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Profile Notes</label>
+                  <textarea
+                    value={profile.profileNotes || ''}
+                    onChange={(e) => updateProfile('profileNotes', e.target.value)}
+                    placeholder="Any constraints or priorities (e.g. risk limits, major life plans)"
+                    rows={2}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
+                <button
+                  onClick={handleAnalysis}
+                  disabled={loading}
+                  className="app-primary-btn text-white px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors w-full sm:w-auto"
+                >
+                  {loading ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Brain size={16} />
+                  )}
+                  <span className="sm:hidden">{loading ? 'Analyzing...' : 'AI Analysis'}</span>
+                  <span className="hidden sm:inline">{loading ? 'Analyzing...' : 'Run AI Analysis'}</span>
+                </button>
+                <button
+                  onClick={handleExportSnapshot}
+                  className="bg-green-700 hover:bg-green-600 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1 text-sm transition-colors w-full sm:w-auto"
+                >
+                  <Download size={14} /> Export
+                </button>
+                <label className={`bg-indigo-700 hover:bg-indigo-600 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1 text-sm transition-colors cursor-pointer w-full sm:w-auto ${importing ? 'opacity-70' : ''}`}>
+                  <Upload size={14} /> {importing ? 'Importing...' : 'Import'}
+                  <input
+                    type="file"
+                    accept="application/json,.json"
+                    onChange={handleImportSnapshot}
+                    disabled={importing}
+                    className="hidden"
+                  />
+                </label>
+                <button
+                  onClick={clearAll}
+                  className="bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-2 rounded-lg flex items-center justify-center gap-1 text-sm transition-colors w-full sm:w-auto"
+                >
+                  <Trash2 size={14} /> Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Alerts */}
       {alerts.length > 0 && (

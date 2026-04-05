@@ -79,6 +79,14 @@ function getAgeContext(profile) {
   return `Age: ${age}. Years to pension age (67): ${Math.max(0, 67 - age)}.`
 }
 
+function getProfileContext(profile = {}) {
+  const bits = []
+  if (profile.lifeStage) bits.push(`Life stage: ${profile.lifeStage}.`)
+  if (profile.riskPreference) bits.push(`Risk preference: ${profile.riskPreference}.`)
+  if (profile.profileNotes) bits.push(`Profile notes: ${profile.profileNotes}.`)
+  return bits.join(' ')
+}
+
 function parseJSON(raw) {
   const match = raw.match(/\{[\s\S]*\}/)
   if (!match) throw new Error('AI did not return valid JSON')
@@ -127,9 +135,10 @@ Keep total response under 120 words.`
 export async function runFinanceAnalysis({ profile, finances }) {
   const today = new Date().toISOString().split('T')[0]
   const ageCtx = getAgeContext(profile)
+  const profileCtx = getProfileContext(profile)
   const finSummary = buildFinanceSummary(finances)
 
-  const prompt = `You are a concise financial advisor. Today is ${today}. ${ageCtx}
+  const prompt = `You are a concise financial advisor. Today is ${today}. ${ageCtx} ${profileCtx}
 
 ${finSummary}
 
@@ -166,6 +175,7 @@ For upcoming expenses: calculate affordability per deadline using monthly surplu
 export async function runGoalsAnalysis({ profile, finances, goals, section = null, notes = [] }) {
   const today = new Date().toISOString().split('T')[0]
   const ageCtx = getAgeContext(profile)
+  const profileCtx = getProfileContext(profile)
   const finSummary = buildFinanceSummary(finances)
 
   const goalsJSON = JSON.stringify(goals.map(g => ({
@@ -188,7 +198,7 @@ export async function runGoalsAnalysis({ profile, finances, goals, section = nul
     ? `Focus only on this section: "${section}".`
     : 'Analyze all sections together.'
 
-  const prompt = `You are a concise financial coach. Today is ${today}. ${ageCtx}
+  const prompt = `You are a concise financial coach. Today is ${today}. ${ageCtx} ${profileCtx}
 
 ${finSummary}
 

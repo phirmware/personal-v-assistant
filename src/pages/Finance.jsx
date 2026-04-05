@@ -13,7 +13,6 @@ import {
   Shield,
   Brain,
   Loader2,
-  User,
   ChevronDown,
   ChevronUp,
   Repeat,
@@ -247,7 +246,7 @@ function AccountSection({
   )
 }
 
-export default function Finance({ finances, setFinances, profile, setProfile }) {
+export default function Finance({ finances, setFinances, profile }) {
   const [expName, setExpName] = useState('')
   const [expAmount, setExpAmount] = useState('')
   const [expDeadline, setExpDeadline] = useState('')
@@ -260,7 +259,6 @@ export default function Finance({ finances, setFinances, profile, setProfile }) 
       return stored ? JSON.parse(stored) : null
     } catch { return null }
   })
-  const [profileOpen, setProfileOpen] = useState(!profile.birthday)
   const [coreOpen, setCoreOpen] = useState(true)
   const [setupOpen, setSetupOpen] = useState(false)
   const [upcomingOpen, setUpcomingOpen] = useState(false)
@@ -338,19 +336,6 @@ export default function Finance({ finances, setFinances, profile, setProfile }) 
     }
   }
 
-  function updateProfile(field, value) {
-    setProfile({ ...profile, [field]: value })
-  }
-
-  // Calculate age for display
-  let age = null
-  if (profile.birthday) {
-    const birth = new Date(profile.birthday)
-    const now = new Date()
-    age = now.getFullYear() - birth.getFullYear() -
-      (now < new Date(now.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0)
-  }
-
   return (
     <div className="space-y-5 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -374,55 +359,6 @@ export default function Finance({ finances, setFinances, profile, setProfile }) 
           {aiError}
         </div>
       )}
-
-      {/* Profile */}
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
-        <button
-          onClick={() => setProfileOpen(!profileOpen)}
-          className="w-full flex items-center justify-between p-4 sm:p-5 text-left"
-        >
-          <div className="flex items-center gap-2">
-            <User size={18} className="text-indigo-400" />
-            <span className="text-sm font-semibold text-white">Your Profile</span>
-            {profile.name && !profileOpen && (
-              <span className="text-xs text-gray-500 ml-2">
-                {profile.name}{age !== null ? `, ${age}y` : ''}
-              </span>
-            )}
-          </div>
-          {profileOpen ? (
-            <ChevronUp size={16} className="text-gray-500" />
-          ) : (
-            <ChevronDown size={16} className="text-gray-500" />
-          )}
-        </button>
-        {profileOpen && (
-          <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-3 border-t border-gray-700/50 pt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Name</label>
-                <input
-                  value={profile.name}
-                  onChange={(e) => updateProfile('name', e.target.value)}
-                  placeholder="Your name..."
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Date of Birth {age !== null && <span className="text-indigo-400">({age} years old)</span>}
-                </label>
-                <input
-                  type="date"
-                  value={profile.birthday}
-                  onChange={(e) => updateProfile('birthday', e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* Core snapshot */}
       <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">

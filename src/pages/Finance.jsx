@@ -280,7 +280,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
         <button
           onClick={handleFinanceAI}
           disabled={aiLoading}
-          className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors self-start sm:self-auto"
+          className="app-primary-btn text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors self-start sm:self-auto"
         >
           {aiLoading ? (
             <Loader2 size={16} className="animate-spin" />
@@ -348,7 +348,7 @@ export default function Finance({ finances, setFinances, goals, profile, setProf
 
       {/* AI Score + Overall */}
       {aiResult?.score && (
-        <div className="bg-gray-800/60 border border-blue-800/30 rounded-xl p-4 sm:p-5 space-y-2">
+        <div className="app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl p-4 sm:p-5 space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={`text-2xl font-bold ${aiResult.score.value >= 7 ? 'text-green-400' : aiResult.score.value >= 4 ? 'text-yellow-400' : 'text-red-400'}`}>

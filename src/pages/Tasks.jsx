@@ -125,7 +125,7 @@ export default function Tasks({ tasks, setTasks }) {
         />
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 transition-colors"
+          className="app-primary-btn text-white px-4 py-2.5 rounded-lg flex items-center gap-2 transition-colors"
         >
           <Plus size={18} /> Add Task
         </button>
@@ -167,7 +167,7 @@ export default function Tasks({ tasks, setTasks }) {
               </span>
               <button
                 onClick={() => toggleOpen(task.id)}
-                className="text-gray-500 hover:text-blue-400 transition-colors"
+                className="text-gray-500 app-accent-hover-text transition-colors"
                 title={openMap[task.id] ? 'Collapse task' : 'Expand task'}
               >
                 {openMap[task.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -200,7 +200,7 @@ export default function Tasks({ tasks, setTasks }) {
                   <button
                     onClick={() => handleTaskAI(task)}
                     disabled={aiLoadingId !== null}
-                    className="text-xs bg-blue-700 hover:bg-blue-600 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
+                    className="app-primary-btn text-xs text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
                   >
                     {aiLoadingId === task.id ? (
                       <Loader2 size={12} className="animate-spin" />

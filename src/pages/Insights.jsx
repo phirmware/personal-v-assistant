@@ -37,7 +37,7 @@ export default function Insights({ insights, setInsights }) {
             className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-5 group"
           >
             <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-2 text-blue-400">
+              <div className="flex items-center gap-2 app-accent-text">
                 <Brain size={18} />
                 <span className="text-sm text-gray-500">
                   {new Date(insight.date).toLocaleString()}

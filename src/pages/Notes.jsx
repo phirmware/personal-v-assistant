@@ -31,7 +31,7 @@ export default function Notes({ notes, setNotes }) {
         />
         <button
           type="submit"
-          className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 transition-colors"
+          className="app-primary-btn text-white px-4 py-2.5 rounded-lg flex items-center gap-2 transition-colors"
         >
           <Plus size={18} /> Add
         </button>

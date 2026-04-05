@@ -8,6 +8,155 @@ body {
   overscroll-behavior-y: contain;
 }
 
+.app-shell {
+  background:
+    radial-gradient(1200px 500px at 50% -120px, rgba(59, 130, 246, 0.08), transparent 60%),
+    radial-gradient(900px 420px at 0% 10%, rgba(168, 85, 247, 0.06), transparent 55%),
+    #030712;
+}
+
+.app-accent-text {
+  color: var(--app-accent-400);
+}
+
+.app-accent-soft {
+  color: var(--app-accent-300);
+  border-color: color-mix(in srgb, var(--app-accent-500) 42%, #111827);
+  background: color-mix(in srgb, var(--app-accent-500) 16%, transparent);
+}
+
+.app-accent-border {
+  border-color: color-mix(in srgb, var(--app-accent-300) 62%, #111827);
+}
+
+.app-accent-dot {
+  background-color: var(--app-accent-400);
+}
+
+.app-accent-hover-text {
+  transition: color 160ms ease;
+}
+
+.app-accent-hover-text:hover {
+  color: var(--app-accent-400);
+}
+
+.app-accent-panel {
+  border-color: color-mix(in srgb, var(--app-accent-500) 40%, #1f2937);
+  background: color-mix(in srgb, var(--app-accent-500) 8%, rgba(17, 24, 39, 0.7));
+}
+
+.app-primary-btn {
+  background: color-mix(in srgb, var(--app-accent-500) 88%, #0f172a);
+  color: #fff;
+}
+
+.app-primary-btn:hover {
+  background: color-mix(in srgb, var(--app-accent-500) 96%, #1e293b);
+}
+
+.app-primary-btn:disabled {
+  opacity: 0.55;
+}
+
+.app-nav-active {
+  color: var(--app-accent-300);
+  border-color: var(--app-accent-400);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--app-accent-500) 15%, transparent),
+    transparent
+  );
+}
+
+.mobile-tab-button.is-active {
+  color: var(--app-accent-300);
+  background: color-mix(in srgb, var(--app-accent-500) 12%, transparent);
+}
+
+.mobile-tab-button.is-active .tab-icon-shell {
+  background: color-mix(in srgb, var(--app-accent-500) 24%, transparent);
+}
+
+.page-theme-home {
+  --app-accent-500: #3b82f6;
+  --app-accent-400: #60a5fa;
+  --app-accent-300: #93c5fd;
+}
+
+.page-theme-tasks {
+  --app-accent-500: #14b8a6;
+  --app-accent-400: #2dd4bf;
+  --app-accent-300: #5eead4;
+}
+
+.page-theme-finance {
+  --app-accent-500: #0ea5e9;
+  --app-accent-400: #38bdf8;
+  --app-accent-300: #7dd3fc;
+}
+
+.page-theme-goals {
+  --app-accent-500: #a855f7;
+  --app-accent-400: #c084fc;
+  --app-accent-300: #d8b4fe;
+}
+
+.page-theme-notes {
+  --app-accent-500: #f59e0b;
+  --app-accent-400: #fbbf24;
+  --app-accent-300: #fcd34d;
+}
+
+.page-theme-insights {
+  --app-accent-500: #6366f1;
+  --app-accent-400: #818cf8;
+  --app-accent-300: #a5b4fc;
+}
+
+.app-shell [class*="bg-gray-800/60"][class*="border"][class*="rounded-xl"] {
+  border-color: rgba(75, 85, 99, 0.62);
+  background: linear-gradient(180deg, rgba(31, 41, 55, 0.78), rgba(17, 24, 39, 0.72));
+  border-radius: 1.15rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.02),
+    0 10px 24px rgba(0, 0, 0, 0.3);
+}
+
+.app-shell [class*="bg-gray-900/50"][class*="rounded-lg"],
+.app-shell [class*="bg-gray-900/60"][class*="rounded-lg"] {
+  border-radius: 0.95rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.app-shell input:not([type='checkbox']):not([type='radio']),
+.app-shell select,
+.app-shell textarea {
+  border-radius: 0.9rem;
+  border-color: rgba(75, 85, 99, 0.78);
+  background-color: rgba(17, 24, 39, 0.92);
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+.app-shell input:not([type='checkbox']):not([type='radio']):focus,
+.app-shell select:focus,
+.app-shell textarea:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.18);
+}
+
+.app-shell button {
+  transition:
+    transform 120ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    opacity 180ms ease;
+}
+
+.app-shell button:active {
+  transform: translateY(1px) scale(0.99);
+}
+
 .markdown-content h1,
 .markdown-content h2,
 .markdown-content h3,

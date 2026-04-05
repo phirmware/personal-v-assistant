@@ -133,37 +133,39 @@ export default function App() {
   }
 
   return (
-    <div className="dark flex h-screen bg-gray-950 text-gray-100">
+    <div className={`dark flex h-screen bg-gray-950 text-gray-100 app-shell page-theme-${page}`}>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex h-full w-56 bg-gray-900 border-r border-gray-800 flex-col">
-        <div className="flex items-center gap-2 px-5 py-5 border-b border-gray-800">
-          <Brain size={24} className="text-blue-500" />
-          <span className="font-bold text-lg text-white tracking-tight">
-            V-Assistant
-          </span>
-        </div>
-        <nav className="flex-1 py-3">
-          {NAV.map((item) => {
-            const Icon = item.icon
-            const active = page === item.id
-            return (
-              <button
-                key={item.id}
-                onClick={() => navigate(item.id)}
-                className={`w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium transition-all duration-200 ${
-                  active
-                    ? 'text-blue-300 bg-gradient-to-r from-blue-500/15 to-transparent border-r-2 border-blue-400'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                }`}
-              >
-                <Icon size={18} />
-                {item.label}
-              </button>
-            )
-          })}
-        </nav>
-        <div className="px-5 py-4 border-t border-gray-800 text-xs text-gray-600">
-          Local-first. Your data stays on device.
+      <aside className="hidden lg:block h-full w-64 p-3">
+        <div className="h-full rounded-3xl border border-gray-700/70 bg-gray-900/80 backdrop-blur-xl shadow-[0_12px_36px_rgba(0,0,0,0.35)] flex flex-col">
+          <div className="flex items-center gap-2 px-5 py-5 border-b border-gray-700/70">
+            <Brain size={24} className="app-accent-text" />
+            <span className="font-bold text-lg text-white tracking-tight">
+              V-Assistant
+            </span>
+          </div>
+          <nav className="flex-1 py-3">
+            {NAV.map((item) => {
+              const Icon = item.icon
+              const active = page === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => navigate(item.id)}
+                  className={`w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium transition-all duration-200 ${
+                    active
+                      ? 'app-nav-active border-r-2'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  }`}
+                >
+                  <Icon size={18} />
+                  {item.label}
+                </button>
+              )
+            })}
+          </nav>
+          <div className="px-5 py-4 border-t border-gray-700/70 text-xs text-gray-500">
+            Local-first. Your data stays on device.
+          </div>
         </div>
       </aside>
 
@@ -183,7 +185,7 @@ export default function App() {
               </div>
               <span
                 key={`${activeNav.id}-chip`}
-                className="nav-chip-enter mt-0.5 text-[10px] px-2 py-1 rounded-full border border-blue-800/60 bg-blue-900/20 text-blue-300 shrink-0"
+                className="nav-chip-enter app-accent-soft mt-0.5 text-[10px] px-2 py-1 rounded-full border shrink-0"
               >
                 Active
               </span>
@@ -216,22 +218,20 @@ export default function App() {
                   key={item.id}
                   onClick={() => handleTabTap(item.id)}
                   className={`mobile-tab-button rounded-2xl flex flex-col items-center justify-center gap-1 py-2 text-[11px] transition-all duration-200 ${
-                    active
-                      ? 'text-blue-300 bg-blue-500/12'
-                      : 'text-gray-400 hover:text-white'
+                    active ? 'is-active' : 'text-gray-400 hover:text-white'
                   }`}
                 >
                   <span
-                    className={`relative rounded-full p-1 transition-all duration-200 ${
-                      active ? 'bg-blue-500/20 scale-105' : ''
+                    className={`tab-icon-shell relative rounded-full p-1 transition-all duration-200 ${
+                      active ? 'scale-105' : ''
                     }`}
                   >
                     <Icon size={17} />
                     {tapFx === item.id && (
-                      <span className="tab-ripple absolute inset-0 rounded-full border border-blue-300/60" />
+                      <span className="tab-ripple absolute inset-0 rounded-full border app-accent-border" />
                     )}
                     {active && (
-                      <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-blue-400" />
+                      <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full app-accent-dot" />
                     )}
                   </span>
                   <span>{item.label}</span>

@@ -301,7 +301,7 @@ export default function Home({
           <button
             onClick={handleAnalysis}
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors w-full sm:w-auto"
+            className="app-primary-btn text-white px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors w-full sm:w-auto"
           >
             {loading ? (
               <Loader2 size={16} className="animate-spin" />
@@ -372,7 +372,7 @@ export default function Home({
             No tasks yet.{' '}
             <button
               onClick={() => setPage('tasks')}
-              className="text-blue-400 hover:underline"
+              className="app-accent-text hover:underline"
             >
               Add some
             </button>
@@ -384,7 +384,7 @@ export default function Home({
                 key={task.id}
                 className="flex items-center gap-3 bg-gray-900/50 rounded-lg px-4 py-2.5"
               >
-                <span className="text-blue-400 font-bold text-sm w-5">
+                <span className="app-accent-text font-bold text-sm w-5">
                   {i + 1}.
                 </span>
                 <span className="text-white flex-1 text-left min-w-0 break-words">{task.title}</span>
@@ -441,9 +441,9 @@ export default function Home({
 
       {/* Latest AI Insight */}
       {latestInsight && (
-          <div className="bg-gray-800/60 border border-blue-800/30 rounded-xl p-4 sm:p-5">
+          <div className="app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl p-4 sm:p-5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
-            <div className="flex items-center gap-2 text-blue-400 min-w-0">
+            <div className="flex items-center gap-2 app-accent-text min-w-0">
               <Brain size={18} />
               <h2 className="text-base sm:text-lg font-semibold text-white">
                 Latest AI Recommendation
@@ -451,7 +451,7 @@ export default function Home({
             </div>
             <button
               onClick={() => setPage('insights')}
-              className="text-xs text-gray-500 hover:text-blue-400 transition-colors self-start sm:self-auto"
+              className="text-xs text-gray-500 app-accent-hover-text transition-colors self-start sm:self-auto"
             >
               View All
             </button>

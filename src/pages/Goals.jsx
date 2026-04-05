@@ -296,7 +296,7 @@ export default function Goals({ goals, setGoals, finances, profile }) {
         <button
           onClick={() => handleGoalsAI()}
           disabled={aiLoadingScope !== null}
-          className="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors self-start sm:self-auto"
+          className="app-primary-btn text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors self-start sm:self-auto"
         >
           {aiLoadingScope === 'all' ? (
             <Loader2 size={16} className="animate-spin" />
@@ -349,8 +349,8 @@ export default function Goals({ goals, setGoals, finances, profile }) {
 
       {/* Overall AI strategy */}
       {aiResult.all?.overall && (
-        <div className="bg-purple-900/20 border border-purple-800/40 rounded-xl p-3 sm:p-4 flex gap-3">
-          <Brain size={18} className="text-purple-400 shrink-0 mt-0.5" />
+        <div className="app-accent-panel bg-purple-900/20 border border-purple-800/40 rounded-xl p-3 sm:p-4 flex gap-3">
+          <Brain size={18} className="app-accent-text shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-semibold text-white mb-1">Overall Strategy</p>
             <p className="text-sm text-gray-300 leading-relaxed">{aiResult.all.overall}</p>
@@ -430,7 +430,7 @@ export default function Goals({ goals, setGoals, finances, profile }) {
             />
             <button
               type="submit"
-              className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-lg flex items-center gap-1 transition-colors shrink-0"
+              className="app-primary-btn text-white px-4 py-2.5 rounded-lg flex items-center gap-1 transition-colors shrink-0"
             >
               <Plus size={16} />
               Add Goal

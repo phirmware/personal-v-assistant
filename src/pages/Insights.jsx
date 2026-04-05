@@ -1,14 +1,21 @@
-import { Trash2, Brain } from 'lucide-react'
+import { Trash2, Brain, ChevronDown, ChevronUp } from 'lucide-react'
+import { useState } from 'react'
 import MarkdownContent from '../components/MarkdownContent'
 import EmptyState from '../components/EmptyState'
 
 export default function Insights({ insights, setInsights }) {
+  const [openMap, setOpenMap] = useState({})
+
   function deleteInsight(id) {
     setInsights(insights.filter((i) => i.id !== id))
   }
 
   function clearAll() {
     setInsights([])
+  }
+
+  function toggleOpen(id) {
+    setOpenMap((prev) => ({ ...prev, [id]: !prev[id] }))
   }
 
   return (
@@ -34,28 +41,53 @@ export default function Insights({ insights, setInsights }) {
       )}
 
       <div className="space-y-4">
-        {insights.map((insight) => (
-          <div
-            key={insight.id}
-            className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-5 group"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-2 app-accent-text">
-                <Brain size={18} />
-                <span className="text-sm text-gray-500">
-                  {new Date(insight.date).toLocaleString()}
-                </span>
-              </div>
+        {insights.map((insight) => {
+          const isOpen = Boolean(openMap[insight.id])
+          return (
+            <div
+              key={insight.id}
+              className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden"
+            >
               <button
-                onClick={() => deleteInsight(insight.id)}
-                className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                type="button"
+                onClick={() => toggleOpen(insight.id)}
+                className="w-full px-4 sm:px-5 py-3.5 flex items-start justify-between gap-3 text-left"
               >
-                <Trash2 size={16} />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 app-accent-text">
+                    <Brain size={18} />
+                    <span className="text-sm text-gray-500">
+                      {new Date(insight.date).toLocaleString()}
+                    </span>
+                  </div>
+                  {!isOpen && (
+                    <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                      {String(insight.content || '').replace(/\s+/g, ' ').trim()}
+                    </p>
+                  )}
+                </div>
+                {isOpen ? (
+                  <ChevronUp size={16} className="text-gray-500 shrink-0" />
+                ) : (
+                  <ChevronDown size={16} className="text-gray-500 shrink-0" />
+                )}
               </button>
+              {isOpen && (
+                <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4 space-y-3">
+                  <MarkdownContent content={insight.content} />
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => deleteInsight(insight.id)}
+                      className="text-gray-500 hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-            <MarkdownContent content={insight.content} />
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

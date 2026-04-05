@@ -10,6 +10,8 @@ import {
   PiggyBank,
   Download,
   Upload,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
 import { runAnalysis } from '../ai'
 import MarkdownContent from '../components/MarkdownContent'
@@ -45,6 +47,16 @@ export default function Home({
   const [loading, setLoading] = useState(false)
   const [importing, setImporting] = useState(false)
   const [error, setError] = useState(null)
+  const [openSections, setOpenSections] = useState({
+    alerts: true,
+    focus: true,
+    metrics: false,
+    insight: false,
+  })
+
+  function toggleSection(key) {
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
 
   // Determine today's focus: pinned tasks first, then top 3 by priority
   const activeTasks = tasks.filter((t) => !t.done)
@@ -344,121 +356,201 @@ export default function Home({
 
       {/* Alerts */}
       {alerts.length > 0 && (
-        <div className="space-y-2">
-          {alerts.map((a, i) => (
-            <div
-              key={i}
-              className={`flex items-start gap-2 rounded-lg px-4 py-2.5 text-sm ${
-                a.type === 'danger'
-                  ? 'bg-red-900/30 border border-red-800 text-red-300'
-                  : 'bg-yellow-900/30 border border-yellow-800 text-yellow-300'
-              }`}
-            >
-              <AlertTriangle size={16} />
-              {a.msg}
+        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+          <button
+            type="button"
+            onClick={() => toggleSection('alerts')}
+            className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
+          >
+            <div>
+              <p className="text-sm sm:text-base font-semibold text-white">Alerts</p>
+              <p className="text-xs text-gray-500">{alerts.length} active warning(s)</p>
             </div>
-          ))}
+            {openSections.alerts ? (
+              <ChevronUp size={16} className="text-gray-500" />
+            ) : (
+              <ChevronDown size={16} className="text-gray-500" />
+            )}
+          </button>
+          {openSections.alerts && (
+            <div className="border-t border-gray-700/60 px-4 sm:px-5 py-3 space-y-2">
+              {alerts.map((a, i) => (
+                <div
+                  key={i}
+                  className={`flex items-start gap-2 rounded-lg px-4 py-2.5 text-sm ${
+                    a.type === 'danger'
+                      ? 'bg-red-900/30 border border-red-800 text-red-300'
+                      : 'bg-yellow-900/30 border border-yellow-800 text-yellow-300'
+                  }`}
+                >
+                  <AlertTriangle size={16} />
+                  {a.msg}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {/* Today's Focus */}
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 sm:p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Zap size={20} className="text-yellow-400" />
-          <h2 className="text-lg font-semibold text-white">Today's Focus</h2>
-        </div>
-        {focusTasks.length === 0 ? (
-          <p className="text-gray-500 text-sm">
-            No tasks yet.{' '}
-            <button
-              onClick={() => setPage('tasks')}
-              className="app-accent-text hover:underline"
-            >
-              Add some
-            </button>
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {focusTasks.map((task, i) => (
-              <div
-                key={task.id}
-                className="flex items-center gap-3 bg-gray-900/50 rounded-lg px-4 py-2.5"
-              >
-                <span className="app-accent-text font-bold text-sm w-5">
-                  {i + 1}.
-                </span>
-                <span className="text-white flex-1 text-left min-w-0 break-words">{task.title}</span>
-                <span
-                  className={`text-xs font-medium uppercase shrink-0 ${
-                    task.priority === 'high'
-                      ? 'text-red-400'
-                      : task.priority === 'medium'
-                        ? 'text-yellow-400'
-                        : 'text-gray-400'
-                  }`}
+      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+        <button
+          type="button"
+          onClick={() => toggleSection('focus')}
+          className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <Zap size={20} className="text-yellow-400 shrink-0" />
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-base font-semibold text-white">Today's Focus</h2>
+              <p className="text-xs text-gray-500">
+                {focusTasks.length > 0 ? `${focusTasks.length} priority task(s)` : 'No tasks yet'}
+              </p>
+            </div>
+          </div>
+          {openSections.focus ? (
+            <ChevronUp size={16} className="text-gray-500" />
+          ) : (
+            <ChevronDown size={16} className="text-gray-500" />
+          )}
+        </button>
+        {openSections.focus && (
+          <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4">
+            {focusTasks.length === 0 ? (
+              <p className="text-gray-500 text-sm">
+                No tasks yet.{' '}
+                <button
+                  onClick={() => setPage('tasks')}
+                  className="app-accent-text hover:underline"
                 >
-                  {task.priority}
-                </span>
+                  Add some
+                </button>
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {focusTasks.map((task, i) => (
+                  <div
+                    key={task.id}
+                    className="flex items-center gap-3 bg-gray-900/50 rounded-lg px-4 py-2.5"
+                  >
+                    <span className="app-accent-text font-bold text-sm w-5">
+                      {i + 1}.
+                    </span>
+                    <span className="text-white flex-1 text-left min-w-0 break-words">{task.title}</span>
+                    <span
+                      className={`text-xs font-medium uppercase shrink-0 ${
+                        task.priority === 'high'
+                          ? 'text-red-400'
+                          : task.priority === 'medium'
+                            ? 'text-yellow-400'
+                            : 'text-gray-400'
+                      }`}
+                    >
+                      {task.priority}
+                    </span>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-5">
-          <div className="flex items-center gap-2 text-green-400 mb-1">
-            <TrendingUp size={18} />
-            <span className="text-sm font-medium">Tasks Done</span>
+      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
+        <button
+          type="button"
+          onClick={() => toggleSection('metrics')}
+          className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
+        >
+          <div>
+            <p className="text-sm sm:text-base font-semibold text-white">At a glance</p>
+            <p className="text-xs text-gray-500">
+              {tasks.filter((t) => t.done).length}/{tasks.length} tasks done · {avgGoalProgress !== null ? `${avgGoalProgress}%` : '—'} goal progress
+            </p>
           </div>
-          <p className="text-2xl font-bold text-white">
-            {tasks.filter((t) => t.done).length}{' '}
-            <span className="text-sm text-gray-500 font-normal">
-              / {tasks.length}
-            </span>
-          </p>
-        </div>
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-5">
-          <div className="flex items-center gap-2 text-blue-400 mb-1">
-            <PiggyBank size={18} />
-            <span className="text-sm font-medium">Net Worth</span>
+          {openSections.metrics ? (
+            <ChevronUp size={16} className="text-gray-500" />
+          ) : (
+            <ChevronDown size={16} className="text-gray-500" />
+          )}
+        </button>
+        {openSections.metrics && (
+          <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-5">
+              <div className="flex items-center gap-2 text-green-400 mb-1">
+                <TrendingUp size={18} />
+                <span className="text-sm font-medium">Tasks Done</span>
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {tasks.filter((t) => t.done).length}{' '}
+                <span className="text-sm text-gray-500 font-normal">
+                  / {tasks.length}
+                </span>
+              </p>
+            </div>
+            <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-5">
+              <div className="flex items-center gap-2 text-blue-400 mb-1">
+                <PiggyBank size={18} />
+                <span className="text-sm font-medium">Net Worth</span>
+              </div>
+              <p className={`text-2xl font-bold ${netWorth >= 0 ? 'text-white' : 'text-red-400'}`}>
+                {netWorth.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}
+              </p>
+            </div>
+            <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-5">
+              <div className="flex items-center gap-2 text-purple-400 mb-1">
+                <Target size={18} />
+                <span className="text-sm font-medium">Goal Progress</span>
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {avgGoalProgress !== null ? `${avgGoalProgress}%` : '—'}
+              </p>
+            </div>
           </div>
-          <p className={`text-2xl font-bold ${netWorth >= 0 ? 'text-white' : 'text-red-400'}`}>
-            {netWorth.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}
-          </p>
-        </div>
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-5">
-          <div className="flex items-center gap-2 text-purple-400 mb-1">
-            <Target size={18} />
-            <span className="text-sm font-medium">Goal Progress</span>
-          </div>
-          <p className="text-2xl font-bold text-white">
-            {avgGoalProgress !== null ? `${avgGoalProgress}%` : '—'}
-          </p>
-        </div>
+        )}
       </div>
 
       {/* Latest AI Insight */}
       {latestInsight && (
-          <div className="app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl p-4 sm:p-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+        <div className="app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl overflow-hidden">
+          <button
+            type="button"
+            onClick={() => toggleSection('insight')}
+            className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
+          >
             <div className="flex items-center gap-2 app-accent-text min-w-0">
               <Brain size={18} />
-              <h2 className="text-base sm:text-lg font-semibold text-white">
-                Latest AI Recommendation
-              </h2>
+              <div className="min-w-0">
+                <h2 className="text-sm sm:text-base font-semibold text-white">
+                  Latest AI Recommendation
+                </h2>
+                <p className="text-xs text-gray-500 truncate">
+                  {new Date(latestInsight.date).toLocaleDateString()}
+                </p>
+              </div>
             </div>
-            <button
-              onClick={() => setPage('insights')}
-              className="text-xs text-gray-500 app-accent-hover-text transition-colors self-start sm:self-auto"
-            >
-              View All
-            </button>
-          </div>
-          <div className="max-h-64 overflow-y-auto">
-            <MarkdownContent content={latestInsight.content} />
-          </div>
+            {openSections.insight ? (
+              <ChevronUp size={16} className="text-gray-500" />
+            ) : (
+              <ChevronDown size={16} className="text-gray-500" />
+            )}
+          </button>
+          {openSections.insight && (
+            <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4">
+              <div className="flex justify-end mb-3">
+                <button
+                  onClick={() => setPage('insights')}
+                  className="text-xs text-gray-500 app-accent-hover-text transition-colors"
+                >
+                  View All
+                </button>
+              </div>
+              <div className="max-h-64 overflow-y-auto">
+                <MarkdownContent content={latestInsight.content} />
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -3,7 +3,7 @@
   "short_name": "V-Assist",
   "description": "AI-powered personal finance and productivity assistant",
   "start_url": "/",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#030712",
   "theme_color": "#3b82f6",
   "orientation": "portrait-primary",

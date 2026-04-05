@@ -24,6 +24,7 @@ export default function Tasks({ tasks, setTasks }) {
   const [priority, setPriority] = useState('medium')
   const [details, setDetails] = useState('')
   const [openMap, setOpenMap] = useState({})
+  const [addOpen, setAddOpen] = useState(false)
   const [aiLoadingId, setAiLoadingId] = useState(null)
   const [aiError, setAiError] = useState(null)
 
@@ -96,41 +97,60 @@ export default function Tasks({ tasks, setTasks }) {
     <div className="space-y-6">
       <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Tasks</h1>
 
-      <form
-        onSubmit={addTask}
-        className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4 space-y-3"
-      >
-        <div className="flex flex-col sm:flex-row gap-3">
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Add a task..."
-            className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-          />
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-gray-300 focus:outline-none focus:border-blue-500"
-          >
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
-        </div>
-        <textarea
-          value={details}
-          onChange={(e) => setDetails(e.target.value)}
-          placeholder="Task details, context, blockers, or plan..."
-          rows={2}
-          className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
-        />
+      <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl overflow-hidden">
         <button
-          type="submit"
-          className="app-primary-btn text-white px-4 py-2.5 rounded-lg flex items-center gap-2 transition-colors"
+          type="button"
+          onClick={() => setAddOpen((prev) => !prev)}
+          className="w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
         >
-          <Plus size={18} /> Add Task
+          <div>
+            <p className="text-sm sm:text-base font-semibold text-white">Add Task</p>
+            <p className="text-xs text-gray-500">Keep collapsed while focusing on active work.</p>
+          </div>
+          {addOpen ? (
+            <ChevronUp size={16} className="text-gray-500" />
+          ) : (
+            <ChevronDown size={16} className="text-gray-500" />
+          )}
         </button>
-      </form>
+        {addOpen && (
+          <form
+            onSubmit={addTask}
+            className="border-t border-gray-700/60 p-4 space-y-3"
+          >
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Add a task..."
+                className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              />
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+                className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-gray-300 focus:outline-none focus:border-blue-500"
+              >
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+            <textarea
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              placeholder="Task details, context, blockers, or plan..."
+              rows={2}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+            />
+            <button
+              type="submit"
+              className="app-primary-btn text-white px-4 py-2.5 rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <Plus size={18} /> Add Task
+            </button>
+          </form>
+        )}
+      </div>
 
       {aiError && (
         <div className="bg-red-900/30 border border-red-800 rounded-lg p-3 text-red-300 text-sm">

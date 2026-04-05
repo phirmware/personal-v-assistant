@@ -171,7 +171,10 @@ export default function App() {
 
       {/* Main */}
       <main className="flex-1 overflow-y-auto pb-28 lg:pb-0">
-        <div className="lg:hidden sticky top-0 z-20 px-3 pt-2.5 pb-2 bg-gradient-to-b from-gray-950 via-gray-950/95 to-transparent backdrop-blur-sm">
+        <div
+          className="lg:hidden sticky top-0 z-20 px-3 pt-2 pb-2 bg-gradient-to-b from-gray-950 via-gray-950/95 to-transparent backdrop-blur-sm"
+          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.35rem)' }}
+        >
           <div className="mobile-topbar-shell rounded-3xl border border-gray-700/80 bg-gray-900/90 backdrop-blur shadow-[0_8px_24px_rgba(0,0,0,0.35)] px-4 py-3">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">

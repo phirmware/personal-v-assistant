@@ -1,13 +1,30 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import {
+  DndContext,
+  PointerSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import {
   Plus,
   Trash2,
   Star,
   StarOff,
+  Check,
   Sparkles,
   Loader2,
   ChevronDown,
   ChevronUp,
+  GripVertical,
 } from 'lucide-react'
 import { runTaskSuggestion } from '../ai'
 import MarkdownContent from '../components/MarkdownContent'
@@ -19,6 +36,176 @@ const PRIORITY_COLORS = {
   low: 'text-gray-400',
 }
 
+function SortableTaskRow({
+  task,
+  isOpen,
+  isDropTarget,
+  onToggleDone,
+  onToggleOpen,
+  onTogglePin,
+  onDelete,
+  onTaskAI,
+  aiLoadingId,
+  updateTask,
+  autoResizeTextarea,
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: String(task.id),
+  })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`app-surface-row overflow-hidden group ${task.done ? 'opacity-50' : ''} ${
+        isDropTarget ? 'ring-1 ring-blue-500/70' : ''
+      } ${isDragging ? 'ring-1 ring-blue-400/70' : ''}`}
+    >
+      <div className="px-4 py-3">
+        <div className="flex items-start gap-3">
+          <button
+            type="button"
+            onClick={onToggleDone}
+            className={`mt-0.5 w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+              task.done
+                ? 'bg-blue-500/25 border-blue-400 text-blue-200'
+                : 'border-gray-600 text-transparent hover:border-gray-400'
+            }`}
+            title={task.done ? 'Mark as active' : 'Mark as completed'}
+            aria-label={task.done ? 'Mark as active' : 'Mark as completed'}
+          >
+            <Check size={14} />
+          </button>
+
+          <button
+            type="button"
+            onClick={onToggleOpen}
+            className="flex-1 min-w-0 text-left"
+            title={isOpen ? 'Collapse task' : 'Expand task'}
+          >
+            <p
+              className={`min-w-0 break-words text-sm sm:text-[15px] ${
+                task.done ? 'line-through text-gray-500' : 'text-white'
+              }`}
+            >
+              {task.title}
+            </p>
+            <div className="mt-1.5 flex items-center gap-2 text-[11px]">
+              <span
+                className={`uppercase font-semibold tracking-wide ${PRIORITY_COLORS[task.priority]}`}
+              >
+                {task.priority}
+              </span>
+              {task.pinned && (
+                <span className="px-1.5 py-0.5 rounded-md border border-yellow-500/30 text-yellow-300 bg-yellow-500/10">
+                  pinned
+                </span>
+              )}
+            </div>
+          </button>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              {...attributes}
+              {...listeners}
+              className="text-gray-500 hover:text-gray-300 cursor-grab active:cursor-grabbing touch-none rounded-md p-1"
+              title="Drag to reorder"
+              aria-label="Drag to reorder"
+            >
+              <GripVertical size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={onTogglePin}
+              className="text-gray-500 hover:text-yellow-400 transition-colors rounded-md p-1"
+              title={task.pinned ? 'Unpin from focus' : 'Pin to focus'}
+            >
+              {task.pinned ? <Star size={15} fill="currentColor" /> : <StarOff size={15} />}
+            </button>
+            <button
+              type="button"
+              onClick={onToggleOpen}
+              className="text-gray-500 app-accent-hover-text transition-colors rounded-md p-1"
+              title={isOpen ? 'Collapse task' : 'Expand task'}
+            >
+              {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="border-t border-gray-700/60 px-4 py-3 space-y-2">
+          <div className="input-shell">
+            <textarea
+              value={task.details || ''}
+              onChange={(e) => {
+                updateTask(task.id, 'details', e.target.value)
+                autoResizeTextarea(e.currentTarget)
+              }}
+              ref={(el) => autoResizeTextarea(el)}
+              placeholder="Add task details..."
+              rows={1}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[5rem]"
+            />
+          </div>
+          <div className="input-shell">
+            <div className="section-header-inline mb-2">
+              <p className="section-header-title">Updates</p>
+              <p className="section-header-meta">What changed since last step</p>
+            </div>
+            <textarea
+              value={task.updates || ''}
+              onChange={(e) => {
+                updateTask(task.id, 'updates', e.target.value)
+                autoResizeTextarea(e.currentTarget)
+              }}
+              ref={(el) => autoResizeTextarea(el)}
+              placeholder="Progress update (e.g. called instructor, finished module, blocked by schedule)"
+              rows={1}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[4.25rem]"
+            />
+          </div>
+          <div className="flex justify-between items-center gap-2">
+            <button
+              onClick={onTaskAI}
+              disabled={aiLoadingId !== null}
+              className="app-primary-btn text-xs text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
+            >
+              {aiLoadingId === task.id ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                <Sparkles size={12} />
+              )}
+              {aiLoadingId === task.id ? 'Thinking...' : 'AI Suggest'}
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              className="text-xs px-2.5 py-1.5 rounded-lg border border-red-800/70 text-red-300 hover:bg-red-900/30 transition-colors"
+            >
+              <span className="inline-flex items-center gap-1">
+                <Trash2 size={12} />
+                Delete
+              </span>
+            </button>
+          </div>
+          {task.aiSuggestion && (
+            <div className="bg-gray-900/70 border border-gray-700 rounded-lg p-3">
+              <MarkdownContent content={task.aiSuggestion} />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Tasks({ tasks, setTasks }) {
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState('medium')
@@ -27,6 +214,28 @@ export default function Tasks({ tasks, setTasks }) {
   const [addOpen, setAddOpen] = useState(false)
   const [aiLoadingId, setAiLoadingId] = useState(null)
   const [aiError, setAiError] = useState(null)
+  const [draggingId, setDraggingId] = useState(null)
+  const [dragOverId, setDragOverId] = useState(null)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 6 } })
+  )
+
+  useEffect(() => {
+    setTasks((prevTasks) => {
+      let nextOrder = maxSortOrder(prevTasks) + 1
+      let changed = false
+      const withOrder = prevTasks.map((task) => {
+        if (Number.isFinite(task?.sortOrder)) return task
+        changed = true
+        const nextTask = { ...task, sortOrder: nextOrder }
+        nextOrder += 1
+        return nextTask
+      })
+      if (!changed) return prevTasks
+      return withOrder
+    })
+  }, [setTasks])
 
   function autoResizeTextarea(el) {
     if (!el) return
@@ -34,19 +243,45 @@ export default function Tasks({ tasks, setTasks }) {
     el.style.height = `${el.scrollHeight}px`
   }
 
+  function sortTasksList(list) {
+    const fallbackIndex = new Map(list.map((task, index) => [String(task.id), index]))
+    const priorityRank = { high: 3, medium: 2, low: 1 }
+    return [...list].sort((a, b) => {
+      if (Boolean(a.done) !== Boolean(b.done)) return Number(a.done) - Number(b.done)
+      if (Boolean(a.pinned) !== Boolean(b.pinned)) return Number(b.pinned) - Number(a.pinned)
+      const aOrder = Number.isFinite(a?.sortOrder)
+        ? a.sortOrder
+        : fallbackIndex.get(String(a.id)) ?? 0
+      const bOrder = Number.isFinite(b?.sortOrder)
+        ? b.sortOrder
+        : fallbackIndex.get(String(b.id)) ?? 0
+      if (aOrder !== bOrder) return aOrder - bOrder
+      return (priorityRank[b.priority] || 0) - (priorityRank[a.priority] || 0)
+    })
+  }
+
+  function maxSortOrder(list) {
+    return list.reduce(
+      (max, task) => (Number.isFinite(task?.sortOrder) ? Math.max(max, task.sortOrder) : max),
+      -1
+    )
+  }
+
   function addTask(e) {
     e.preventDefault()
     if (!title.trim()) return
-    setTasks([
-      ...tasks,
+    setTasks((prevTasks) => [
+      ...prevTasks,
       {
         id: Date.now(),
         title: title.trim(),
         priority,
         details: details.trim(),
+        updates: '',
         done: false,
         pinned: false,
         aiSuggestion: '',
+        sortOrder: maxSortOrder(prevTasks) + 1,
       },
     ])
     setTitle('')
@@ -54,23 +289,86 @@ export default function Tasks({ tasks, setTasks }) {
   }
 
   function toggleDone(id) {
-    setTasks(tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)))
+    setTasks((prevTasks) => {
+      const nextOrder = maxSortOrder(prevTasks) + 1
+      return prevTasks.map((task) =>
+        task.id === id
+          ? { ...task, done: !task.done, sortOrder: nextOrder }
+          : task
+      )
+    })
   }
 
   function togglePin(id) {
-    setTasks(tasks.map((t) => (t.id === id ? { ...t, pinned: !t.pinned } : t)))
+    setTasks((prevTasks) => prevTasks.map((task) => (task.id === id ? { ...task, pinned: !task.pinned } : task)))
   }
 
   function deleteTask(id) {
-    setTasks(tasks.filter((t) => t.id !== id))
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id))
   }
 
   function updateTask(id, field, value) {
-    setTasks(tasks.map((t) => (t.id === id ? { ...t, [field]: value } : t)))
+    setTasks((prevTasks) => prevTasks.map((task) => (task.id === id ? { ...task, [field]: value } : task)))
   }
 
   function toggleOpen(id) {
     setOpenMap((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  function reorderTasks(sourceId, targetId) {
+    if (sourceId === null || targetId === null || String(sourceId) === String(targetId)) return
+    setTasks((prevTasks) => {
+      const current = sortTasksList(prevTasks)
+      const fromIndex = current.findIndex((task) => String(task.id) === String(sourceId))
+      const toIndex = current.findIndex((task) => String(task.id) === String(targetId))
+      if (fromIndex < 0 || toIndex < 0) return prevTasks
+
+      const sourceTask = current[fromIndex]
+      const targetTask = current[toIndex]
+      if (Boolean(sourceTask.done) !== Boolean(targetTask.done)) return prevTasks
+      if (Boolean(sourceTask.pinned) !== Boolean(targetTask.pinned)) return prevTasks
+
+      const moved = arrayMove(current, fromIndex, toIndex)
+
+      const sortOrderById = new Map()
+      let activeIndex = 0
+      let doneIndex = 0
+      for (const task of moved) {
+        if (task.done) {
+          sortOrderById.set(String(task.id), doneIndex)
+          doneIndex += 1
+        } else {
+          sortOrderById.set(String(task.id), activeIndex)
+          activeIndex += 1
+        }
+      }
+
+      return prevTasks.map((task) => ({
+        ...task,
+        sortOrder: sortOrderById.get(String(task.id)),
+      }))
+    })
+  }
+
+  function handleDragStart(event) {
+    setDraggingId(String(event.active.id))
+  }
+
+  function handleDragOver(event) {
+    setDragOverId(event.over?.id ? String(event.over.id) : null)
+  }
+
+  function handleDrop(event) {
+    const sourceId = event.active?.id ? String(event.active.id) : null
+    const targetId = event.over?.id ? String(event.over.id) : null
+    reorderTasks(sourceId, targetId)
+    setDragOverId(null)
+    setDraggingId(null)
+  }
+
+  function handleDragEnd() {
+    setDragOverId(null)
+    setDraggingId(null)
   }
 
   async function handleTaskAI(task) {
@@ -82,6 +380,7 @@ export default function Tasks({ tasks, setTasks }) {
           title: task.title,
           priority: task.priority,
           details: task.details || '',
+          updates: task.updates || '',
         },
       })
       updateTask(task.id, 'aiSuggestion', content)
@@ -93,11 +392,7 @@ export default function Tasks({ tasks, setTasks }) {
     }
   }
 
-  const sorted = [...tasks].sort((a, b) => {
-    if (a.pinned !== b.pinned) return b.pinned - a.pinned
-    const p = { high: 3, medium: 2, low: 1 }
-    return p[b.priority] - p[a.priority]
-  })
+  const sorted = sortTasksList(tasks)
 
   return (
     <div className="page-shell space-y-5 sm:space-y-6">
@@ -187,10 +482,22 @@ export default function Tasks({ tasks, setTasks }) {
       <section className="page-group">
         <div className="section-header-inline">
           <p className="section-header-title">Queue</p>
-          <p className="section-header-meta">Pinned first, then priority</p>
+          <p className="section-header-meta">Drag to reorder. Completed tasks sink to the bottom.</p>
         </div>
         <div className="page-group-shell">
-          <div className="app-surface-list">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDrop}
+            onDragCancel={handleDragEnd}
+          >
+            <SortableContext
+              items={sorted.map((task) => String(task.id))}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="app-surface-list">
             {sorted.length === 0 && (
               <EmptyState
                 icon={Plus}
@@ -199,91 +506,28 @@ export default function Tasks({ tasks, setTasks }) {
               />
             )}
             {sorted.map((task) => (
-              <div
+              <SortableTaskRow
                 key={task.id}
-                className={`app-surface-row overflow-hidden group ${task.done ? 'opacity-50' : ''}`}
-              >
-                <div className="px-4 py-3 flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={task.done}
-                    onChange={() => toggleDone(task.id)}
-                    className="w-4 h-4 accent-blue-500 shrink-0"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => toggleOpen(task.id)}
-                    className="flex-1 min-w-0 flex items-center gap-3 text-left"
-                    title={openMap[task.id] ? 'Collapse task' : 'Expand task'}
-                  >
-                    <span
-                      className={`flex-1 text-left min-w-0 break-words ${task.done ? 'line-through text-gray-500' : 'text-white'}`}
-                    >
-                      {task.title}
-                    </span>
-                    <span
-                      className={`text-xs font-medium uppercase ${PRIORITY_COLORS[task.priority]} shrink-0`}
-                    >
-                      {task.priority}
-                    </span>
-                    <span className="text-gray-500 app-accent-hover-text transition-colors shrink-0">
-                      {openMap[task.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => togglePin(task.id)}
-                    className="text-gray-500 hover:text-yellow-400 transition-colors shrink-0"
-                    title={task.pinned ? 'Unpin from focus' : 'Pin to focus'}
-                  >
-                    {task.pinned ? <Star size={16} fill="currentColor" /> : <StarOff size={16} />}
-                  </button>
-                  <button
-                    onClick={() => deleteTask(task.id)}
-                    className="text-gray-500 hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100 transition-all shrink-0"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-
-                {openMap[task.id] && (
-                  <div className="border-t border-gray-700/60 px-4 py-3 space-y-2">
-                    <div className="input-shell">
-                      <textarea
-                        value={task.details || ''}
-                        onChange={(e) => {
-                          updateTask(task.id, 'details', e.target.value)
-                          autoResizeTextarea(e.currentTarget)
-                        }}
-                        ref={(el) => autoResizeTextarea(el)}
-                        placeholder="Add task details..."
-                        rows={1}
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[5rem]"
-                      />
-                    </div>
-                    <div className="flex justify-between items-center gap-2">
-                      <button
-                        onClick={() => handleTaskAI(task)}
-                        disabled={aiLoadingId !== null}
-                        className="app-primary-btn text-xs text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
-                      >
-                        {aiLoadingId === task.id ? (
-                          <Loader2 size={12} className="animate-spin" />
-                        ) : (
-                          <Sparkles size={12} />
-                        )}
-                        {aiLoadingId === task.id ? 'Thinking...' : 'AI Suggest'}
-                      </button>
-                    </div>
-                    {task.aiSuggestion && (
-                      <div className="bg-gray-900/70 border border-gray-700 rounded-lg p-3">
-                        <MarkdownContent content={task.aiSuggestion} />
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                task={task}
+                isOpen={Boolean(openMap[task.id])}
+                isDropTarget={
+                  dragOverId !== null &&
+                  String(dragOverId) === String(task.id) &&
+                  String(draggingId) !== String(task.id)
+                }
+                onToggleDone={() => toggleDone(task.id)}
+                onToggleOpen={() => toggleOpen(task.id)}
+                onTogglePin={() => togglePin(task.id)}
+                onDelete={() => deleteTask(task.id)}
+                onTaskAI={() => handleTaskAI(task)}
+                aiLoadingId={aiLoadingId}
+                updateTask={updateTask}
+                autoResizeTextarea={autoResizeTextarea}
+              />
             ))}
-          </div>
+              </div>
+            </SortableContext>
+          </DndContext>
         </div>
       </section>
     </div>

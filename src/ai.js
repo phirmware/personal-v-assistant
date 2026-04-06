@@ -1,4 +1,8 @@
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || 'YOUR_OPENAI_API_KEY'
+const CORE_SYSTEM_PROMPT = `You are V-Assistant, a highly practical personal execution coach.
+Your ultimate goal is to help the user succeed.
+Always do everything possible within the provided context to maximize the user's progress, clarity, and consistency.
+Prioritize concrete actions, honest tradeoffs, and next steps the user can actually execute.`
 
 async function callOpenAI(prompt, maxTokens = 1000) {
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -9,7 +13,10 @@ async function callOpenAI(prompt, maxTokens = 1000) {
     },
     body: JSON.stringify({
       model: 'gpt-5.4-mini',
-      messages: [{ role: 'user', content: prompt }],
+      messages: [
+        { role: 'system', content: CORE_SYSTEM_PROMPT },
+        { role: 'user', content: prompt },
+      ],
       max_completion_tokens: maxTokens,
     }),
   })
@@ -121,6 +128,7 @@ Give practical guidance for this single task:
 - Title: ${task?.title || 'Untitled'}
 - Priority: ${task?.priority || 'medium'}
 - Details: ${task?.details || '(none)'}
+- Latest updates: ${task?.updates || '(none)'}
 
 Respond in concise markdown with:
 1) Three actionable suggestions
@@ -189,6 +197,120 @@ Rules:
   return callOpenAI(prompt, 500)
 }
 
+export async function runGoalTaskPlanner({
+  profile,
+  finances,
+  goals,
+  existingTasks = [],
+  section = null,
+  notes = [],
+}) {
+  const today = new Date().toISOString().split('T')[0]
+  const ageCtx = getAgeContext(profile)
+  const profileCtx = getProfileContext(profile)
+  const finSummary = buildFinanceSummary(finances)
+
+  const goalsPayload = (goals || []).map((g) => {
+    const target = Number.isFinite(parseFloat(g?.target)) ? parseFloat(g.target) : 0
+    const current = Number.isFinite(parseFloat(g?.current)) ? parseFloat(g.current) : 0
+    const progress = Number.isFinite(parseFloat(g?.progress)) ? parseFloat(g.progress) : 0
+    const completion = target > 0 ? Math.max(0, Math.min(100, (current / target) * 100)) : Math.max(0, Math.min(100, progress))
+    const daysLeft = g?.deadline
+      ? Math.ceil((new Date(g.deadline) - new Date(today)) / (1000 * 60 * 60 * 24))
+      : null
+
+    return {
+      id: g?.id,
+      section: g?.section || 'Financial',
+      title: g?.title || '',
+      target,
+      current,
+      progress,
+      completion,
+      deadline: g?.deadline || null,
+      days_left: Number.isFinite(daysLeft) ? daysLeft : null,
+      details: g?.details || '',
+      notes: g?.notes || '',
+      plan: g?.plan || '',
+      updates: g?.updates || '',
+    }
+  })
+
+  const existingPayload = (existingTasks || []).map((t) => ({
+    id: t?.id,
+    goal_id: t?.goal_id ?? t?.goalId ?? null,
+    title: t?.title || '',
+    details: t?.details || '',
+    updates: t?.updates || '',
+    priority: t?.priority || 'medium',
+    complete_at: t?.complete_at ?? t?.completeAt ?? null,
+    done: Boolean(t?.done),
+    updated_at: t?.updated_at ?? t?.updatedAt ?? null,
+  }))
+
+  const notesSummary = (notes || [])
+    .slice(0, 10)
+    .map((n) => `- ${String(n?.text || '').replace(/\s+/g, ' ').trim()}`)
+    .join('\n')
+
+  const scopeText = section
+    ? `Focus only on this section: "${section}".`
+    : 'Cover all goal sections.'
+
+  const prompt = `You are a practical daily execution coach. Today is ${today}. ${ageCtx} ${profileCtx}
+
+${finSummary}
+
+GOALS:
+${JSON.stringify(goalsPayload)}
+
+EXISTING AI-GENERATED GOAL TASKS:
+${JSON.stringify(existingPayload)}
+
+NOTES CONTEXT:
+${notesSummary || '(none)'}
+
+${scopeText}
+
+Objective:
+- Create or update at most ONE AI-managed task per goal.
+- Task must be completable in one day and move goal progress forward.
+- Use timeline urgency from deadline and days_left, plus details/notes/plan/updates and current completion.
+- Use existing task title/details/updates to decide whether to keep or update.
+- If an existing goal task is still valid, keep it.
+- If a goal is complete (or updates clearly indicate completion), mark existing task done.
+
+Respond with ONLY valid JSON:
+{
+  "tasks": [
+    {
+      "goal_id": "<goal id>",
+      "mode": "create_or_update" | "keep" | "mark_done",
+      "title": "<required when create_or_update>",
+      "details": "<required when create_or_update; concise actionable context>",
+      "priority": "low" | "medium" | "high",
+      "complete_at": "YYYY-MM-DD" | null,
+      "reason": "<short rationale>"
+    }
+  ],
+  "summary": "<one sentence>"
+}
+
+Rules:
+- Return exactly one tasks item for each goal in GOALS.
+- Never create broad multi-day tasks; scope to a same-day action.
+- complete_at should usually be today or next few days; do not exceed goal deadline when present.
+- "keep" means no update needed to existing task.
+- "mark_done" only when goal is completed or task is no longer needed.
+- If existing task updates indicate the action was completed, choose "mark_done".
+- Never delete tasks. Completion must be done via "mark_done".
+- Prefer specificity with numbers/timelines from goal data.
+- Do not reference manual tasks (only existing AI goal tasks are in input).`
+
+  const raw = await callOpenAI(prompt, 1600)
+  return parseJSON(raw)
+}
+
 export async function runFinanceAnalysis({ profile, finances }) {
   const today = new Date().toISOString().split('T')[0]
   const ageCtx = getAgeContext(profile)
@@ -245,6 +367,7 @@ export async function runGoalsAnalysis({ profile, finances, goals, section = nul
     details: g.details || '',
     notes: g.notes || '',
     plan: g.plan || '',
+    updates: g.updates || '',
   })))
   const notesSummary = (notes || [])
     .slice(0, 12)
@@ -267,7 +390,7 @@ ${notesSummary || '(none)'}
 
 ${scopeText}
 
-For each goal, read title + section + details/notes/plan and estimate current standing. Examples:
+For each goal, read title + section + details/notes/plan/updates and estimate current standing. Examples:
 - "Emergency fund" → look at liquid savings
 - "Pay off credit cards" → look at how much debt remains vs original (estimate current progress)
 - "Save for house deposit" → look at total savings + relevant accounts
@@ -290,7 +413,8 @@ Respond with ONLY valid JSON:
   "overall": "<2 sentences max — priorities and biggest lever to pull>"
 }
 
-Rules: Be concise. Use £ for money goals and % for non-money goals. Map goal titles to real account data intelligently. Use section/details/notes/plan and user notes to make recommendations concrete.
+Rules: Be concise. Use £ for money goals and % for non-money goals. Map goal titles to real account data intelligently. Use section/details/notes/plan/updates and user notes to make recommendations concrete.
+If updates indicate recent completion or progress changes, reflect that in status and current_estimate.
 Do not assume previous AI-estimated current amounts as ground truth; infer current_estimate freshly from financial data plus context.`
 
   const raw = await callOpenAI(prompt, 1500)

@@ -13,8 +13,9 @@ import {
   CheckCircle,
   AlertTriangle,
   XCircle,
+  ListTodo,
 } from 'lucide-react'
-import { runGoalsAnalysis } from '../ai'
+import { runGoalTaskPlanner, runGoalsAnalysis } from '../ai'
 import EmptyState from '../components/EmptyState'
 
 const GBP = (v) =>
@@ -53,7 +54,24 @@ function normalizeGoal(goal) {
     details: typeof goal?.details === 'string' ? goal.details : '',
     notes: typeof goal?.notes === 'string' ? goal.notes : '',
     plan: typeof goal?.plan === 'string' ? goal.plan : '',
+    updates: typeof goal?.updates === 'string' ? goal.updates : '',
   }
+}
+
+function updatesSuggestCompletion(updates) {
+  const text = String(updates || '').toLowerCase()
+  if (!text.trim()) return false
+  return [
+    'done',
+    'completed',
+    'complete',
+    'finished',
+    'submitted',
+    'paid',
+    'booked',
+    'passed',
+    'achieved',
+  ].some((word) => text.includes(word))
 }
 
 function normalizeAiStore(raw) {
@@ -103,7 +121,7 @@ const STATUS_CONFIG = {
   },
 }
 
-export default function Goals({ goals, setGoals, finances, profile, notes }) {
+export default function Goals({ goals, setGoals, finances, profile, notes, tasks, setTasks }) {
   const [title, setTitle] = useState('')
   const [sectionName, setSectionName] = useState(DEFAULT_SECTION)
   const [target, setTarget] = useState('')
@@ -111,6 +129,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
   const [details, setDetails] = useState('')
   const [addOpen, setAddOpen] = useState(false)
   const [aiLoadingScope, setAiLoadingScope] = useState(null)
+  const [taskSyncLoadingScope, setTaskSyncLoadingScope] = useState(null)
   const [aiError, setAiError] = useState(null)
   const [sectionOpenMap, setSectionOpenMap] = useState({})
   const [goalOpenMap, setGoalOpenMap] = useState({})
@@ -123,6 +142,11 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
     }
   })
   const normalizedGoals = goals.map(normalizeGoal)
+  const goalTaskMap = new Map(
+    (tasks || [])
+      .filter((task) => task?.source === 'goal-ai' && task?.goalId !== undefined && task?.goalId !== null)
+      .map((task) => [String(task.goalId), task])
+  )
 
   // Finance summary for context cards
   const saList = finances?.savingsAccounts || []
@@ -171,7 +195,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
         if (field === 'progress') return { ...goal, progress: clampPercent(toNumber(val)) }
         if (field === 'section') return { ...goal, section: normalizeSection(val) }
         if (field === 'title' || field === 'deadline') return { ...goal, [field]: val }
-        if (field === 'details' || field === 'notes' || field === 'plan') {
+        if (field === 'details' || field === 'notes' || field === 'plan' || field === 'updates') {
           return { ...goal, [field]: val }
         }
         return goal
@@ -199,6 +223,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
       deadline: deadline || null,
       notes: '',
       plan: '',
+      updates: '',
     })
     setGoals((prevGoals) => [...prevGoals.map(normalizeGoal), newGoal])
     setTitle('')
@@ -263,6 +288,131 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
       setAiError(err.message)
     } finally {
       setAiLoadingScope(null)
+    }
+  }
+
+  async function handleGoalTasksAI(section = null) {
+    const scopeKey = section ? `section:${sectionKey(section)}:tasks` : 'all:tasks'
+    setTaskSyncLoadingScope(scopeKey)
+    setAiError(null)
+    const scopedGoals = section
+      ? normalizedGoals.filter((goal) => sectionKey(goal.section) === sectionKey(section))
+      : normalizedGoals
+
+    if (scopedGoals.length === 0) {
+      setAiError('No goals in this section to create tasks for yet.')
+      setTaskSyncLoadingScope(null)
+      return
+    }
+
+    try {
+      const existingGoalTasks = (tasks || []).filter((task) =>
+        task?.source === 'goal-ai' &&
+        task?.goalId !== undefined &&
+        task?.goalId !== null &&
+        scopedGoals.some((goal) => String(goal.id) === String(task.goalId))
+      )
+
+      const plan = await runGoalTaskPlanner({
+        profile,
+        finances,
+        goals: scopedGoals,
+        existingTasks: existingGoalTasks,
+        section,
+        notes,
+      })
+
+      const actionsByGoalId = new Map(
+        (plan?.tasks || []).map((item) => [String(item.goal_id), item])
+      )
+
+      setTasks((prevTasks) => {
+        const next = [...prevTasks]
+        const goalIndexById = new Map()
+        next.forEach((task, index) => {
+          if (task?.source === 'goal-ai' && task?.goalId !== undefined && task?.goalId !== null) {
+            goalIndexById.set(String(task.goalId), index)
+          }
+        })
+
+        for (const goal of scopedGoals) {
+          const key = String(goal.id)
+          const action = actionsByGoalId.get(key)
+          if (!action) continue
+          const existingIndex = goalIndexById.has(key) ? goalIndexById.get(key) : -1
+          const existing = existingIndex >= 0 ? next[existingIndex] : null
+          const mode = action.mode
+
+          if (mode === 'keep') continue
+
+          if (mode === 'mark_done') {
+            if (existingIndex >= 0 && existing && !existing.done) {
+              next[existingIndex] = {
+                ...existing,
+                done: true,
+                updatedAt: new Date().toISOString(),
+              }
+            }
+            continue
+          }
+
+          if (mode !== 'create_or_update') continue
+
+          const title = String(action.title || '').trim()
+          if (!title) continue
+
+          const detailsBits = [
+            String(action.details || '').trim(),
+            goal.deadline ? `Goal deadline: ${goal.deadline}` : '',
+            Number.isFinite(goal.target) && goal.target > 0
+              ? `Goal progress: ${Math.round(getGoalCompletion(goal))}% (${GBP(goal.current)} / ${GBP(goal.target)})`
+              : `Goal progress: ${Math.round(getGoalCompletion(goal))}%`,
+            goal.updates ? `Goal updates: ${goal.updates}` : '',
+            String(action.reason || '').trim() ? `AI rationale: ${String(action.reason || '').trim()}` : '',
+          ].filter(Boolean)
+          const mergedDetails = detailsBits.join('\n')
+          const completeAt = typeof action.complete_at === 'string' && action.complete_at.trim()
+            ? action.complete_at.trim()
+            : null
+          const priority = ['low', 'medium', 'high'].includes(action.priority) ? action.priority : 'medium'
+          const inferredDone = updatesSuggestCompletion(existing?.updates)
+
+          if (existingIndex >= 0 && existing) {
+            next[existingIndex] = {
+              ...existing,
+              title,
+              details: mergedDetails,
+              updates: existing.updates || '',
+              priority,
+              completeAt,
+              done: inferredDone ? true : false,
+              updatedAt: new Date().toISOString(),
+            }
+          } else {
+            next.push({
+              id: Date.now() + Math.floor(Math.random() * 100000),
+              title,
+              details: mergedDetails,
+              priority,
+              done: false,
+              pinned: false,
+              aiSuggestion: '',
+              source: 'goal-ai',
+              goalId: goal.id,
+              updates: '',
+              completeAt,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            })
+          }
+        }
+
+        return next
+      })
+    } catch (err) {
+      setAiError(err.message)
+    } finally {
+      setTaskSyncLoadingScope(null)
     }
   }
 
@@ -332,10 +482,22 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
       </section>
 
       {/* Header */}
-      <div className="order-1 flex justify-end">
+      <div className="order-1 flex flex-wrap justify-end gap-2">
+        <button
+          onClick={() => handleGoalTasksAI()}
+          disabled={taskSyncLoadingScope !== null || aiLoadingScope !== null}
+          className="app-primary-btn text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors disabled:opacity-60"
+        >
+          {taskSyncLoadingScope === 'all:tasks' ? (
+            <Loader2 size={16} className="animate-spin" />
+          ) : (
+            <ListTodo size={16} />
+          )}
+          {taskSyncLoadingScope === 'all:tasks' ? 'Syncing Tasks...' : 'Create/Update Goal Tasks'}
+        </button>
         <button
           onClick={() => handleGoalsAI()}
-          disabled={aiLoadingScope !== null}
+          disabled={aiLoadingScope !== null || taskSyncLoadingScope !== null}
           className="app-primary-btn text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors"
         >
           {aiLoadingScope === 'all' ? (
@@ -550,7 +712,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
                   <div className="flex items-center justify-end">
                     <button
                       onClick={() => handleGoalsAI(section.name)}
-                      disabled={aiLoadingScope !== null}
+                      disabled={aiLoadingScope !== null || taskSyncLoadingScope !== null}
                       className="text-xs bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-200 px-3 py-1.5 rounded-lg border border-gray-700 transition-colors flex items-center gap-1.5"
                     >
                       {aiLoadingScope === sectionLoadingKey ? (
@@ -559,6 +721,18 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
                         <Sparkles size={12} />
                       )}
                       {aiLoadingScope === sectionLoadingKey ? 'Analysing...' : 'Analyse Section'}
+                    </button>
+                    <button
+                      onClick={() => handleGoalTasksAI(section.name)}
+                      disabled={taskSyncLoadingScope !== null || aiLoadingScope !== null}
+                      className="ml-2 text-xs bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-200 px-3 py-1.5 rounded-lg border border-gray-700 transition-colors flex items-center gap-1.5"
+                    >
+                      {taskSyncLoadingScope === `${sectionLoadingKey}:tasks` ? (
+                        <Loader2 size={12} className="animate-spin" />
+                      ) : (
+                        <ListTodo size={12} />
+                      )}
+                      {taskSyncLoadingScope === `${sectionLoadingKey}:tasks` ? 'Syncing...' : 'Sync Tasks'}
                     </button>
                   </div>
 
@@ -611,6 +785,11 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
                               <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-gray-500">
                                 <span>{pct.toFixed(0)}% complete</span>
                                 {goal.target > 0 && <span>Target {GBP(goal.target)}</span>}
+                                {goalTaskMap.has(String(goal.id)) && (
+                                  <span className="text-indigo-300">
+                                    Task sync {goalTaskMap.get(String(goal.id))?.done ? 'done' : 'active'}
+                                  </span>
+                                )}
                                 {days !== null && (
                                   <span
                                     className={
@@ -734,7 +913,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
                                 )}
                               </div>
 
-                              {/* Notes & plans */}
+                              {/* Details, notes, plans, updates */}
                               <div className="input-shell">
                                 <textarea
                                   value={goal.details}
@@ -756,6 +935,19 @@ export default function Goals({ goals, setGoals, finances, profile, notes }) {
                                   value={goal.plan}
                                   onChange={(e) => updateGoal(goal.id, 'plan', e.target.value)}
                                   placeholder="Plan"
+                                  rows={2}
+                                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+                                />
+                              </div>
+                              <div className="input-shell">
+                                <div className="section-header-inline mb-2">
+                                  <p className="section-header-title">Updates</p>
+                                  <p className="section-header-meta">Progress log</p>
+                                </div>
+                                <textarea
+                                  value={goal.updates}
+                                  onChange={(e) => updateGoal(goal.id, 'updates', e.target.value)}
+                                  placeholder="Recent updates (e.g. completed lesson 3, booked test date, submitted application)"
                                   rows={2}
                                   className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
                                 />

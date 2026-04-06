@@ -1,33 +1,31 @@
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || 'YOUR_OPENAI_API_KEY'
 const CORE_SYSTEM_PROMPT = `You are V-Assistant, a highly practical personal execution coach.
 Your ultimate goal is to help the user succeed.
 Always do everything possible within the provided context to maximize the user's progress, clarity, and consistency.
 Prioritize concrete actions, honest tradeoffs, and next steps the user can actually execute.`
 
 async function callOpenAI(prompt, maxTokens = 1000) {
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const res = await fetch('/api/openai', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'gpt-5.4-mini',
-      messages: [
-        { role: 'system', content: CORE_SYSTEM_PROMPT },
-        { role: 'user', content: prompt },
-      ],
-      max_completion_tokens: maxTokens,
+      prompt,
+      maxTokens,
+      systemPrompt: CORE_SYSTEM_PROMPT,
     }),
   })
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(err.error?.message || `API error: ${res.status}`)
+    throw new Error(err.error || `API error: ${res.status}`)
   }
 
   const data = await res.json()
-  return data.choices[0].message.content
+  if (typeof data?.content !== 'string') {
+    throw new Error('Invalid AI response')
+  }
+  return data.content
 }
 
 function buildFinanceSummary(finances) {

@@ -27,7 +27,7 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return
   const url = new URL(e.request.url)
   if (url.origin !== self.location.origin) return
-  if (e.request.url.includes('api.openai.com')) return
+  if (url.pathname.startsWith('/api/')) return
   if (e.request.cache === 'only-if-cached' && e.request.mode !== 'same-origin') return
 
   if (e.request.mode === 'navigate') {

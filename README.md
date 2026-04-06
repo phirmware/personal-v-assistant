@@ -1,16 +1,27 @@
-# React + Vite
+# V-Assistant
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Local-first AI-powered personal assistant for tasks, finances, goals, notes, and insights.
 
-Currently, two official plugins are available:
+## Environment variables
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+AI requests are proxied through a server-side Vercel function (`/api/openai`) so the OpenAI key is never exposed in the browser.
 
-## React Compiler
+Set these variables in Vercel project settings (and in local `.env` for local API runtime):
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `OPENAI_API_KEY` (required)
+- `OPENAI_MODEL` (optional, defaults to `gpt-5.4-mini`)
 
-## Expanding the ESLint configuration
+Do not use `VITE_OPENAI_API_KEY`; client-side keys are insecure.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+## Build
+
+```bash
+npm run build
+```

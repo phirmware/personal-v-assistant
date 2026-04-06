@@ -90,5 +90,5 @@ Key state objects stored in localStorage (via `useLocalStorage` hook):
 - **Dark theme only** — `bg-gray-950` base, gray-800/900 cards, consistent color scheme throughout.
 - **Mobile responsive** — all pages use responsive Tailwind classes (`sm:`, `lg:`). Test both mobile and desktop layouts.
 - **AI responses must be structured JSON** — prompts explicitly request "ONLY valid JSON, no markdown". Responses are parsed with `parseJSON()`.
-- **Environment variable**: `VITE_OPENAI_API_KEY` — stored in `.env` (gitignored). See `.env.example`.
+- **Environment variables**: `OPENAI_API_KEY` (required) and optional `OPENAI_MODEL` — configured in Vercel/project env and `.env` for local server runtime.
 - After making changes, a hard refresh (Cmd+Shift+R) is sometimes needed in the browser due to service worker caching.

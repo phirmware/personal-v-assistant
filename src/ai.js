@@ -274,9 +274,10 @@ Objective:
 - Create or update at most ONE AI-managed task per goal.
 - Task must be completable in one day and move goal progress forward.
 - Use timeline urgency from deadline and days_left, plus details/notes/plan/updates and current completion.
-- Use existing task title/details/updates to decide whether to keep or update.
+- Use existing task title/details/updates and NOTES CONTEXT to decide whether to keep or update.
 - If an existing goal task is still valid, keep it.
 - If a goal is complete (or updates clearly indicate completion), mark existing task done.
+- Treat task updates as user-authored progress history.
 
 Respond with ONLY valid JSON:
 {
@@ -302,6 +303,7 @@ Rules:
 - "mark_done" only when goal is completed or task is no longer needed.
 - If existing task updates indicate the action was completed, choose "mark_done".
 - Never delete tasks. Completion must be done via "mark_done".
+- You may update title/details/priority/complete_at, but do not attempt to overwrite task updates.
 - Prefer specificity with numbers/timelines from goal data.
 - Do not reference manual tasks (only existing AI goal tasks are in input).`
 

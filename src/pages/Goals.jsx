@@ -378,11 +378,12 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
           const inferredDone = updatesSuggestCompletion(existing?.updates)
 
           if (existingIndex >= 0 && existing) {
+            const preserveUpdates = typeof existing.updates === 'string' ? existing.updates : ''
             next[existingIndex] = {
               ...existing,
               title,
               details: mergedDetails,
-              updates: existing.updates || '',
+              updates: preserveUpdates,
               priority,
               completeAt,
               done: inferredDone ? true : false,

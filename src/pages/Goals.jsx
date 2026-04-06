@@ -74,6 +74,31 @@ function updatesSuggestCompletion(updates) {
   ].some((word) => text.includes(word))
 }
 
+function toDateOnly(value) {
+  if (typeof value !== 'string') return null
+  const text = value.trim()
+  if (!text) return null
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text
+  const parsed = new Date(text)
+  if (Number.isNaN(parsed.getTime())) return null
+  return parsed.toISOString().split('T')[0]
+}
+
+function clampTaskCompleteAt(rawValue, today, goalDeadline) {
+  const parsed = toDateOnly(rawValue)
+  const normalizedToday = toDateOnly(today) || today
+  if (!parsed) return normalizedToday
+  const plusOne = new Date(`${normalizedToday}T00:00:00`)
+  plusOne.setDate(plusOne.getDate() + 1)
+  const tomorrow = plusOne.toISOString().split('T')[0]
+  const maxByDefault = tomorrow
+  const deadlineDate = toDateOnly(goalDeadline)
+  const maxDate = deadlineDate && deadlineDate < maxByDefault ? deadlineDate : maxByDefault
+  if (parsed < normalizedToday) return normalizedToday
+  if (parsed > maxDate) return maxDate
+  return parsed
+}
+
 function normalizeAiStore(raw) {
   if (!raw || typeof raw !== 'object') return { all: null, sections: {} }
   if ('all' in raw || 'sections' in raw) {
@@ -306,6 +331,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
     }
 
     try {
+      const todayDate = new Date().toISOString().split('T')[0]
       const existingGoalTasks = (tasks || []).filter((task) =>
         task?.source === 'goal-ai' &&
         task?.goalId !== undefined &&
@@ -371,9 +397,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
             String(action.reason || '').trim() ? `AI rationale: ${String(action.reason || '').trim()}` : '',
           ].filter(Boolean)
           const mergedDetails = detailsBits.join('\n')
-          const completeAt = typeof action.complete_at === 'string' && action.complete_at.trim()
-            ? action.complete_at.trim()
-            : null
+          const completeAt = clampTaskCompleteAt(action.complete_at, todayDate, goal.deadline)
           const priority = ['low', 'medium', 'high'].includes(action.priority) ? action.priority : 'medium'
           const inferredDone = updatesSuggestCompletion(existing?.updates)
 

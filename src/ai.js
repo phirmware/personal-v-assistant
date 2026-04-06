@@ -102,6 +102,27 @@ function parseJSON(raw) {
   }
 }
 
+function toDateOnly(value) {
+  if (typeof value !== 'string') return null
+  const text = value.trim()
+  if (!text) return null
+  const isoMatch = /^\d{4}-\d{2}-\d{2}$/.test(text)
+  if (isoMatch) return text
+  const d = new Date(text)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toISOString().split('T')[0]
+}
+
+function daysBetween(fromDateStr, targetDateStr) {
+  const fromDate = toDateOnly(fromDateStr)
+  const targetDate = toDateOnly(targetDateStr)
+  if (!fromDate || !targetDate) return null
+  const from = new Date(`${fromDate}T00:00:00`)
+  const target = new Date(`${targetDate}T00:00:00`)
+  const diff = target.getTime() - from.getTime()
+  return Math.ceil(diff / (1000 * 60 * 60 * 24))
+}
+
 export async function runAnalysis({ tasks, goals, finances, notes }) {
   const userData = JSON.stringify({ tasks, goals, finances, notes }, null, 2)
   const prompt = `You are a highly strategic personal advisor.
@@ -235,6 +256,8 @@ export async function runGoalTaskPlanner({
   })
 
   const existingPayload = (existingTasks || []).map((t) => ({
+    completeAtDate: toDateOnly(t?.complete_at ?? t?.completeAt ?? null),
+    days_to_complete_at: daysBetween(today, t?.complete_at ?? t?.completeAt ?? null),
     id: t?.id,
     goal_id: t?.goal_id ?? t?.goalId ?? null,
     title: t?.title || '',
@@ -278,6 +301,10 @@ Objective:
 - If an existing goal task is still valid, keep it.
 - If a goal is complete (or updates clearly indicate completion), mark existing task done.
 - Treat task updates as user-authored progress history.
+- Compare each existing task complete_at against today and use updates to decide:
+  - due/past + completion evidence -> mark_done
+  - due/past + no completion evidence -> create_or_update with today's next step
+  - not due + still valid -> keep
 
 Respond with ONLY valid JSON:
 {
@@ -297,8 +324,8 @@ Respond with ONLY valid JSON:
 
 Rules:
 - Return exactly one tasks item for each goal in GOALS.
-- Never create broad multi-day tasks; scope to a same-day action.
-- complete_at should usually be today or next few days; do not exceed goal deadline when present.
+- Never create broad multi-day tasks; scope to a same-day action that can be done in one focused sitting.
+- complete_at must be today or tomorrow (unless goal deadline is sooner); never set weeks ahead.
 - "keep" means no update needed to existing task.
 - "mark_done" only when goal is completed or task is no longer needed.
 - If existing task updates indicate the action was completed, choose "mark_done".

@@ -129,19 +129,19 @@ const STATUS_CONFIG = {
   on_track: {
     label: 'On Track',
     icon: CheckCircle,
-    badge: 'bg-green-900/40 border-green-700 text-green-400',
-    bar: 'bg-green-500',
+    badge: 'bg-emerald-500/12 text-emerald-400',
+    bar: 'bg-emerald-500',
   },
   needs_work: {
     label: 'Needs Work',
     icon: AlertTriangle,
-    badge: 'bg-yellow-900/40 border-yellow-700 text-yellow-400',
-    bar: 'bg-yellow-500',
+    badge: 'bg-amber-500/12 text-amber-400',
+    bar: 'bg-amber-500',
   },
   off_track: {
     label: 'Off Track',
     icon: XCircle,
-    badge: 'bg-red-900/40 border-red-700 text-red-400',
+    badge: 'bg-red-500/12 text-red-400',
     bar: 'bg-red-500',
   },
 }
@@ -492,7 +492,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
   }
 
   return (
-    <div className="page-shell flex flex-col gap-5 sm:gap-6">
+    <div className="page-shell flex flex-col gap-5 sm:gap-6 stagger-reveal">
       <section className="order-0 page-top-ui">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -535,7 +535,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
       </div>
 
       {aiError && (
-        <div className="order-0 bg-red-900/30 border border-red-800 rounded-lg p-3 sm:p-4 text-red-300 text-sm">
+        <div className="order-0 bg-red-500/8 rounded-xl p-3 sm:p-4 text-red-300 text-sm">
           {aiError}
         </div>
       )}
@@ -546,29 +546,29 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
           <p className="section-header-title">Context</p>
           <p className="section-header-meta">Financial baseline</p>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-          <div className="app-grid-stat p-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 stagger-reveal">
+          <div className="app-grid-stat p-3 hover-lift">
             <div className="flex items-center gap-1.5 text-green-400 mb-0.5">
               <PiggyBank size={14} />
               <span className="text-xs font-medium">Net Worth</span>
             </div>
             <p className="text-base sm:text-lg font-bold text-white">{GBP(netWorth)}</p>
           </div>
-          <div className="app-grid-stat p-3">
+          <div className="app-grid-stat p-3 hover-lift">
             <div className="flex items-center gap-1.5 text-blue-400 mb-0.5">
               <Wallet size={14} />
               <span className="text-xs font-medium">Liquid</span>
             </div>
             <p className="text-base sm:text-lg font-bold text-white">{GBP(totalSavings)}</p>
           </div>
-          <div className="app-grid-stat p-3">
+          <div className="app-grid-stat p-3 hover-lift">
             <div className="flex items-center gap-1.5 text-purple-400 mb-0.5">
               <Target size={14} />
               <span className="text-xs font-medium">Financial Targets</span>
             </div>
             <p className="text-base sm:text-lg font-bold text-white">{GBP(totalGoalTarget)}</p>
           </div>
-          <div className="app-grid-stat p-3">
+          <div className="app-grid-stat p-3 hover-lift">
             <div className="flex items-center gap-1.5 text-amber-400 mb-0.5">
               <TrendingUp size={14} />
               <span className="text-xs font-medium">Avg Completion</span>
@@ -587,7 +587,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
             <p className="section-header-title">Strategy</p>
             <p className="section-header-meta">AI overview</p>
           </div>
-          <div className="app-accent-panel app-strip-cell p-3 sm:p-4 flex gap-3">
+          <div className="ai-tip-glow bg-white/[0.02] rounded-xl pl-4 pr-3 py-3 sm:py-4 flex gap-3">
             <Sparkles size={18} className="app-accent-text shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-semibold text-white mb-1">Overall Strategy</p>
@@ -626,21 +626,21 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
         {addOpen && (
           <form
             onSubmit={addGoal}
-            className="border-t border-gray-700/60 px-4 py-4 space-y-3"
+            className="border-t border-white/[0.04] px-4 py-4 space-y-3"
           >
             <div className="input-shell grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Goal title (e.g. Learn to drive)"
-                className="sm:col-span-2 lg:col-span-1 min-w-0 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                className="sm:col-span-2 lg:col-span-1 min-w-0 bg-gray-900 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
               />
               <input
                 list="goal-sections"
                 value={sectionName}
                 onChange={(e) => setSectionName(e.target.value)}
                 placeholder="Section (e.g. Personal)"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                className="bg-gray-900 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
               />
               <input
                 type="number"
@@ -648,13 +648,13 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                 value={target}
                 onChange={(e) => setTarget(e.target.value)}
                 placeholder="Target £ (optional)"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                className="bg-gray-900 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
               />
               <input
                 type="date"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
+                className="bg-gray-900 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
               />
             </div>
             <datalist id="goal-sections">
@@ -667,7 +667,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
               onChange={(e) => setDetails(e.target.value)}
               placeholder="Details (why this goal matters, constraints, milestones...)"
               rows={2}
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+              className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
             />
             <button
               type="submit"
@@ -733,12 +733,12 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
               </button>
 
               {sectionOpen && (
-                <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4 space-y-3">
+                <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4 space-y-3">
                   <div className="flex items-center justify-end">
                     <button
                       onClick={() => handleGoalsAI(section.name)}
                       disabled={aiLoadingScope !== null || taskSyncLoadingScope !== null}
-                      className="text-xs bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-200 px-3 py-1.5 rounded-lg border border-gray-700 transition-colors flex items-center gap-1.5"
+                      className="text-xs bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-200 px-3 py-1.5 rounded-lg border border-white/[0.06] transition-colors flex items-center gap-1.5"
                     >
                       {aiLoadingScope === sectionLoadingKey ? (
                         <Loader2 size={12} className="animate-spin" />
@@ -750,7 +750,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                     <button
                       onClick={() => handleGoalTasksAI(section.name)}
                       disabled={taskSyncLoadingScope !== null || aiLoadingScope !== null}
-                      className="ml-2 text-xs bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-200 px-3 py-1.5 rounded-lg border border-gray-700 transition-colors flex items-center gap-1.5"
+                      className="ml-2 text-xs bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-200 px-3 py-1.5 rounded-lg border border-white/[0.06] transition-colors flex items-center gap-1.5"
                     >
                       {taskSyncLoadingScope === `${sectionLoadingKey}:tasks` ? (
                         <Loader2 size={12} className="animate-spin" />
@@ -762,7 +762,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                   </div>
 
                   {sectionResult?.overall && (
-                    <div className="bg-gray-900/60 border border-purple-900/40 rounded-lg p-3 text-sm text-gray-300">
+                    <div className="ai-tip-glow bg-white/[0.02] rounded-xl pl-4 pr-3 py-3 text-sm text-slate-300">
                       {sectionResult.overall}
                       {sectionResult.date && (
                         <p className="text-xs text-gray-600 mt-1">
@@ -801,7 +801,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                                   {goal.title || 'Untitled goal'}
                                 </span>
                                 <span
-                                  className={`text-xs font-semibold px-2 py-0.5 rounded-full border hidden sm:inline-flex items-center gap-1 ${cfg.badge}`}
+                                  className={`text-[11px] font-bold px-2 py-0.5 rounded-md hidden sm:inline-flex items-center gap-1 ${cfg.badge}`}
                                 >
                                   <StatusIcon size={12} />
                                   {cfg.label}
@@ -835,7 +835,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                           </button>
 
                           {goalOpen && (
-                            <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4 group space-y-3">
+                            <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4 group space-y-3">
                               {/* Editable header */}
                               <div className="flex items-start justify-between gap-2">
                                 <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -847,7 +847,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
                                   <span
-                                    className={`text-xs font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 ${cfg.badge}`}
+                                    className={`text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${cfg.badge}`}
                                   >
                                     <StatusIcon size={12} />
                                     <span className="hidden sm:inline">{cfg.label}</span>
@@ -880,7 +880,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                                   value={goal.section}
                                   onChange={(e) => updateGoal(goal.id, 'section', e.target.value)}
                                   placeholder="Section"
-                                  className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
+                                  className="bg-gray-900 border border-white/[0.06] rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
                                 />
                                 {goal.target > 0 || goal.current > 0 ? (
                                   <>
@@ -890,9 +890,9 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                                       value={goal.target}
                                       onChange={(e) => updateGoal(goal.id, 'target', e.target.value)}
                                       placeholder="Target £"
-                                      className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
+                                      className="bg-gray-900 border border-white/[0.06] rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
                                     />
-                                    <div className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-gray-300">
+                                    <div className="bg-gray-900 border border-white/[0.06] rounded px-2 py-1.5 text-gray-300">
                                       Current:{' '}
                                       <span className="text-white font-medium">{GBP(goal.current)}</span>
                                     </div>
@@ -905,14 +905,14 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                                     value={goal.progress}
                                     onChange={(e) => updateGoal(goal.id, 'progress', e.target.value)}
                                     placeholder="Progress %"
-                                    className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
+                                    className="bg-gray-900 border border-white/[0.06] rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
                                   />
                                 )}
                                 <input
                                   type="date"
                                   value={goal.deadline || ''}
                                   onChange={(e) => updateGoal(goal.id, 'deadline', e.target.value)}
-                                  className="bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
+                                  className="bg-gray-900 border border-white/[0.06] rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500"
                                 />
                               </div>
 
@@ -945,7 +945,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                                   onChange={(e) => updateGoal(goal.id, 'details', e.target.value)}
                                   placeholder="Details"
                                   rows={2}
-                                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+                                  className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
                                 />
                               </div>
                               <div className="input-shell grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -954,14 +954,14 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                                   onChange={(e) => updateGoal(goal.id, 'notes', e.target.value)}
                                   placeholder="Notes"
                                   rows={2}
-                                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+                                  className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
                                 />
                                 <textarea
                                   value={goal.plan}
                                   onChange={(e) => updateGoal(goal.id, 'plan', e.target.value)}
                                   placeholder="Plan"
                                   rows={2}
-                                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+                                  className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
                                 />
                               </div>
                               <div className="input-shell">
@@ -974,13 +974,13 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                                   onChange={(e) => updateGoal(goal.id, 'updates', e.target.value)}
                                   placeholder="Recent updates (e.g. completed lesson 3, booked test date, submitted application)"
                                   rows={2}
-                                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+                                  className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
                                 />
                               </div>
 
                               {/* AI insight for this goal */}
                               {aiGoal && (
-                                <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 space-y-1 border-l-2 border-purple-500/50">
+                                <div className="ai-tip-glow bg-gray-900/60 rounded-lg pl-4 pr-3 py-2.5 space-y-1 border border-white/[0.06]/50">
                                   <p className="text-sm text-gray-300">{aiGoal.summary}</p>
                                   <p className="text-sm text-purple-300 font-medium">{aiGoal.action}</p>
                                 </div>

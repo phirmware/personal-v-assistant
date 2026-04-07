@@ -338,15 +338,16 @@ export default function App() {
   return (
     <div className={`dark flex h-screen bg-gray-950 text-gray-100 app-shell page-theme-${page}`}>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:block h-full w-64 p-3">
-        <div className="h-full rounded-3xl border border-gray-700/70 bg-gray-900/80 backdrop-blur-xl shadow-[0_12px_36px_rgba(0,0,0,0.35)] flex flex-col">
-          <div className="flex items-center gap-2 px-5 py-5 border-b border-gray-700/70">
-            <Sparkles size={22} strokeWidth={2.4} className="app-accent-text" />
-            <span className="font-bold text-lg text-white tracking-tight">
+      <aside className="hidden lg:block h-full w-60 p-3">
+        <div className="h-full rounded-2xl bg-white/[0.02] backdrop-blur-xl flex flex-col">
+          <div className="flex items-center gap-2.5 px-5 py-5">
+            <Sparkles size={20} strokeWidth={2.4} className="app-accent-text" />
+            <span className="font-bold text-base text-white tracking-tight">
               V-Assistant
             </span>
           </div>
-          <nav className="flex-1 py-3">
+          <div className="mx-4 h-px bg-white/[0.04]" />
+          <nav className="flex-1 py-3 px-2">
             {NAV.map((item) => {
               const Icon = item.icon
               const active = page === item.id
@@ -354,19 +355,19 @@ export default function App() {
                 <button
                   key={item.id}
                   onClick={() => navigate(item.id)}
-                  className={`w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium transition-all duration-200 ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
                     active
-                      ? 'app-nav-active border-r-2'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                      ? 'app-nav-active'
+                      : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]'
                   }`}
                   aria-current={active ? 'page' : undefined}
                 >
-                  <span className="desktop-nav-icon-shell rounded-xl p-1.5">
+                  <span className="desktop-nav-icon-shell rounded-lg p-1.5">
                     <Icon
-                      size={20}
-                      strokeWidth={active ? 2.5 : 2.2}
+                      size={18}
+                      strokeWidth={active ? 2.4 : 2}
                       fill={active ? 'currentColor' : 'none'}
-                      fillOpacity={active ? 0.16 : 0}
+                      fillOpacity={active ? 0.15 : 0}
                     />
                   </span>
                   <span className="desktop-nav-label">{item.label}</span>
@@ -374,37 +375,37 @@ export default function App() {
               )
             })}
           </nav>
-          <div className="px-5 py-4 border-t border-gray-700/70 text-xs text-gray-500">
-            Local-first. Your data stays on device.
+          <div className="px-5 py-4 text-[11px] text-slate-600">
+            Local-first · On device
           </div>
         </div>
       </aside>
 
       {/* Main */}
-      <main ref={mainScrollRef} className="flex-1 overflow-y-auto overscroll-y-none pb-32 lg:pb-0">
+      <main ref={mainScrollRef} className="flex-1 overflow-y-auto overscroll-y-none pb-28 lg:pb-0">
         <div
-          className="lg:hidden fixed top-0 inset-x-0 z-40 px-3 pb-2 pointer-events-none bg-transparent"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.1rem)' }}
+          className="lg:hidden fixed top-0 inset-x-0 z-40 px-4 pb-1.5 pointer-events-none"
+          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.25rem)' }}
         >
           <div
-            className={`mobile-topbar-shell pointer-events-auto rounded-3xl border border-gray-700/80 bg-gray-900/90 backdrop-blur shadow-[0_8px_24px_rgba(0,0,0,0.35)] px-4 py-3.5 ${
+            className={`mobile-topbar-shell pointer-events-auto rounded-2xl bg-[#080a12]/90 backdrop-blur-2xl px-4 py-2.5 ${
               pullRefreshing ? 'is-refreshing' : ''
             }`}
           >
             {pullRefreshing && <span aria-hidden="true" className="mobile-topbar-refresh-wave" />}
-            <div className="relative z-[1] flex items-start justify-between gap-3">
+            <div className="relative z-[1] flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-[0.12em] text-gray-500">V-Assistant</p>
+                <p className="text-[9px] uppercase tracking-[0.18em] text-slate-600 font-bold">V-Assistant</p>
                 <h1
                   key={activeNav.id}
-                  className="mobile-page-title-enter text-[19px] font-semibold text-white leading-tight"
+                  className="mobile-page-title-enter text-[22px] font-extrabold text-white leading-tight tracking-[-0.03em]"
                 >
                   {activeNav.label}
                 </h1>
               </div>
               <span
                 key={`${activeNav.id}-chip`}
-                className="nav-chip-enter app-accent-soft mt-0.5 text-[10px] px-2.5 py-1 rounded-full border shrink-0"
+                className="nav-chip-enter app-accent-soft text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0"
               >
                 Active
               </span>
@@ -412,7 +413,7 @@ export default function App() {
           </div>
         </div>
         <div
-          className="max-w-3xl mx-auto px-4 sm:px-6 pb-6 pt-[calc(env(safe-area-inset-top)+5.75rem)] lg:py-6"
+          className="max-w-3xl mx-auto px-4 sm:px-6 pb-6 pt-[calc(env(safe-area-inset-top)+5rem)] lg:py-6"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -421,7 +422,7 @@ export default function App() {
               pullDistance > 0 || pullRefreshing ? 'max-h-14 opacity-100 mb-3' : 'max-h-0 opacity-0 mb-0'
             }`}
           >
-            <div className="bg-gray-900/90 border border-gray-700 rounded-full px-3 py-1.5 flex items-center gap-2 text-[11px] text-gray-300">
+            <div className="bg-white/[0.04] rounded-full px-3 py-1.5 flex items-center gap-2 text-[11px] text-slate-400">
               {pullRefreshing ? (
                 <Loader2 size={12} className="animate-spin text-indigo-300" />
               ) : (
@@ -437,8 +438,8 @@ export default function App() {
             </div>
           </div>
           {swUpdateReady && (
-            <div className="lg:hidden mb-3 bg-indigo-900/30 border border-indigo-700/50 rounded-xl px-3 py-2 flex items-center justify-between gap-3">
-              <p className="text-xs text-indigo-200">New app update is ready.</p>
+            <div className="lg:hidden mb-3 bg-indigo-500/8 rounded-xl px-3 py-2.5 flex items-center justify-between gap-3">
+              <p className="text-xs text-indigo-300">New app update is ready.</p>
               <button
                 type="button"
                 onClick={handleRefreshForUpdate}
@@ -449,7 +450,7 @@ export default function App() {
             </div>
           )}
           {installPromptEvent && (
-            <div className="lg:hidden mb-3 bg-gray-900/80 border border-gray-700 rounded-xl px-3 py-2.5 flex items-center justify-between gap-3">
+            <div className="lg:hidden mb-3 bg-white/[0.03] rounded-xl px-3 py-2.5 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-xs text-white font-medium">Install V-Assistant</p>
                 <p className="text-[11px] text-gray-400 truncate">Add to home screen for a native feel.</p>
@@ -464,7 +465,7 @@ export default function App() {
             </div>
           )}
           {installStatus === 'accepted' && !installPromptEvent && (
-            <div className="lg:hidden mb-3 bg-emerald-900/30 border border-emerald-700/40 rounded-xl px-3 py-2 text-xs text-emerald-200">
+            <div className="lg:hidden mb-3 bg-emerald-500/8 rounded-xl px-3 py-2.5 text-xs text-emerald-300">
               App install started. Check your home screen.
             </div>
           )}
@@ -476,11 +477,11 @@ export default function App() {
 
       {/* Mobile tab bar */}
       <nav
-        className="lg:hidden fixed bottom-0 inset-x-0 z-30 px-3 pointer-events-none"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.7rem)' }}
+        className="lg:hidden fixed bottom-0 inset-x-0 z-30 px-4 pointer-events-none"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.5rem)' }}
       >
-        <div className="pointer-events-auto rounded-3xl border border-gray-700/80 bg-gray-900/92 backdrop-blur shadow-[0_8px_28px_rgba(0,0,0,0.45)]">
-          <div className="grid grid-cols-6 gap-1.5 p-2">
+        <div className="pointer-events-auto rounded-2xl bg-[#080a12]/88 backdrop-blur-2xl">
+          <div className="grid grid-cols-6 px-1 py-1">
             {NAV.map((item) => {
               const Icon = item.icon
               const active = page === item.id
@@ -488,8 +489,8 @@ export default function App() {
                 <button
                   key={item.id}
                   onClick={() => handleTabTap(item.id)}
-                  className={`mobile-tab-button rounded-2xl flex flex-col items-center justify-center gap-1.5 py-2.5 min-h-[58px] text-[12px] font-medium transition-all duration-200 ${
-                    active ? 'is-active' : 'text-gray-400 hover:text-white'
+                  className={`mobile-tab-button rounded-xl flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] transition-all duration-200 ${
+                    active ? 'is-active' : 'text-slate-600 active:text-slate-400'
                   }`}
                   aria-current={active ? 'page' : undefined}
                 >
@@ -498,15 +499,12 @@ export default function App() {
                   >
                     <Icon
                       size={20}
-                      strokeWidth={active ? 2.5 : 2.2}
+                      strokeWidth={active ? 2.4 : 1.8}
                       fill={active ? 'currentColor' : 'none'}
-                      fillOpacity={active ? 0.16 : 0}
+                      fillOpacity={active ? 0.15 : 0}
                     />
                     {tapFx === item.id && (
                       <span className="tab-ripple absolute inset-0 rounded-full border app-accent-border" />
-                    )}
-                    {active && (
-                      <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full app-accent-dot" />
                     )}
                   </span>
                   <span className="tab-label">{item.label}</span>

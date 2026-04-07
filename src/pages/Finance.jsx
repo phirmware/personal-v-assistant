@@ -58,7 +58,7 @@ function AiTip({ tip, label }) {
   const canExpand = Boolean(secondaryFull || primaryTruncated || secondaryTruncated)
 
   return (
-    <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 border border-gray-700/50">
+    <div className="ai-tip-glow bg-gray-900/60 rounded-lg pl-4 pr-3 py-2.5 border border-white/[0.06]/50">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] uppercase tracking-[0.1em] text-gray-500">
           {label ? `${label} • AI next step` : 'AI next step'}
@@ -87,14 +87,14 @@ function AiTip({ tip, label }) {
 
 function StatusBadge({ status }) {
   const styles = {
-    green: 'bg-green-900/40 border-green-700 text-green-400',
-    amber: 'bg-yellow-900/40 border-yellow-700 text-yellow-400',
-    red: 'bg-red-900/40 border-red-700 text-red-400',
+    green: 'bg-emerald-500/12 text-emerald-400',
+    amber: 'bg-amber-500/12 text-amber-400',
+    red: 'bg-red-500/12 text-red-400',
   }
   const labels = { green: 'On Track', amber: 'Tight', red: 'At Risk' }
   return (
     <span
-      className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${styles[status]}`}
+      className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${styles[status]}`}
     >
       {labels[status]}
     </span>
@@ -189,7 +189,7 @@ function AccountSection({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={placeholderName}
-              className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+              className="flex-1 bg-gray-900 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
             />
             <div className="flex gap-2">
               <input
@@ -198,7 +198,7 @@ function AccountSection({
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder={placeholderValue}
-                className="flex-1 sm:w-32 sm:flex-none bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                className="flex-1 sm:w-32 sm:flex-none bg-gray-900 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
               />
               <button
                 type="submit"
@@ -226,7 +226,7 @@ function AccountSection({
                       step="0.01"
                       value={item[valueKey]}
                       onChange={(e) => onUpdate(item.id, e.target.value)}
-                      className={`w-24 sm:w-28 bg-gray-800 border border-gray-700 rounded px-2 py-1 ${colorMap[color]} text-sm text-right font-medium focus:outline-none focus:border-blue-500`}
+                      className={`w-24 sm:w-28 bg-gray-800 border border-white/[0.06] rounded px-2 py-1 ${colorMap[color]} text-sm text-right font-medium focus:outline-none focus:border-blue-500`}
                     />
                     <button
                       onClick={() => onRemove(item.id)}
@@ -337,7 +337,7 @@ export default function Finance({ finances, setFinances, profile }) {
   }
 
   return (
-    <div className="page-shell flex flex-col gap-5 sm:gap-6">
+    <div className="page-shell flex flex-col gap-5 sm:gap-6 stagger-reveal">
       <section className="order-0 page-top-ui">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -367,7 +367,7 @@ export default function Finance({ finances, setFinances, profile }) {
       </div>
 
       {aiError && (
-        <div className="order-0 bg-red-900/30 border border-red-800 rounded-lg p-4 text-red-300 text-sm">
+        <div className="order-0 bg-red-500/8 rounded-xl p-4 text-red-300 text-sm">
           {aiError}
         </div>
       )}
@@ -396,7 +396,7 @@ export default function Finance({ finances, setFinances, profile }) {
           )}
         </button>
         {coreOpen && (
-          <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 border-t border-gray-700/50 pt-4">
+          <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 border-t border-white/[0.04] pt-4">
             {/* Net Worth banner */}
             <div className="app-strip-cell p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
               <div className="flex items-center gap-2">
@@ -409,36 +409,36 @@ export default function Finance({ finances, setFinances, profile }) {
             </div>
 
             {/* Overview cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <div className="app-grid-stat p-3 sm:p-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 stagger-reveal">
+              <div className="app-grid-stat p-3 sm:p-4 hover-lift">
                 <div className="flex items-center gap-1.5 text-green-400 mb-1">
                   <PiggyBank size={14} />
                   <span className="text-xs font-medium">Liquid Savings</span>
                 </div>
                 <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalSavings)}</p>
               </div>
-              <div className="app-grid-stat p-3 sm:p-4">
+              <div className="app-grid-stat p-3 sm:p-4 hover-lift">
                 <div className="flex items-center gap-1.5 text-cyan-400 mb-1">
                   <LineChart size={14} />
                   <span className="text-xs font-medium">Invested</span>
                 </div>
                 <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalInvested)}</p>
               </div>
-              <div className="app-grid-stat p-3 sm:p-4">
+              <div className="app-grid-stat p-3 sm:p-4 hover-lift">
                 <div className="flex items-center gap-1.5 text-amber-400 mb-1">
                   <Shield size={14} />
                   <span className="text-xs font-medium">Pension</span>
                 </div>
                 <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalPension)}</p>
               </div>
-              <div className="app-grid-stat p-3 sm:p-4">
+              <div className="app-grid-stat p-3 sm:p-4 hover-lift">
                 <div className="flex items-center gap-1.5 text-red-400 mb-1">
                   <CreditCard size={14} />
                   <span className="text-xs font-medium">Total Debt</span>
                 </div>
                 <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalDebt)}</p>
               </div>
-              <div className="app-grid-stat p-3 sm:p-4">
+              <div className="app-grid-stat p-3 sm:p-4 hover-lift">
                 <div className="flex items-center gap-1.5 text-blue-400 mb-1">
                   <Wallet size={14} />
                   <span className="text-xs font-medium">Liquid Net</span>
@@ -447,7 +447,7 @@ export default function Finance({ finances, setFinances, profile }) {
                   {GBP(netPosition)}
                 </p>
               </div>
-              <div className="app-grid-stat p-3 sm:p-4">
+              <div className="app-grid-stat p-3 sm:p-4 hover-lift">
                 <div className="flex items-center gap-1.5 text-purple-400 mb-1">
                   <TrendingUp size={14} />
                   <span className="text-xs font-medium">Monthly Income</span>
@@ -458,10 +458,10 @@ export default function Finance({ finances, setFinances, profile }) {
 
             {/* After upcoming commitments */}
             <div
-              className={`rounded-xl p-3 sm:p-4 border flex items-center gap-3 ${
+              className={`rounded-xl p-3 sm:p-4 flex items-center gap-3 ${
                 availableAfterUpcoming >= 0
-                  ? 'bg-green-900/20 border-green-800/50 text-green-300'
-                  : 'bg-red-900/20 border-red-800/50 text-red-300'
+                  ? 'bg-emerald-500/8 text-emerald-300'
+                  : 'bg-red-500/8 text-red-300'
               }`}
             >
               <AlertCircle size={18} className="shrink-0" />
@@ -483,7 +483,7 @@ export default function Finance({ finances, setFinances, profile }) {
             <p className="section-header-title">AI Summary</p>
             <p className="section-header-meta">Health scoring</p>
           </div>
-          <div className="page-group-shell app-surface-sheet app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl overflow-hidden">
+          <div className="page-group-shell app-surface-sheet overflow-hidden">
           <button
             type="button"
             onClick={() => setAiSummaryOpen((prev) => !prev)}
@@ -507,8 +507,8 @@ export default function Finance({ finances, setFinances, profile }) {
           </button>
           {aiSummaryOpen && aiResult.overall && (
             <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4">
-              <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 border-l-2 border-blue-500/50">
-                <p className="text-sm text-blue-300">{aiResult.overall}</p>
+              <div className="ai-tip-glow rounded-xl pl-4 pr-3 py-3">
+                <p className="text-sm text-slate-300 leading-relaxed">{aiResult.overall}</p>
               </div>
             </div>
           )}
@@ -538,7 +538,7 @@ export default function Finance({ finances, setFinances, profile }) {
         </button>
 
         {setupOpen && (
-          <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 border-t border-gray-700/50 pt-4">
+          <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 border-t border-white/[0.04] pt-4">
             <div className="app-strip-cell p-4 sm:p-5 space-y-3">
               <h2 className="text-lg font-semibold text-white">Monthly Income</h2>
               <form onSubmit={setIncome} className="input-shell flex gap-2">
@@ -548,7 +548,7 @@ export default function Finance({ finances, setFinances, profile }) {
                   value={incomeInput}
                   onChange={(e) => setIncomeInput(e.target.value)}
                   placeholder="Update monthly income..."
-                  className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                  className="flex-1 bg-gray-900 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
                 />
                 <button
                   type="submit"
@@ -768,13 +768,13 @@ export default function Finance({ finances, setFinances, profile }) {
         </button>
 
         {upcomingOpen && (
-          <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 border-t border-gray-700/50 pt-4">
+          <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 border-t border-white/[0.04] pt-4">
             <form onSubmit={addUpcoming} className="input-shell flex flex-col sm:flex-row gap-2">
               <input
                 value={expName}
                 onChange={(e) => setExpName(e.target.value)}
                 placeholder="What for..."
-                className="flex-1 min-w-0 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                className="flex-1 min-w-0 bg-gray-900 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
               />
               <div className="grid grid-cols-1 sm:flex gap-2">
                 <input
@@ -783,13 +783,13 @@ export default function Finance({ finances, setFinances, profile }) {
                   value={expAmount}
                   onChange={(e) => setExpAmount(e.target.value)}
                   placeholder="Amount..."
-                  className="w-full sm:w-28 sm:flex-none bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                  className="w-full sm:w-28 sm:flex-none bg-gray-900 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
                 />
                 <input
                   type="date"
                   value={expDeadline}
                   onChange={(e) => setExpDeadline(e.target.value)}
-                  className="w-full sm:flex-none bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
+                  className="w-full sm:flex-none bg-gray-900 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
                 />
                 <button
                   type="submit"

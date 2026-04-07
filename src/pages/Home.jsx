@@ -351,27 +351,24 @@ export default function Home({
   }
 
   return (
-    <div className="page-shell flex flex-col gap-6">
+    <div className="page-shell flex flex-col gap-6 stagger-reveal">
       {error && (
-        <div className="order-0 bg-red-900/30 border border-red-800 rounded-lg p-4 text-red-300 text-sm">
+        <div className="order-0 bg-red-500/8 rounded-xl p-4 text-red-300 text-sm">
           {error}
         </div>
       )}
 
-      <div className="order-1 page-top-ui relative overflow-hidden rounded-2xl border border-blue-800/40 bg-gradient-to-br from-blue-900/30 via-indigo-900/20 to-gray-900/70 px-4 sm:px-5 py-4 sm:py-5">
-        <div className="absolute -top-8 -right-8 h-24 w-24 rounded-full bg-blue-400/10 blur-2xl" />
-        <div className="relative">
-          <p className="text-xs uppercase tracking-[0.12em] text-blue-300/80">Welcome back</p>
-          <h2 className="mt-1 text-xl sm:text-2xl font-semibold text-white">
-            {greeting}, {firstName}
-          </h2>
-          <p className="mt-1 text-sm text-gray-300">
-            {todayLabel} · {activeTasks.length} active task(s) · {alerts.length} alert(s)
-          </p>
-          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-blue-700/40 bg-blue-900/20 px-3 py-1 text-xs text-blue-200">
-            <PiggyBank size={13} />
-            Net worth {netWorth.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}
-          </div>
+      <div className="order-1 page-top-ui">
+        <p className="page-top-ui-kicker">Welcome back</p>
+        <h2 className="page-top-ui-title text-xl sm:text-2xl">
+          {greeting}, {firstName}
+        </h2>
+        <p className="page-top-ui-meta">
+          {todayLabel} · {activeTasks.length} active · {alerts.length} alert{alerts.length !== 1 ? 's' : ''}
+        </p>
+        <div className="mt-3 page-top-ui-pill">
+          <PiggyBank size={13} />
+          Net worth {netWorth.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}
         </div>
       </div>
 
@@ -394,7 +391,7 @@ export default function Home({
           )}
         </button>
         {openSections.controls && (
-          <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4">
+          <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4">
             <div className="space-y-4">
               <div className="app-strip-cell p-3 sm:p-4 space-y-3">
                 <div>
@@ -408,7 +405,7 @@ export default function Home({
                       value={profile.name || ''}
                       onChange={(e) => updateProfile('name', e.target.value)}
                       placeholder="Your name..."
-                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                      className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
                     />
                   </div>
                   <div>
@@ -419,7 +416,7 @@ export default function Home({
                       type="date"
                       value={profile.birthday || ''}
                       onChange={(e) => updateProfile('birthday', e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm"
+                      className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm"
                     />
                   </div>
                 </div>
@@ -430,7 +427,7 @@ export default function Home({
                       value={profile.lifeStage || ''}
                       onChange={(e) => updateProfile('lifeStage', e.target.value)}
                       placeholder="e.g. Early career, Family, Pre-retirement"
-                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                      className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
                     />
                   </div>
                   <div>
@@ -438,7 +435,7 @@ export default function Home({
                     <select
                       value={profile.riskPreference || ''}
                       onChange={(e) => updateProfile('riskPreference', e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+                      className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-gray-300 focus:outline-none focus:border-blue-500 text-sm"
                     >
                       <option value="">Not set</option>
                       <option value="conservative">Conservative</option>
@@ -455,7 +452,7 @@ export default function Home({
                     onChange={(e) => updateProfile('profileNotes', e.target.value)}
                     placeholder="Any constraints or priorities (e.g. risk limits, major life plans)"
                     rows={2}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+                    className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
                   />
                 </div>
               </div>
@@ -527,14 +524,14 @@ export default function Home({
             )}
           </button>
           {openSections.alerts && (
-            <div className="border-t border-gray-700/60 px-4 sm:px-5 py-3 space-y-2">
+            <div className="border-t border-white/[0.04] px-4 sm:px-5 py-3 space-y-2">
               {alerts.map((a, i) => (
                 <div
                   key={i}
-                  className={`flex items-start gap-2 rounded-lg px-4 py-2.5 text-sm ${
+                  className={`flex items-start gap-2.5 rounded-xl px-4 py-2.5 text-sm ${
                     a.type === 'danger'
-                      ? 'bg-red-900/30 border border-red-800 text-red-300'
-                      : 'bg-yellow-900/30 border border-yellow-800 text-yellow-300'
+                      ? 'bg-red-500/8 text-red-300'
+                      : 'bg-amber-500/8 text-amber-300'
                   }`}
                 >
                   <AlertTriangle size={16} />
@@ -575,7 +572,7 @@ export default function Home({
           )}
         </button>
         {openSections.focus && (
-          <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4">
+          <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4">
             {focusTasks.length === 0 ? (
               <p className="text-gray-500 text-sm">
                 No tasks yet.{' '}
@@ -642,8 +639,8 @@ export default function Home({
           )}
         </button>
         {openSections.metrics && (
-          <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="app-grid-stat p-5">
+          <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4 stagger-reveal">
+            <div className="app-grid-stat p-5 hover-lift hover-lift">
               <div className="flex items-center gap-2 text-green-400 mb-1">
                 <TrendingUp size={18} />
                 <span className="text-sm font-medium">Tasks Done</span>
@@ -655,7 +652,7 @@ export default function Home({
                 </span>
               </p>
             </div>
-            <div className="app-grid-stat p-5">
+            <div className="app-grid-stat p-5 hover-lift">
               <div className="flex items-center gap-2 text-blue-400 mb-1">
                 <PiggyBank size={18} />
                 <span className="text-sm font-medium">Net Worth</span>
@@ -664,7 +661,7 @@ export default function Home({
                 {netWorth.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}
               </p>
             </div>
-            <div className="app-grid-stat p-5">
+            <div className="app-grid-stat p-5 hover-lift">
               <div className="flex items-center gap-2 text-purple-400 mb-1">
                 <Target size={18} />
                 <span className="text-sm font-medium">Goal Progress</span>
@@ -685,7 +682,7 @@ export default function Home({
             <p className="section-header-title">Guidance</p>
             <p className="section-header-meta">Latest AI recommendation</p>
           </div>
-          <div className="page-group-shell app-surface-sheet app-accent-panel bg-gray-800/60 border border-blue-800/30 rounded-xl overflow-hidden">
+          <div className="page-group-shell app-surface-sheet overflow-hidden">
           <button
             type="button"
             onClick={() => toggleSection('insight')}
@@ -709,7 +706,7 @@ export default function Home({
             )}
           </button>
           {openSections.insight && (
-            <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4">
+            <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4">
               <div className="flex justify-end mb-3">
                 <button
                   onClick={() => setPage('insights')}

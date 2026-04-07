@@ -160,7 +160,7 @@ export default function Notes({ notes, setNotes }) {
     : notes
 
   return (
-    <div className="page-shell space-y-5 sm:space-y-6">
+    <div className="page-shell space-y-5 sm:space-y-6 stagger-reveal">
       <section className="page-top-ui">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -175,7 +175,7 @@ export default function Notes({ notes, setNotes }) {
       </section>
 
       {aiError && (
-        <div className="bg-red-900/30 border border-red-800 rounded-lg p-3 text-red-300 text-sm">
+        <div className="bg-red-500/8 rounded-xl p-3 text-red-300 text-sm">
           {aiError}
         </div>
       )}
@@ -215,7 +215,7 @@ export default function Notes({ notes, setNotes }) {
             </button>
           </div>
           {aiInsightOpen && (
-            <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4">
+            <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4">
               {summaryInsight ? (
                 <MarkdownContent content={summaryInsight} />
               ) : (
@@ -243,7 +243,7 @@ export default function Notes({ notes, setNotes }) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search notes..."
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-9 pr-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+              className="w-full bg-gray-900 border border-white/[0.06] rounded-lg pl-9 pr-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
             />
           </div>
         </div>
@@ -270,14 +270,14 @@ export default function Notes({ notes, setNotes }) {
           {addOpen && (
             <form
               onSubmit={addNote}
-              className="border-t border-gray-700/60 px-4 sm:px-5 py-4 flex flex-col sm:flex-row gap-3"
+              className="border-t border-white/[0.04] px-4 sm:px-5 py-4 flex flex-col sm:flex-row gap-3"
             >
               <div className="input-shell flex-1">
                 <input
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   placeholder="Jot down a thought..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-800 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                 />
               </div>
               <button
@@ -349,13 +349,13 @@ export default function Notes({ notes, setNotes }) {
                     )}
                   </button>
                   {isOpen && (
-                    <div className="border-t border-gray-700/60 px-4 py-3 space-y-3">
+                    <div className="border-t border-white/[0.04] px-4 py-3 space-y-3">
                       <div className="input-shell">
                         <textarea
                           value={note.text}
                           onChange={(e) => updateNote(note.id, e.target.value)}
                           rows={3}
-                          className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+                          className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
                         />
                       </div>
 
@@ -393,7 +393,7 @@ export default function Notes({ notes, setNotes }) {
                       </div>
 
                       {noteAiSuggestion && noteAiOpen && (
-                        <div className="bg-gray-900/70 border border-gray-700 rounded-lg p-3">
+                        <div className="ai-tip-glow bg-white/[0.02] rounded-xl pl-4 pr-3 py-3">
                           <MarkdownContent content={noteAiSuggestion} />
                         </div>
                       )}

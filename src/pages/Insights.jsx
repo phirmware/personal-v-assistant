@@ -42,7 +42,7 @@ export default function Insights({ insights, setInsights }) {
   }
 
   return (
-    <div className="page-shell space-y-5 sm:space-y-6">
+    <div className="page-shell space-y-5 sm:space-y-6 stagger-reveal">
       <section className="page-top-ui">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -121,7 +121,7 @@ export default function Insights({ insights, setInsights }) {
                     )}
                   </button>
                   {isOpen && (
-                    <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4 space-y-3">
+                    <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4 space-y-3">
                       <MarkdownContent content={insight.content} />
                       <div className="flex justify-end">
                         <button

@@ -70,10 +70,10 @@ function SortableTaskRow({
           <button
             type="button"
             onClick={onToggleDone}
-            className={`mt-0.5 w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+            className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all ${
               task.done
-                ? 'bg-blue-500/25 border-blue-400 text-blue-200'
-                : 'border-gray-600 text-transparent hover:border-gray-400'
+                ? 'bg-blue-500/20 text-blue-300'
+                : 'bg-white/[0.05] text-transparent hover:bg-white/[0.1]'
             }`}
             title={task.done ? 'Mark as active' : 'Mark as completed'}
             aria-label={task.done ? 'Mark as active' : 'Mark as completed'}
@@ -101,7 +101,7 @@ function SortableTaskRow({
                 {task.priority}
               </span>
               {task.pinned && (
-                <span className="px-1.5 py-0.5 rounded-md border border-yellow-500/30 text-yellow-300 bg-yellow-500/10">
+                <span className="px-1.5 py-0.5 rounded-md text-amber-300 bg-amber-500/12">
                   pinned
                 </span>
               )}
@@ -140,7 +140,7 @@ function SortableTaskRow({
       </div>
 
       {isOpen && (
-        <div className="border-t border-gray-700/60 px-4 py-3 space-y-2">
+        <div className="border-t border-white/[0.04] px-4 py-3 space-y-2">
           <div className="input-shell">
             <textarea
               value={task.details || ''}
@@ -151,7 +151,7 @@ function SortableTaskRow({
               ref={(el) => autoResizeTextarea(el)}
               placeholder="Add task details..."
               rows={1}
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[5rem]"
+              className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[5rem]"
             />
           </div>
           <div className="input-shell">
@@ -168,7 +168,7 @@ function SortableTaskRow({
               ref={(el) => autoResizeTextarea(el)}
               placeholder="Progress update (e.g. called instructor, finished module, blocked by schedule)"
               rows={1}
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[4.25rem]"
+              className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[4.25rem]"
             />
           </div>
           <div className="flex justify-between items-center gap-2">
@@ -187,7 +187,7 @@ function SortableTaskRow({
             <button
               type="button"
               onClick={onDelete}
-              className="text-xs px-2.5 py-1.5 rounded-lg border border-red-800/70 text-red-300 hover:bg-red-900/30 transition-colors"
+              className="text-xs px-2.5 py-1.5 rounded-lg text-red-400/70 hover:text-red-300 hover:bg-red-500/8 transition-colors"
             >
               <span className="inline-flex items-center gap-1">
                 <Trash2 size={12} />
@@ -196,7 +196,7 @@ function SortableTaskRow({
             </button>
           </div>
           {task.aiSuggestion && (
-            <div className="bg-gray-900/70 border border-gray-700 rounded-lg p-3">
+            <div className="ai-tip-glow bg-white/[0.02] rounded-xl pl-4 pr-3 py-3">
               <MarkdownContent content={task.aiSuggestion} />
             </div>
           )}
@@ -395,7 +395,7 @@ export default function Tasks({ tasks, setTasks }) {
   const sorted = sortTasksList(tasks)
 
   return (
-    <div className="page-shell space-y-5 sm:space-y-6">
+    <div className="page-shell space-y-5 sm:space-y-6 stagger-reveal">
       <section className="page-top-ui">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -430,19 +430,19 @@ export default function Tasks({ tasks, setTasks }) {
           {addOpen && (
             <form
               onSubmit={addTask}
-              className="border-t border-gray-700/60 p-4 space-y-3"
+              className="border-t border-white/[0.04] p-4 space-y-3"
             >
               <div className="input-shell flex flex-col sm:flex-row gap-3">
                 <input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Add a task..."
-                  className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  className="flex-1 bg-gray-900 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                 />
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value)}
-                  className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-gray-300 focus:outline-none focus:border-blue-500"
+                  className="bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2.5 text-gray-300 focus:outline-none focus:border-blue-500"
                 >
                   <option value="high">High</option>
                   <option value="medium">Medium</option>
@@ -459,7 +459,7 @@ export default function Tasks({ tasks, setTasks }) {
                   ref={(el) => autoResizeTextarea(el)}
                   placeholder="Task details, context, blockers, or plan..."
                   rows={1}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[5rem]"
+                  className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[5rem]"
                 />
               </div>
               <button
@@ -474,7 +474,7 @@ export default function Tasks({ tasks, setTasks }) {
       </section>
 
       {aiError && (
-        <div className="bg-red-900/30 border border-red-800 rounded-lg p-3 text-red-300 text-sm">
+        <div className="bg-red-500/8 rounded-xl p-3 text-red-300 text-sm">
           {aiError}
         </div>
       )}

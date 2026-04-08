@@ -7,6 +7,8 @@ import {
   StickyNote,
   Sparkles,
   Loader2,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import Home from './pages/Home'
@@ -39,6 +41,9 @@ export default function App() {
   const [pullDistance, setPullDistance] = useState(0)
   const [pullReady, setPullReady] = useState(false)
   const [pullRefreshing, setPullRefreshing] = useState(false)
+  const [privacyMode, setPrivacyMode] = useState(() => {
+    try { return localStorage.getItem('va-privacy') !== 'off' } catch { return true }
+  })
   const touchStartRef = useRef({ x: 0, y: 0 })
   const navAudioCtxRef = useRef(null)
   const mainScrollRef = useRef(null)
@@ -196,6 +201,14 @@ export default function App() {
     }
   }
 
+  function togglePrivacy() {
+    setPrivacyMode((prev) => {
+      const next = !prev
+      localStorage.setItem('va-privacy', next ? 'on' : 'off')
+      return next
+    })
+  }
+
   function handleRefreshForUpdate() {
     if (navigator.serviceWorker?.controller) {
       navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' })
@@ -297,7 +310,7 @@ export default function App() {
       case 'tasks':
         return <Tasks tasks={tasks} setTasks={setTasks} />
       case 'finance':
-        return <Finance finances={finances} setFinances={setFinances} profile={profile} />
+        return <Finance finances={finances} setFinances={setFinances} profile={profile} privacyMode={privacyMode} />
       case 'goals':
         return (
           <Goals
@@ -308,6 +321,7 @@ export default function App() {
             notes={notes}
             tasks={tasks}
             setTasks={setTasks}
+            privacyMode={privacyMode}
           />
         )
       case 'notes':
@@ -330,6 +344,7 @@ export default function App() {
             profile={profile}
             setProfile={setProfile}
             setPage={setPage}
+            privacyMode={privacyMode}
           />
         )
     }
@@ -375,8 +390,17 @@ export default function App() {
               )
             })}
           </nav>
-          <div className="px-5 py-4 text-[11px] text-slate-600">
-            Local-first · On device
+          <div className="px-3 py-4 flex items-center justify-between">
+            <span className="text-[11px] text-slate-600 px-2">Local-first · On device</span>
+            <button
+              type="button"
+              onClick={togglePrivacy}
+              className={`p-1.5 rounded-lg transition-all text-xs flex items-center gap-1.5 ${privacyMode ? 'bg-amber-500/15 text-amber-300' : 'text-gray-600 hover:text-gray-400 hover:bg-white/[0.03]'}`}
+              title={privacyMode ? 'Privacy mode on' : 'Enable privacy mode'}
+            >
+              {privacyMode ? <EyeOff size={14} /> : <Eye size={14} />}
+              <span className="hidden xl:inline">{privacyMode ? 'Private' : 'Privacy'}</span>
+            </button>
           </div>
         </div>
       </aside>
@@ -403,12 +427,22 @@ export default function App() {
                   {activeNav.label}
                 </h1>
               </div>
-              <span
-                key={`${activeNav.id}-chip`}
-                className="nav-chip-enter app-accent-soft text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0"
-              >
-                Active
-              </span>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={togglePrivacy}
+                  className={`p-1.5 rounded-full transition-all ${privacyMode ? 'bg-amber-500/15 text-amber-300' : 'text-gray-600 hover:text-gray-400'}`}
+                  title={privacyMode ? 'Privacy mode on — tap to show values' : 'Tap to hide sensitive values'}
+                >
+                  {privacyMode ? <EyeOff size={16} strokeWidth={2} /> : <Eye size={16} strokeWidth={1.6} />}
+                </button>
+                <span
+                  key={`${activeNav.id}-chip`}
+                  className="nav-chip-enter app-accent-soft text-[9px] font-bold px-2 py-0.5 rounded-full"
+                >
+                  Active
+                </span>
+              </div>
             </div>
           </div>
         </div>

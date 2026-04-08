@@ -22,6 +22,13 @@ import { runFinanceAnalysis } from '../ai'
 const GBP = (v) =>
   (v || 0).toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })
 
+function PrivVal({ value, privacyMode, className = '' }) {
+  if (privacyMode) {
+    return <span className={`privacy-mask ${className}`}>{GBP(value)}</span>
+  }
+  return <span className={className}>{GBP(value)}</span>
+}
+
 function firstSentence(text) {
   if (typeof text !== 'string') return ''
   const cleaned = text.replace(/\s+/g, ' ').trim()
@@ -136,6 +143,7 @@ function AccountSection({
   onRemove,
   tip,
   tipLabel,
+  privacyMode,
 }) {
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
@@ -177,7 +185,7 @@ function AccountSection({
         </h2>
         <div className="flex items-center gap-2 shrink-0">
           {list.length > 0 && <span className="count-badge">{list.length}</span>}
-          {total > 0 && <span className="text-sm font-medium text-white">{GBP(total)}</span>}
+          {total > 0 && <PrivVal value={total} privacyMode={privacyMode} className="text-sm font-medium text-white" />}
           {open ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
         </div>
       </button>
@@ -218,7 +226,7 @@ function AccountSection({
                   <input
                     value={item.name}
                     onChange={(e) => onRename(item.id, e.target.value)}
-                    className="bg-transparent text-gray-300 text-sm truncate min-w-0 flex-1 focus:outline-none focus:bg-gray-800 focus:rounded px-1 -ml-1"
+                    className={`bg-transparent text-gray-300 text-sm truncate min-w-0 flex-1 focus:outline-none focus:bg-gray-800 focus:rounded px-1 -ml-1 ${privacyMode ? 'privacy-mask-lite' : ''}`}
                   />
                   <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                     <input
@@ -226,7 +234,7 @@ function AccountSection({
                       step="0.01"
                       value={item[valueKey]}
                       onChange={(e) => onUpdate(item.id, e.target.value)}
-                      className={`w-24 sm:w-28 bg-gray-800 border border-white/[0.06] rounded px-2 py-1 ${colorMap[color]} text-sm text-right font-medium focus:outline-none focus:border-blue-500`}
+                      className={`w-24 sm:w-28 bg-gray-800 border border-white/[0.06] rounded px-2 py-1 ${colorMap[color]} text-sm text-right font-medium focus:outline-none focus:border-blue-500 ${privacyMode ? 'privacy-mask' : ''}`}
                     />
                     <button
                       onClick={() => onRemove(item.id)}
@@ -246,7 +254,7 @@ function AccountSection({
   )
 }
 
-export default function Finance({ finances, setFinances, profile }) {
+export default function Finance({ finances, setFinances, profile, privacyMode }) {
   const [expName, setExpName] = useState('')
   const [expAmount, setExpAmount] = useState('')
   const [expDeadline, setExpDeadline] = useState('')
@@ -346,7 +354,7 @@ export default function Finance({ finances, setFinances, profile }) {
             <p className="page-top-ui-meta">Assets, liabilities, setup, and upcoming pressure.</p>
           </div>
           <span className="page-top-ui-pill">
-            {GBP(netWorth)}
+            <PrivVal value={netWorth} privacyMode={privacyMode} />
           </span>
         </div>
       </section>
@@ -398,61 +406,71 @@ export default function Finance({ finances, setFinances, profile }) {
         {coreOpen && (
           <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 border-t border-white/[0.04] pt-4">
             {/* Net Worth banner */}
-            <div className="app-strip-cell p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-              <div className="flex items-center gap-2">
-                <Landmark size={20} className="text-indigo-400" />
-                <span className="text-sm font-medium text-gray-400">Total Net Worth</span>
+            <div className="app-strip-cell glass-surface p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <span className="w-10 h-10 rounded-full bg-indigo-500/12 flex items-center justify-center shrink-0">
+                  <Landmark size={20} className="text-indigo-400" />
+                </span>
+                <div>
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Net Worth</span>
+                  <p className={`text-2xl font-bold ${netWorth >= 0 ? 'text-white' : 'text-red-400'} ${privacyMode ? 'privacy-mask' : ''}`}>
+                    {GBP(netWorth)}
+                  </p>
+                </div>
               </div>
-              <p className={`text-2xl font-bold ${netWorth >= 0 ? 'text-white' : 'text-red-400'}`}>
-                {GBP(netWorth)}
-              </p>
+              {monthlySurplus !== 0 && (
+                <div className="flex items-center gap-1.5 text-xs">
+                  <span className="text-gray-500">Monthly surplus</span>
+                  <PrivVal value={monthlySurplus} privacyMode={privacyMode} className={`font-bold ${monthlySurplus >= 0 ? 'text-emerald-400' : 'text-red-400'}`} />
+                </div>
+              )}
             </div>
 
             {/* Overview cards */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 stagger-reveal">
-              <div className="app-grid-stat p-3 sm:p-4 hover-lift">
+              <div className="app-grid-stat p-3 sm:p-4 hover-lift" style={{'--stat-accent': '#4ade80'}}>
                 <div className="flex items-center gap-1.5 text-green-400 mb-1">
                   <PiggyBank size={14} />
                   <span className="text-xs font-medium">Liquid Savings</span>
                 </div>
-                <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalSavings)}</p>
+                <p className={`text-lg sm:text-xl font-bold text-white ${privacyMode ? 'privacy-mask' : ''}`}>{GBP(totalSavings)}</p>
               </div>
-              <div className="app-grid-stat p-3 sm:p-4 hover-lift">
+              <div className="app-grid-stat p-3 sm:p-4 hover-lift" style={{'--stat-accent': '#22d3ee'}}>
                 <div className="flex items-center gap-1.5 text-cyan-400 mb-1">
                   <LineChart size={14} />
                   <span className="text-xs font-medium">Invested</span>
                 </div>
-                <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalInvested)}</p>
+                <p className={`text-lg sm:text-xl font-bold text-white ${privacyMode ? 'privacy-mask' : ''}`}>{GBP(totalInvested)}</p>
               </div>
-              <div className="app-grid-stat p-3 sm:p-4 hover-lift">
+              <div className="app-grid-stat p-3 sm:p-4 hover-lift" style={{'--stat-accent': '#fbbf24'}}>
                 <div className="flex items-center gap-1.5 text-amber-400 mb-1">
                   <Shield size={14} />
                   <span className="text-xs font-medium">Pension</span>
                 </div>
-                <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalPension)}</p>
+                <p className={`text-lg sm:text-xl font-bold text-white ${privacyMode ? 'privacy-mask' : ''}`}>{GBP(totalPension)}</p>
               </div>
-              <div className="app-grid-stat p-3 sm:p-4 hover-lift">
+              <div className="app-grid-stat p-3 sm:p-4 hover-lift" style={{'--stat-accent': '#f87171'}}>
                 <div className="flex items-center gap-1.5 text-red-400 mb-1">
                   <CreditCard size={14} />
                   <span className="text-xs font-medium">Total Debt</span>
                 </div>
-                <p className="text-lg sm:text-xl font-bold text-white">{GBP(totalDebt)}</p>
+                <p className={`text-lg sm:text-xl font-bold text-white ${privacyMode ? 'privacy-mask' : ''}`}>{GBP(totalDebt)}</p>
               </div>
-              <div className="app-grid-stat p-3 sm:p-4 hover-lift">
+              <div className="app-grid-stat p-3 sm:p-4 hover-lift" style={{'--stat-accent': '#60a5fa'}}>
                 <div className="flex items-center gap-1.5 text-blue-400 mb-1">
                   <Wallet size={14} />
                   <span className="text-xs font-medium">Liquid Net</span>
                 </div>
-                <p className={`text-lg sm:text-xl font-bold ${netPosition >= 0 ? 'text-white' : 'text-red-400'}`}>
+                <p className={`text-lg sm:text-xl font-bold ${netPosition >= 0 ? 'text-white' : 'text-red-400'} ${privacyMode ? 'privacy-mask' : ''}`}>
                   {GBP(netPosition)}
                 </p>
               </div>
-              <div className="app-grid-stat p-3 sm:p-4 hover-lift">
+              <div className="app-grid-stat p-3 sm:p-4 hover-lift" style={{'--stat-accent': '#c084fc'}}>
                 <div className="flex items-center gap-1.5 text-purple-400 mb-1">
                   <TrendingUp size={14} />
                   <span className="text-xs font-medium">Monthly Income</span>
                 </div>
-                <p className="text-lg sm:text-xl font-bold text-white">{GBP(incomeVal)}</p>
+                <p className={`text-lg sm:text-xl font-bold text-white ${privacyMode ? 'privacy-mask' : ''}`}>{GBP(incomeVal)}</p>
               </div>
             </div>
 
@@ -464,10 +482,10 @@ export default function Finance({ finances, setFinances, profile }) {
                   : 'bg-red-500/8 text-red-300'
               }`}
             >
-              <AlertCircle size={18} className="shrink-0" />
+              <span className={`alert-dot ${availableAfterUpcoming >= 0 ? 'text-emerald-400' : 'text-red-400'}`} />
               <span className="text-sm">
                 After all upcoming expenses:{' '}
-                <strong className="text-white">{GBP(availableAfterUpcoming)}</strong>{' '}
+                <PrivVal value={availableAfterUpcoming} privacyMode={privacyMode} className="font-bold text-white" />{' '}
                 {availableAfterUpcoming >= 0 ? 'remaining' : 'shortfall'}
               </span>
             </div>
@@ -489,13 +507,15 @@ export default function Finance({ finances, setFinances, profile }) {
             onClick={() => setAiSummaryOpen((prev) => !prev)}
             className="app-section-toggle w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left"
           >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className={`text-2xl font-bold shrink-0 ${aiResult.score.value >= 7 ? 'text-green-400' : aiResult.score.value >= 4 ? 'text-yellow-400' : 'text-red-400'}`}>
-                {aiResult.score.value}/10
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className={`score-ring w-12 h-12 rounded-full shrink-0 flex items-center justify-center text-lg font-extrabold ${aiResult.score.value >= 7 ? 'text-green-400' : aiResult.score.value >= 4 ? 'text-yellow-400' : 'text-red-400'}`}
+                style={{'--app-accent-400': aiResult.score.value >= 7 ? '#4ade80' : aiResult.score.value >= 4 ? '#facc15' : '#f87171'}}
+              >
+                {aiResult.score.value}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-white">AI Health Summary</p>
-                <p className="text-sm text-gray-300 truncate">{aiResult.score.label}</p>
+                <p className="text-sm font-semibold text-white">Financial Health</p>
+                <p className="text-xs text-gray-400 truncate">{aiResult.score.label}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0 text-gray-500">
@@ -506,8 +526,8 @@ export default function Finance({ finances, setFinances, profile }) {
             </div>
           </button>
           {aiSummaryOpen && aiResult.overall && (
-            <div className="border-t border-gray-700/60 px-4 sm:px-5 py-4">
-              <div className="ai-tip-glow rounded-xl pl-4 pr-3 py-3">
+            <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4">
+              <div className="ai-tip-glow ai-shimmer rounded-xl pl-4 pr-3 py-3">
                 <p className="text-sm text-slate-300 leading-relaxed">{aiResult.overall}</p>
               </div>
             </div>
@@ -589,11 +609,12 @@ export default function Finance({ finances, setFinances, profile }) {
               }
               tip={aiResult?.contributions}
               tipLabel="Contributions"
+              privacyMode={privacyMode}
             />
             {mcList.length > 0 && (
               <div className="app-strip-cell flex items-center justify-between px-4 py-2.5 -mt-3 text-sm">
                 <span className="text-gray-400">Total monthly contributions</span>
-                <span className="text-emerald-400 font-bold">{GBP(totalMonthlyContributions)}</span>
+                <PrivVal value={totalMonthlyContributions} privacyMode={privacyMode} className="text-emerald-400 font-bold" />
               </div>
             )}
           </div>
@@ -636,6 +657,7 @@ export default function Finance({ finances, setFinances, profile }) {
         }
         tip={aiResult?.savings}
         tipLabel="Savings"
+        privacyMode={privacyMode}
         />
       </section>
 
@@ -670,6 +692,7 @@ export default function Finance({ finances, setFinances, profile }) {
         }
         tip={aiResult?.debt}
         tipLabel="Debt"
+        privacyMode={privacyMode}
         />
       </div>
 
@@ -704,6 +727,7 @@ export default function Finance({ finances, setFinances, profile }) {
         }
         tip={aiResult?.investments}
         tipLabel="Investments"
+        privacyMode={privacyMode}
         />
       </div>
 
@@ -738,6 +762,7 @@ export default function Finance({ finances, setFinances, profile }) {
         }
         tip={aiResult?.pensions}
         tipLabel="Pensions"
+        privacyMode={privacyMode}
         />
       </div>
 
@@ -758,7 +783,7 @@ export default function Finance({ finances, setFinances, profile }) {
             <div className="min-w-0">
               <h2 className="text-lg font-semibold text-white">Upcoming Expenses</h2>
               <p className="text-xs text-gray-500">
-                {ueList.length} item(s){ueList.length > 0 ? ` · ${GBP(totalUpcoming)} total` : ''}
+                {ueList.length} item(s){ueList.length > 0 && !privacyMode ? ` · ${GBP(totalUpcoming)} total` : ''}
               </p>
             </div>
           </div>
@@ -831,7 +856,7 @@ export default function Finance({ finances, setFinances, profile }) {
                       </div>
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm">
                         <StatusBadge status={status} />
-                        <span className="text-white font-medium">{GBP(exp.amount)}</span>
+                        <PrivVal value={exp.amount} privacyMode={privacyMode} className="text-white font-medium" />
                         <span
                           className={`text-xs ${days < 0 ? 'text-red-400' : days < 30 ? 'text-yellow-400' : 'text-gray-500'}`}
                         >

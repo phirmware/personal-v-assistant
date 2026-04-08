@@ -149,7 +149,7 @@ const STATUS_CONFIG = {
   },
 }
 
-export default function Goals({ goals, setGoals, finances, profile, notes, tasks, setTasks }) {
+export default function Goals({ goals, setGoals, finances, profile, notes, tasks, setTasks, privacyMode }) {
   const [title, setTitle] = useState('')
   const [sectionName, setSectionName] = useState(DEFAULT_SECTION)
   const [target, setTarget] = useState('')
@@ -555,21 +555,21 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
               <PiggyBank size={14} />
               <span className="text-xs font-medium">Net Worth</span>
             </div>
-            <p className="text-base sm:text-lg font-bold text-white">{GBP(netWorth)}</p>
+            <p className={`text-base sm:text-lg font-bold text-white ${privacyMode ? 'privacy-mask' : ''}`}>{GBP(netWorth)}</p>
           </div>
           <div className="app-grid-stat p-3 hover-lift">
             <div className="flex items-center gap-1.5 text-blue-400 mb-0.5">
               <Wallet size={14} />
               <span className="text-xs font-medium">Liquid</span>
             </div>
-            <p className="text-base sm:text-lg font-bold text-white">{GBP(totalSavings)}</p>
+            <p className={`text-base sm:text-lg font-bold text-white ${privacyMode ? 'privacy-mask' : ''}`}>{GBP(totalSavings)}</p>
           </div>
           <div className="app-grid-stat p-3 hover-lift">
             <div className="flex items-center gap-1.5 text-purple-400 mb-0.5">
               <Target size={14} />
               <span className="text-xs font-medium">Financial Targets</span>
             </div>
-            <p className="text-base sm:text-lg font-bold text-white">{GBP(totalGoalTarget)}</p>
+            <p className={`text-base sm:text-lg font-bold text-white ${privacyMode ? 'privacy-mask' : ''}`}>{GBP(totalGoalTarget)}</p>
           </div>
           <div className="app-grid-stat p-3 hover-lift">
             <div className="flex items-center gap-1.5 text-amber-400 mb-0.5">
@@ -822,7 +822,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                                 <span className="text-[11px] font-semibold text-gray-400 tabular-nums w-9 text-right">{pct.toFixed(0)}%</span>
                               </div>
                               <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-gray-500">
-                                {goal.target > 0 && <span>Target {GBP(goal.target)}</span>}
+                                {goal.target > 0 && <span>Target <span className={privacyMode ? 'privacy-mask' : ''}>{GBP(goal.target)}</span></span>}
                                 {goalTaskMap.has(String(goal.id)) && (
                                   <span className="text-indigo-300">
                                     Task sync {goalTaskMap.get(String(goal.id))?.done ? 'done' : 'active'}
@@ -907,7 +907,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                                     />
                                     <div className="bg-gray-900 border border-white/[0.06] rounded px-2 py-1.5 text-gray-300">
                                       Current:{' '}
-                                      <span className="text-white font-medium">{GBP(goal.current)}</span>
+                                      <span className={`text-white font-medium ${privacyMode ? 'privacy-mask' : ''}`}>{GBP(goal.current)}</span>
                                     </div>
                                   </>
                                 ) : (
@@ -933,7 +933,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                               <div className="flex items-center justify-between text-xs text-gray-500">
                                 {goal.target > 0 && remaining > 0 ? (
                                   <span>
-                                    Need: <strong className="text-white">{GBP(remaining)}</strong>
+                                    Need: <strong className={`text-white ${privacyMode ? 'privacy-mask' : ''}`}>{GBP(remaining)}</strong>
                                   </span>
                                 ) : (
                                   <span>

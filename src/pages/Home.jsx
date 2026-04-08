@@ -33,6 +33,7 @@ export default function Home({
   profile,
   setProfile,
   setPage,
+  privacyMode,
 }) {
   const clampPercent = (value) => Math.max(0, Math.min(100, value || 0))
   const toNumber = (value) => {
@@ -371,7 +372,7 @@ export default function Home({
         </p>
         <div className="mt-3 page-top-ui-pill">
           <PiggyBank size={13} />
-          Net worth {netWorth.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}
+          Net worth <span className={privacyMode ? 'privacy-mask' : ''}>{netWorth.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}</span>
         </div>
       </div>
 
@@ -666,13 +667,15 @@ export default function Home({
                 <PiggyBank size={18} />
                 <span className="text-sm font-medium">Net Worth</span>
               </div>
-              <p className={`text-2xl font-bold ${netWorth >= 0 ? 'text-white' : 'text-red-400'}`}>
+              <p className={`text-2xl font-bold ${netWorth >= 0 ? 'text-white' : 'text-red-400'} ${privacyMode ? 'privacy-mask' : ''}`}>
                 {netWorth.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}
               </p>
-              <p className="text-[11px] text-gray-500 mt-1.5">
-                {totalSavings > 0 && `${GBP(totalSavings)} saved`}
-                {totalDebt > 0 && ` · ${GBP(totalDebt)} debt`}
-              </p>
+              {!privacyMode && (
+                <p className="text-[11px] text-gray-500 mt-1.5">
+                  {totalSavings > 0 && `${GBP(totalSavings)} saved`}
+                  {totalDebt > 0 && ` · ${GBP(totalDebt)} debt`}
+                </p>
+              )}
             </div>
             <div className="app-grid-stat p-5 hover-lift" style={{'--stat-accent': '#c084fc'}}>
               <div className="flex items-center gap-2 text-purple-400 mb-1">

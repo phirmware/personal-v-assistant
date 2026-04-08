@@ -1190,6 +1190,25 @@ html, body { overscroll-behavior: none; }
 }
 
 /* ═══════════════════════════════════════════════════
+   PRIVACY MODE
+   ═══════════════════════════════════════════════════ */
+
+.privacy-mask {
+  filter: blur(8px);
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+  transition: filter 200ms ease;
+}
+
+.privacy-mask-lite {
+  filter: blur(5px);
+  user-select: none;
+  -webkit-user-select: none;
+  transition: filter 200ms ease;
+}
+
+/* ═══════════════════════════════════════════════════
    NATIVE MOBILE FEEL
    ═══════════════════════════════════════════════════ */
 

@@ -69,6 +69,15 @@ export const REMINDER_OPTIONS = [
   { value: '30m_before', label: '30 min before end of day' },
 ]
 
+export const INTERVAL_OPTIONS = [
+  { value: 'none', label: 'No repeat nudge' },
+  { value: '15m', label: 'Every 15 min', minutes: 15 },
+  { value: '30m', label: 'Every 30 min', minutes: 30 },
+  { value: '1h', label: 'Every hour', minutes: 60 },
+  { value: '2h', label: 'Every 2 hours', minutes: 120 },
+  { value: '4h', label: 'Every 4 hours', minutes: 240 },
+]
+
 function shouldFireReminder(task) {
   if (!task || task.done) return false
   const reminder = task.reminder || 'none'
@@ -140,6 +149,37 @@ export function checkTaskReminders(tasks) {
       `Due ${deadlineLabel} · ${task.priority} priority`
     )
     markNotified(notifKey)
+  }
+}
+
+export function checkIntervalReminders(tasks) {
+  if (!isNotificationSupported() || Notification.permission !== 'granted') return
+
+  const settings = getNotificationSettings()
+  if (!settings.enabled) return
+
+  const now = Date.now()
+  const notified = getNotifiedSet()
+
+  for (const task of tasks) {
+    if (task.done) continue
+    const interval = task.intervalReminder || 'none'
+    if (interval === 'none') continue
+
+    const opt = INTERVAL_OPTIONS.find((o) => o.value === interval)
+    if (!opt || !opt.minutes) continue
+
+    const intervalKey = `interval-${task.id}`
+    const lastFired = notified[intervalKey] || 0
+    const elapsed = (now - lastFired) / 60000
+
+    if (elapsed < opt.minutes) continue
+
+    showNotification(
+      `Nudge: ${task.title}`,
+      `${opt.label} reminder · ${task.priority} priority`
+    )
+    markNotified(intervalKey)
   }
 }
 

@@ -24,6 +24,7 @@ import { useToast } from './hooks/useToast'
 import {
   checkTaskReminders,
   checkOverdueTasks,
+  checkIntervalReminders,
   requestNotificationPermission,
   getNotificationSettings,
   saveNotificationSettings,
@@ -129,9 +130,11 @@ export default function App() {
     function checkAll() {
       checkTaskReminders(tasks)
       checkOverdueTasks(tasks)
+      checkIntervalReminders(tasks)
     }
     checkAll()
-    const interval = setInterval(checkAll, 5 * 60 * 1000)
+    // Check every minute so interval reminders fire on time
+    const interval = setInterval(checkAll, 60 * 1000)
     return () => clearInterval(interval)
   }, [notificationsEnabled, tasks])
 

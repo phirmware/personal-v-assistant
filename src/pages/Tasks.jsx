@@ -28,9 +28,10 @@ import {
   Bell,
   BellOff,
   Calendar,
+  Timer,
 } from 'lucide-react'
 import { runTaskSuggestion } from '../ai'
-import { REMINDER_OPTIONS } from '../utils/notifications'
+import { REMINDER_OPTIONS, INTERVAL_OPTIONS } from '../utils/notifications'
 import MarkdownContent from '../components/MarkdownContent'
 import EmptyState from '../components/EmptyState'
 import SwipeToDelete from '../components/SwipeToDelete'
@@ -123,6 +124,12 @@ function SortableTaskRow({
                 <span className="flex items-center gap-1 text-indigo-400">
                   <Bell size={10} />
                   {REMINDER_OPTIONS.find((o) => o.value === task.reminder)?.label || task.reminder}
+                </span>
+              )}
+              {task.intervalReminder && task.intervalReminder !== 'none' && (
+                <span className="flex items-center gap-1 text-cyan-400">
+                  <Timer size={10} />
+                  {INTERVAL_OPTIONS.find((o) => o.value === task.intervalReminder)?.label || task.intervalReminder}
                 </span>
               )}
             </div>
@@ -224,6 +231,21 @@ function SortableTaskRow({
               </div>
             </div>
           </div>
+          <div className="input-shell">
+            <label className="text-[11px] text-gray-500 mb-1 block">Repeat nudge</label>
+            <div className="relative">
+              <Timer size={13} className={`absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${task.intervalReminder && task.intervalReminder !== 'none' ? 'text-cyan-400' : 'text-gray-500'}`} />
+              <select
+                value={task.intervalReminder || 'none'}
+                onChange={(e) => updateTask(task.id, 'intervalReminder', e.target.value)}
+                className="w-full bg-gray-900 border border-white/[0.06] rounded-lg pl-8 pr-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 appearance-none"
+              >
+                {INTERVAL_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
           <div className="flex justify-between items-center gap-2">
             <button
               onClick={onTaskAI}
@@ -271,6 +293,7 @@ export default function Tasks({ tasks, setTasks, showToast }) {
   const [details, setDetails] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [reminder, setReminder] = useState('none')
+  const [intervalReminder, setIntervalReminder] = useState('none')
   const [openMap, setOpenMap] = useState({})
   const [addOpen, setAddOpen] = useState(false)
   const [aiLoadingId, setAiLoadingId] = useState(null)
@@ -352,12 +375,14 @@ export default function Tasks({ tasks, setTasks, showToast }) {
         sortOrder: maxSortOrder(prevTasks) + 1,
         completeAt: dueDate || null,
         reminder: dueDate ? reminder : 'none',
+        intervalReminder,
       },
     ])
     setTitle('')
     setDetails('')
     setDueDate('')
     setReminder('none')
+    setIntervalReminder('none')
   }
 
   function toggleDone(id) {
@@ -582,6 +607,20 @@ export default function Tasks({ tasks, setTasks, showToast }) {
                       ))}
                     </select>
                   </div>
+                </div>
+              </div>
+              <div className="input-shell">
+                <div className="relative">
+                  <Timer size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                  <select
+                    value={intervalReminder}
+                    onChange={(e) => setIntervalReminder(e.target.value)}
+                    className="w-full bg-gray-900 border border-white/[0.06] rounded-lg pl-8 pr-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500 appearance-none"
+                  >
+                    {INTERVAL_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <button

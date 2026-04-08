@@ -18,6 +18,8 @@ import {
   Repeat,
 } from 'lucide-react'
 import { runFinanceAnalysis } from '../ai'
+import SkeletonBlock from '../components/SkeletonBlock'
+import { smartDefaultDate } from '../utils/time'
 
 const GBP = (v) =>
   (v || 0).toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })
@@ -254,10 +256,10 @@ function AccountSection({
   )
 }
 
-export default function Finance({ finances, setFinances, profile, privacyMode }) {
+export default function Finance({ finances, setFinances, profile, privacyMode, showToast, sectionMemory }) {
   const [expName, setExpName] = useState('')
   const [expAmount, setExpAmount] = useState('')
-  const [expDeadline, setExpDeadline] = useState('')
+  const [expDeadline, setExpDeadline] = useState(() => smartDefaultDate(30))
   const [incomeInput, setIncomeInput] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState(null)
@@ -267,10 +269,10 @@ export default function Finance({ finances, setFinances, profile, privacyMode })
       return stored ? JSON.parse(stored) : null
     } catch { return null }
   })
-  const [coreOpen, setCoreOpen] = useState(true)
-  const [setupOpen, setSetupOpen] = useState(false)
-  const [upcomingOpen, setUpcomingOpen] = useState(false)
-  const [aiSummaryOpen, setAiSummaryOpen] = useState(false)
+  const coreOpen = sectionMemory?.isOpen('core', true) ?? true
+  const setupOpen = sectionMemory?.isOpen('setup', false) ?? false
+  const upcomingOpen = sectionMemory?.isOpen('upcoming', false) ?? false
+  const aiSummaryOpen = sectionMemory?.isOpen('aiSummary', false) ?? false
 
   const saList = finances.savingsAccounts || []
   const ccList = finances.creditCards || []
@@ -315,10 +317,18 @@ export default function Finance({ finances, setFinances, profile, privacyMode })
   }
 
   function removeUpcoming(id) {
+    const deleted = ueList.find((e) => e.id === id)
     updateList(
       'upcomingExpenses',
       ueList.filter((e) => e.id !== id)
     )
+    if (deleted) {
+      showToast?.(`Removed "${deleted.name}"`, {
+        type: 'danger',
+        duration: 5000,
+        onUndo: () => updateList('upcomingExpenses', [...ueList]),
+      })
+    }
   }
 
   function setIncome(e) {
@@ -389,7 +399,7 @@ export default function Finance({ finances, setFinances, profile, privacyMode })
         <div className="page-group-shell app-surface-sheet overflow-hidden">
         <button
           type="button"
-          onClick={() => setCoreOpen((prev) => !prev)}
+          onClick={() => sectionMemory?.toggle('core', true)}
           className="app-section-toggle w-full flex items-center justify-between p-4 sm:p-5 text-left"
         >
           <div className="flex items-center gap-2">
@@ -504,7 +514,7 @@ export default function Finance({ finances, setFinances, profile, privacyMode })
           <div className="page-group-shell app-surface-sheet overflow-hidden">
           <button
             type="button"
-            onClick={() => setAiSummaryOpen((prev) => !prev)}
+            onClick={() => sectionMemory?.toggle('aiSummary', false)}
             className="app-section-toggle w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left"
           >
             <div className="flex items-center gap-3.5 min-w-0">
@@ -542,7 +552,7 @@ export default function Finance({ finances, setFinances, profile, privacyMode })
         <div className="page-group-shell app-surface-sheet overflow-hidden">
         <button
           type="button"
-          onClick={() => setSetupOpen((prev) => !prev)}
+          onClick={() => sectionMemory?.toggle('setup', false)}
           className="app-section-toggle w-full flex items-center justify-between p-4 sm:p-5 text-left"
         >
           <div className="flex items-center gap-2">
@@ -775,7 +785,7 @@ export default function Finance({ finances, setFinances, profile, privacyMode })
         <div className="page-group-shell app-surface-sheet overflow-hidden">
         <button
           type="button"
-          onClick={() => setUpcomingOpen((prev) => !prev)}
+          onClick={() => sectionMemory?.toggle('upcoming', false)}
           className="app-section-toggle w-full flex items-start sm:items-center justify-between gap-2 p-4 sm:p-5 text-left"
         >
           <div className="flex items-center gap-2 min-w-0">

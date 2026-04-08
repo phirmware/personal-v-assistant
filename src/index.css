@@ -984,6 +984,32 @@ html, body { overscroll-behavior: none; }
   40%, 100% { background-position: -200% 0; }
 }
 
+@keyframes toast-slide-up {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes form-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-6px); }
+  30% { transform: translateX(5px); }
+  45% { transform: translateX(-4px); }
+  60% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
+}
+
+@keyframes num-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes completion-flash {
+  0% { background-color: transparent; }
+  30% { background-color: rgba(52, 211, 153, 0.08); }
+  100% { background-color: transparent; }
+}
+
 /* ═══════════════════════════════════════════════════
    PRIORITY EDGE BARS
    ═══════════════════════════════════════════════════ */
@@ -1187,6 +1213,88 @@ html, body { overscroll-behavior: none; }
 
 .timeline-item:last-child::before {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 80%);
+}
+
+/* ═══════════════════════════════════════════════════
+   TOAST NOTIFICATIONS
+   ═══════════════════════════════════════════════════ */
+
+.toast-enter {
+  animation: toast-slide-up 250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ═══════════════════════════════════════════════════
+   SWIPE TO DELETE
+   ═══════════════════════════════════════════════════ */
+
+.swipe-delete-wrapper {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   FORM SHAKE (inline validation)
+   ═══════════════════════════════════════════════════ */
+
+.form-shake {
+  animation: form-shake 400ms ease;
+}
+
+.input-error {
+  border-color: rgba(248, 113, 113, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.1) !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   AMBIENT TIME SHIFT
+   ═══════════════════════════════════════════════════ */
+
+.app-shell.ambient-morning {
+  background:
+    radial-gradient(ellipse 1100px 600px at 20% -8%, rgba(251, 191, 36, 0.06), transparent),
+    radial-gradient(ellipse 900px 500px at 80% 5%, rgba(249, 115, 22, 0.04), transparent),
+    radial-gradient(ellipse 600px 400px at 50% 95%, rgba(14, 165, 233, 0.03), transparent),
+    #050608;
+}
+
+.app-shell.ambient-day {
+  background:
+    radial-gradient(ellipse 1100px 600px at 20% -8%, color-mix(in srgb, var(--app-accent-500) 10%, transparent), transparent),
+    radial-gradient(ellipse 900px 500px at 80% 5%, rgba(99, 102, 241, 0.06), transparent),
+    radial-gradient(ellipse 600px 400px at 50% 95%, rgba(14, 165, 233, 0.04), transparent),
+    #050608;
+}
+
+.app-shell.ambient-evening {
+  background:
+    radial-gradient(ellipse 1100px 600px at 20% -8%, rgba(139, 92, 246, 0.08), transparent),
+    radial-gradient(ellipse 900px 500px at 80% 5%, rgba(79, 70, 229, 0.06), transparent),
+    radial-gradient(ellipse 600px 400px at 50% 95%, rgba(30, 58, 138, 0.05), transparent),
+    #050608;
+}
+
+.app-shell.ambient-night {
+  background:
+    radial-gradient(ellipse 1100px 600px at 20% -8%, rgba(30, 58, 138, 0.06), transparent),
+    radial-gradient(ellipse 900px 500px at 80% 5%, rgba(15, 23, 42, 0.08), transparent),
+    radial-gradient(ellipse 600px 400px at 50% 95%, rgba(8, 47, 73, 0.04), transparent),
+    #050608;
+}
+
+/* ═══════════════════════════════════════════════════
+   ANIMATED NUMBER
+   ═══════════════════════════════════════════════════ */
+
+.num-pop {
+  animation: num-pop 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ═══════════════════════════════════════════════════
+   COMPLETION FLASH
+   ═══════════════════════════════════════════════════ */
+
+.completion-flash {
+  animation: completion-flash 500ms ease-out;
 }
 
 /* ═══════════════════════════════════════════════════

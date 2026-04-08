@@ -17,6 +17,8 @@ import {
 } from 'lucide-react'
 import { runGoalTaskPlanner, runGoalsAnalysis } from '../ai'
 import EmptyState from '../components/EmptyState'
+import SkeletonBlock from '../components/SkeletonBlock'
+import { smartDefaultDate } from '../utils/time'
 
 const GBP = (v) =>
   (v || 0).toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })
@@ -149,13 +151,14 @@ const STATUS_CONFIG = {
   },
 }
 
-export default function Goals({ goals, setGoals, finances, profile, notes, tasks, setTasks, privacyMode }) {
+export default function Goals({ goals, setGoals, finances, profile, notes, tasks, setTasks, privacyMode, showToast, sectionMemory }) {
   const [title, setTitle] = useState('')
   const [sectionName, setSectionName] = useState(DEFAULT_SECTION)
   const [target, setTarget] = useState('')
-  const [deadline, setDeadline] = useState('')
+  const [deadline, setDeadline] = useState(() => smartDefaultDate(90))
   const [details, setDetails] = useState('')
-  const [addOpen, setAddOpen] = useState(false)
+  const addOpen = sectionMemory?.isOpen('addGoal', false) ?? false
+  const setAddOpen = () => sectionMemory?.toggle('addGoal', false)
   const [aiLoadingScope, setAiLoadingScope] = useState(null)
   const [taskSyncLoadingScope, setTaskSyncLoadingScope] = useState(null)
   const [aiError, setAiError] = useState(null)
@@ -232,9 +235,17 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
   }
 
   function deleteGoal(id) {
+    const deleted = goals.find((g) => String(g.id) === String(id))
     setGoals((prevGoals) =>
       prevGoals.map(normalizeGoal).filter((goal) => String(goal.id) !== String(id))
     )
+    if (deleted) {
+      showToast?.(`Deleted "${deleted.title || 'goal'}"`, {
+        type: 'danger',
+        duration: 5000,
+        onUndo: () => setGoals((prev) => [...prev, deleted]),
+      })
+    }
   }
 
   function addGoal(e) {

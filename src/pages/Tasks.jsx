@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import {
   DndContext,
   PointerSensor,
@@ -29,6 +29,8 @@ import {
 import { runTaskSuggestion } from '../ai'
 import MarkdownContent from '../components/MarkdownContent'
 import EmptyState from '../components/EmptyState'
+import SwipeToDelete from '../components/SwipeToDelete'
+import SkeletonBlock from '../components/SkeletonBlock'
 
 const PRIORITY_COLORS = {
   high: 'text-red-400',
@@ -48,6 +50,7 @@ function SortableTaskRow({
   aiLoadingId,
   updateTask,
   autoResizeTextarea,
+  flashId,
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: String(task.id),
@@ -58,13 +61,13 @@ function SortableTaskRow({
   }
 
   return (
+    <SwipeToDelete onDelete={onDelete}>
     <div
       ref={setNodeRef}
-      style={style}
+      style={{...style, '--priority-color': task.done ? 'transparent' : task.priority === 'high' ? '#f87171' : task.priority === 'medium' ? '#facc15' : '#6b7280'}}
       className={`app-surface-row overflow-hidden group priority-edge ${task.done ? 'opacity-50' : ''} ${
         isDropTarget ? 'ring-1 ring-blue-500/70' : ''
-      } ${isDragging ? 'ring-1 ring-blue-400/70' : ''}`}
-      style={{'--priority-color': task.done ? 'transparent' : task.priority === 'high' ? '#f87171' : task.priority === 'medium' ? '#facc15' : '#6b7280'}}
+      } ${isDragging ? 'ring-1 ring-blue-400/70' : ''} ${flashId === task.id ? 'completion-flash' : ''}`}
     >
       <div className="px-4 py-3">
         <div className="flex items-start gap-3">
@@ -196,7 +199,12 @@ function SortableTaskRow({
               </span>
             </button>
           </div>
-          {task.aiSuggestion && (
+          {aiLoadingId === task.id && (
+            <div className="ai-tip-glow bg-white/[0.02] rounded-xl pl-4 pr-3 py-3">
+              <SkeletonBlock lines={3} />
+            </div>
+          )}
+          {task.aiSuggestion && aiLoadingId !== task.id && (
             <div className="ai-tip-glow ai-shimmer bg-white/[0.02] rounded-xl pl-4 pr-3 py-3">
               <MarkdownContent content={task.aiSuggestion} />
             </div>
@@ -204,10 +212,11 @@ function SortableTaskRow({
         </div>
       )}
     </div>
+    </SwipeToDelete>
   )
 }
 
-export default function Tasks({ tasks, setTasks }) {
+export default function Tasks({ tasks, setTasks, showToast }) {
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState('medium')
   const [details, setDetails] = useState('')
@@ -217,6 +226,9 @@ export default function Tasks({ tasks, setTasks }) {
   const [aiError, setAiError] = useState(null)
   const [draggingId, setDraggingId] = useState(null)
   const [dragOverId, setDragOverId] = useState(null)
+  const [flashId, setFlashId] = useState(null)
+  const [formShake, setFormShake] = useState(false)
+  const formRef = useRef(null)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 6 } })
@@ -270,7 +282,11 @@ export default function Tasks({ tasks, setTasks }) {
 
   function addTask(e) {
     e.preventDefault()
-    if (!title.trim()) return
+    if (!title.trim()) {
+      setFormShake(true)
+      setTimeout(() => setFormShake(false), 450)
+      return
+    }
     setTasks((prevTasks) => [
       ...prevTasks,
       {
@@ -290,14 +306,21 @@ export default function Tasks({ tasks, setTasks }) {
   }
 
   function toggleDone(id) {
+    const task = tasks.find((t) => t.id === id)
+    const wasDone = task?.done
     setTasks((prevTasks) => {
       const nextOrder = maxSortOrder(prevTasks) + 1
-      return prevTasks.map((task) =>
-        task.id === id
-          ? { ...task, done: !task.done, sortOrder: nextOrder }
-          : task
+      return prevTasks.map((t) =>
+        t.id === id
+          ? { ...t, done: !t.done, sortOrder: nextOrder }
+          : t
       )
     })
+    if (!wasDone) {
+      setFlashId(id)
+      setTimeout(() => setFlashId(null), 550)
+      showToast?.('Task completed', { type: 'success', duration: 2500 })
+    }
   }
 
   function togglePin(id) {
@@ -305,7 +328,15 @@ export default function Tasks({ tasks, setTasks }) {
   }
 
   function deleteTask(id) {
+    const deleted = tasks.find((t) => t.id === id)
     setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id))
+    if (deleted) {
+      showToast?.(`Deleted "${deleted.title}"`, {
+        type: 'danger',
+        duration: 5000,
+        onUndo: () => setTasks((prev) => [...prev, deleted]),
+      })
+    }
   }
 
   function updateTask(id, field, value) {
@@ -435,8 +466,9 @@ export default function Tasks({ tasks, setTasks }) {
           </button>
           {addOpen && (
             <form
+              ref={formRef}
               onSubmit={addTask}
-              className="border-t border-white/[0.04] p-4 space-y-3"
+              className={`border-t border-white/[0.04] p-4 space-y-3 ${formShake ? 'form-shake' : ''}`}
             >
               <div className="input-shell flex flex-col sm:flex-row gap-3">
                 <input
@@ -529,6 +561,7 @@ export default function Tasks({ tasks, setTasks }) {
                 aiLoadingId={aiLoadingId}
                 updateTask={updateTask}
                 autoResizeTextarea={autoResizeTextarea}
+                flashId={flashId}
               />
             ))}
               </div>

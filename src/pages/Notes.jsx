@@ -11,11 +11,15 @@ import {
 } from 'lucide-react'
 import EmptyState from '../components/EmptyState'
 import MarkdownContent from '../components/MarkdownContent'
+import SwipeToDelete from '../components/SwipeToDelete'
+import SkeletonBlock from '../components/SkeletonBlock'
 import { runNotesInsight, runNoteSuggestion } from '../ai'
+import { relativeTime } from '../utils/time'
 
-export default function Notes({ notes, setNotes }) {
+export default function Notes({ notes, setNotes, showToast }) {
   const [text, setText] = useState('')
   const [addOpen, setAddOpen] = useState(false)
+  const [formShake, setFormShake] = useState(false)
   const [openMap, setOpenMap] = useState({})
   const [search, setSearch] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
@@ -62,7 +66,11 @@ export default function Notes({ notes, setNotes }) {
 
   function addNote(e) {
     e.preventDefault()
-    if (!text.trim()) return
+    if (!text.trim()) {
+      setFormShake(true)
+      setTimeout(() => setFormShake(false), 450)
+      return
+    }
     setNotes([
       { id: Date.now(), text: text.trim(), date: new Date().toISOString() },
       ...notes,
@@ -71,7 +79,15 @@ export default function Notes({ notes, setNotes }) {
   }
 
   function deleteNote(id) {
+    const deleted = notes.find((n) => n.id === id)
     setNotes(notes.filter((n) => n.id !== id))
+    if (deleted) {
+      showToast?.(`Note deleted`, {
+        type: 'danger',
+        duration: 5000,
+        onUndo: () => setNotes((prev) => [deleted, ...prev]),
+      })
+    }
     const { [id]: removed, ...rest } = notesMeta
     void removed
     persistNotesMeta(rest)
@@ -275,7 +291,7 @@ export default function Notes({ notes, setNotes }) {
           {addOpen && (
             <form
               onSubmit={addNote}
-              className="border-t border-white/[0.04] px-4 sm:px-5 py-4 flex flex-col sm:flex-row gap-3"
+              className={`border-t border-white/[0.04] px-4 sm:px-5 py-4 flex flex-col sm:flex-row gap-3 ${formShake ? 'form-shake' : ''}`}
             >
               <div className="input-shell flex-1">
                 <input
@@ -326,8 +342,8 @@ export default function Notes({ notes, setNotes }) {
               const noteAiDate = noteMeta.aiDate || null
               const noteAiOpen = Boolean(noteAiOpenMap[note.id])
               return (
+                <SwipeToDelete key={note.id} onDelete={() => deleteNote(note.id)}>
                 <div
-                  key={note.id}
                   className="app-surface-row overflow-hidden"
                 >
                   <button
@@ -342,8 +358,8 @@ export default function Notes({ notes, setNotes }) {
                           {note.text}
                         </p>
                         <p className="text-xs text-gray-600 mt-1">
-                          {new Date(note.date).toLocaleDateString()}
-                          {noteAiDate ? ` · AI ${new Date(noteAiDate).toLocaleDateString()}` : ''}
+                          {relativeTime(note.date)}
+                          {noteAiDate ? ` · AI ${relativeTime(noteAiDate)}` : ''}
                         </p>
                       </div>
                     </div>
@@ -397,7 +413,12 @@ export default function Notes({ notes, setNotes }) {
                         </div>
                       </div>
 
-                      {noteAiSuggestion && noteAiOpen && (
+                      {noteAiLoadingId === note.id && (
+                        <div className="ai-tip-glow bg-white/[0.02] rounded-xl pl-4 pr-3 py-3">
+                          <SkeletonBlock lines={3} />
+                        </div>
+                      )}
+                      {noteAiSuggestion && noteAiOpen && noteAiLoadingId !== note.id && (
                         <div className="ai-tip-glow ai-shimmer bg-white/[0.02] rounded-xl pl-4 pr-3 py-3">
                           <MarkdownContent content={noteAiSuggestion} />
                         </div>
@@ -405,6 +426,7 @@ export default function Notes({ notes, setNotes }) {
                     </div>
                   )}
                 </div>
+                </SwipeToDelete>
               )
             })}
           </div>

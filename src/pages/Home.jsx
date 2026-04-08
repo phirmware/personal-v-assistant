@@ -15,6 +15,8 @@ import {
 } from 'lucide-react'
 import { runAnalysis } from '../ai'
 import MarkdownContent from '../components/MarkdownContent'
+import SkeletonBlock from '../components/SkeletonBlock'
+import { relativeTime } from '../utils/time'
 
 const GBP = (v) =>
   (v || 0).toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })
@@ -34,6 +36,8 @@ export default function Home({
   setProfile,
   setPage,
   privacyMode,
+  showToast,
+  sectionMemory,
 }) {
   const clampPercent = (value) => Math.max(0, Math.min(100, value || 0))
   const toNumber = (value) => {
@@ -51,17 +55,10 @@ export default function Home({
   const [loading, setLoading] = useState(false)
   const [importing, setImporting] = useState(false)
   const [error, setError] = useState(null)
-  const [openSections, setOpenSections] = useState({
-    controls: false,
-    alerts: true,
-    focus: true,
-    metrics: false,
-    insight: false,
-  })
 
-  function toggleSection(key) {
-    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }))
-  }
+  const SECTION_DEFAULTS = { controls: false, alerts: true, focus: true, metrics: false, insight: false }
+  function isSectionOpen(key) { return sectionMemory?.isOpen(key, SECTION_DEFAULTS[key]) ?? SECTION_DEFAULTS[key] }
+  function toggleSection(key) { sectionMemory?.toggle(key, SECTION_DEFAULTS[key]) }
 
   // Determine today's focus: pinned tasks first, then top 3 by priority
   const activeTasks = tasks.filter((t) => !t.done)
@@ -159,10 +156,22 @@ export default function Home({
   }
 
   function clearAll() {
-    if (confirm('Clear ALL data? This cannot be undone.')) {
-      localStorage.clear()
-      window.location.reload()
-    }
+    const snapshot = buildSnapshot()
+    localStorage.clear()
+    showToast?.('All data cleared', {
+      type: 'danger',
+      duration: 6000,
+      onUndo: () => {
+        const payload = snapshot.data
+        for (const [key, value] of Object.entries(payload)) {
+          if (value !== null && value !== undefined) {
+            localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value))
+          }
+        }
+        window.location.reload()
+      },
+    })
+    window.setTimeout(() => window.location.reload(), 6200)
   }
 
   function buildSnapshot() {
@@ -362,6 +371,32 @@ export default function Home({
         </div>
       )}
 
+      {tasks.length === 0 && goals.length === 0 && notes.length === 0 && !profile?.name && (
+        <div className="order-0 glass-surface p-5 space-y-3 stagger-reveal">
+          <p className="text-sm font-semibold text-white">Welcome to V-Assistant</p>
+          <p className="text-xs text-gray-400">Get started in a few steps:</p>
+          <div className="space-y-2">
+            {[
+              { n: 1, label: 'Set your name & profile', action: () => { toggleSection('controls') }, done: Boolean(profile?.name) },
+              { n: 2, label: 'Add your first task', action: () => setPage('tasks'), done: tasks.length > 0 },
+              { n: 3, label: 'Set up your finances', action: () => setPage('finance'), done: Boolean(finances?.monthlyIncome) },
+              { n: 4, label: 'Create a goal', action: () => setPage('goals'), done: goals.length > 0 },
+            ].map((step) => (
+              <button
+                key={step.n}
+                onClick={step.action}
+                className={`w-full text-left app-strip-cell px-4 py-2.5 flex items-center gap-3 transition-colors ${step.done ? 'opacity-50' : ''}`}
+              >
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${step.done ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/[0.06] text-gray-400'}`}>
+                  {step.done ? '✓' : step.n}
+                </span>
+                <span className="text-sm text-gray-300">{step.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="order-1 page-top-ui">
         <p className="page-top-ui-kicker">Welcome back</p>
         <h2 className="page-top-ui-title text-xl sm:text-2xl">
@@ -388,13 +423,13 @@ export default function Home({
             <p className="text-sm sm:text-base font-semibold text-white">Profile & App Controls</p>
             <p className="text-xs text-gray-500">AI analysis, transfer data, and app reset</p>
           </div>
-          {openSections.controls ? (
+          {isSectionOpen('controls') ? (
             <ChevronUp size={16} className="text-gray-500" />
           ) : (
             <ChevronDown size={16} className="text-gray-500" />
           )}
         </button>
-        {openSections.controls && (
+        {isSectionOpen('controls') && (
           <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4">
             <div className="space-y-4">
               <div className="app-strip-cell p-3 sm:p-4 space-y-3">
@@ -521,13 +556,13 @@ export default function Home({
               <p className="text-sm sm:text-base font-semibold text-white">Alerts</p>
               <p className="text-xs text-gray-500">{alerts.length} active warning(s)</p>
             </div>
-            {openSections.alerts ? (
+            {isSectionOpen('alerts') ? (
               <ChevronUp size={16} className="text-gray-500" />
             ) : (
               <ChevronDown size={16} className="text-gray-500" />
             )}
           </button>
-          {openSections.alerts && (
+          {isSectionOpen('alerts') && (
             <div className="border-t border-white/[0.04] px-4 sm:px-5 py-3 space-y-2">
               {alerts.map((a, i) => (
                 <div
@@ -569,13 +604,13 @@ export default function Home({
               </p>
             </div>
           </div>
-          {openSections.focus ? (
+          {isSectionOpen('focus') ? (
             <ChevronUp size={16} className="text-gray-500" />
           ) : (
             <ChevronDown size={16} className="text-gray-500" />
           )}
         </button>
-        {openSections.focus && (
+        {isSectionOpen('focus') && (
           <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4">
             {focusTasks.length === 0 ? (
               <p className="text-gray-500 text-sm">
@@ -637,13 +672,13 @@ export default function Home({
               {tasks.filter((t) => t.done).length}/{tasks.length} tasks done · {avgGoalProgress !== null ? `${avgGoalProgress}%` : '—'} goal progress
             </p>
           </div>
-          {openSections.metrics ? (
+          {isSectionOpen('metrics') ? (
             <ChevronUp size={16} className="text-gray-500" />
           ) : (
             <ChevronDown size={16} className="text-gray-500" />
           )}
         </button>
-        {openSections.metrics && (
+        {isSectionOpen('metrics') && (
           <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4 stagger-reveal">
             <div className="app-grid-stat p-5 hover-lift" style={{'--stat-accent': '#4ade80'}}>
               <div className="flex items-center gap-2 text-green-400 mb-1">
@@ -716,17 +751,17 @@ export default function Home({
                   Latest AI Recommendation
                 </h2>
                 <p className="text-xs text-gray-500 truncate">
-                  {new Date(latestInsight.date).toLocaleDateString()}
+                  {relativeTime(latestInsight.date)}
                 </p>
               </div>
             </div>
-            {openSections.insight ? (
+            {isSectionOpen('insight') ? (
               <ChevronUp size={16} className="text-gray-500" />
             ) : (
               <ChevronDown size={16} className="text-gray-500" />
             )}
           </button>
-          {openSections.insight && (
+          {isSectionOpen('insight') && (
             <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4">
               <div className="flex justify-end mb-3">
                 <button

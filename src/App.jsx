@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import {
   Home as HomeIcon,
   ListTodo,
@@ -17,6 +17,40 @@ import Finance from './pages/Finance'
 import Goals from './pages/Goals'
 import Notes from './pages/Notes'
 import Insights from './pages/Insights'
+import ToastContainer from './components/Toast'
+import { useToast } from './hooks/useToast'
+
+function getAmbientClass() {
+  const hour = new Date().getHours()
+  if (hour >= 6 && hour < 10) return 'ambient-morning'
+  if (hour >= 10 && hour < 17) return 'ambient-day'
+  if (hour >= 17 && hour < 21) return 'ambient-evening'
+  return 'ambient-night'
+}
+
+function useSectionMemory(storageKey) {
+  const [sections, setSections] = useState(() => {
+    try {
+      const raw = localStorage.getItem(storageKey)
+      return raw ? JSON.parse(raw) : {}
+    } catch { return {} }
+  })
+
+  const toggle = useCallback((key, defaultOpen = false) => {
+    setSections((prev) => {
+      const current = key in prev ? prev[key] : defaultOpen
+      const next = { ...prev, [key]: !current }
+      localStorage.setItem(storageKey, JSON.stringify(next))
+      return next
+    })
+  }, [storageKey])
+
+  const isOpen = useCallback((key, defaultOpen = false) => {
+    return key in sections ? sections[key] : defaultOpen
+  }, [sections])
+
+  return { isOpen, toggle }
+}
 
 const NAV = [
   { id: 'home', label: 'Home', icon: HomeIcon },
@@ -44,6 +78,11 @@ export default function App() {
   const [privacyMode, setPrivacyMode] = useState(() => {
     try { return localStorage.getItem('va-privacy') !== 'off' } catch { return true }
   })
+  const [ambientClass, setAmbientClass] = useState(getAmbientClass)
+  const { toasts, show: showToast, dismiss: dismissToast } = useToast()
+  const homeSections = useSectionMemory('va-sections-home')
+  const financeSections = useSectionMemory('va-sections-finance')
+  const goalsSections = useSectionMemory('va-sections-goals')
   const touchStartRef = useRef({ x: 0, y: 0 })
   const navAudioCtxRef = useRef(null)
   const mainScrollRef = useRef(null)
@@ -68,6 +107,11 @@ export default function App() {
     riskPreference: '',
     profileNotes: '',
   })
+
+  useEffect(() => {
+    const interval = setInterval(() => setAmbientClass(getAmbientClass()), 60000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
@@ -308,9 +352,9 @@ export default function App() {
   function renderPage() {
     switch (page) {
       case 'tasks':
-        return <Tasks tasks={tasks} setTasks={setTasks} />
+        return <Tasks tasks={tasks} setTasks={setTasks} showToast={showToast} />
       case 'finance':
-        return <Finance finances={finances} setFinances={setFinances} profile={profile} privacyMode={privacyMode} />
+        return <Finance finances={finances} setFinances={setFinances} profile={profile} privacyMode={privacyMode} showToast={showToast} sectionMemory={financeSections} />
       case 'goals':
         return (
           <Goals
@@ -322,12 +366,14 @@ export default function App() {
             tasks={tasks}
             setTasks={setTasks}
             privacyMode={privacyMode}
+            showToast={showToast}
+            sectionMemory={goalsSections}
           />
         )
       case 'notes':
-        return <Notes notes={notes} setNotes={setNotes} />
+        return <Notes notes={notes} setNotes={setNotes} showToast={showToast} />
       case 'insights':
-        return <Insights insights={insights} setInsights={setInsights} />
+        return <Insights insights={insights} setInsights={setInsights} showToast={showToast} />
       default:
         return (
           <Home
@@ -345,13 +391,15 @@ export default function App() {
             setProfile={setProfile}
             setPage={setPage}
             privacyMode={privacyMode}
+            showToast={showToast}
+            sectionMemory={homeSections}
           />
         )
     }
   }
 
   return (
-    <div className={`dark flex h-screen bg-gray-950 text-gray-100 app-shell page-theme-${page}`}>
+    <div className={`dark flex h-screen bg-gray-950 text-gray-100 app-shell page-theme-${page} ${ambientClass}`}>
       {/* Desktop sidebar */}
       <aside className="hidden lg:block h-full w-60 p-3">
         <div className="h-full rounded-2xl bg-white/[0.02] backdrop-blur-xl flex flex-col">
@@ -508,6 +556,8 @@ export default function App() {
           </div>
         </div>
       </main>
+
+      <ToastContainer toasts={toasts} dismiss={dismissToast} />
 
       {/* Mobile tab bar */}
       <nav

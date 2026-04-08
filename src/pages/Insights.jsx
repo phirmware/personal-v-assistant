@@ -2,6 +2,8 @@ import { Trash2, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
 import MarkdownContent from '../components/MarkdownContent'
 import EmptyState from '../components/EmptyState'
+import SwipeToDelete from '../components/SwipeToDelete'
+import { relativeTime } from '../utils/time'
 
 function buildInsightPreview(content) {
   const raw = String(content || '')
@@ -26,15 +28,29 @@ function buildInsightPreview(content) {
   return `${cleaned.slice(0, 179).trimEnd()}…`
 }
 
-export default function Insights({ insights, setInsights }) {
+export default function Insights({ insights, setInsights, showToast }) {
   const [openMap, setOpenMap] = useState({})
 
   function deleteInsight(id) {
+    const deleted = insights.find((i) => i.id === id)
     setInsights(insights.filter((i) => i.id !== id))
+    if (deleted) {
+      showToast?.('Insight deleted', {
+        type: 'danger',
+        duration: 5000,
+        onUndo: () => setInsights((prev) => [deleted, ...prev].sort((a, b) => new Date(b.date) - new Date(a.date))),
+      })
+    }
   }
 
   function clearAll() {
+    const backup = [...insights]
     setInsights([])
+    showToast?.(`Cleared ${backup.length} insight(s)`, {
+      type: 'danger',
+      duration: 6000,
+      onUndo: () => setInsights(backup),
+    })
   }
 
   function toggleOpen(id) {
@@ -94,8 +110,8 @@ export default function Insights({ insights, setInsights }) {
               const isOpen = Boolean(openMap[insight.id])
               const preview = buildInsightPreview(insight.content)
               return (
+                <SwipeToDelete key={insight.id} onDelete={() => deleteInsight(insight.id)}>
                 <div
-                  key={insight.id}
                   className="app-surface-row timeline-item overflow-hidden"
                 >
                   <button
@@ -107,7 +123,7 @@ export default function Insights({ insights, setInsights }) {
                       <div className="flex items-center gap-2">
                         <Sparkles size={14} className="app-accent-text" />
                         <span className="text-xs font-medium text-gray-400">
-                          {new Date(insight.date).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          {relativeTime(insight.date)}
                         </span>
                         {idx === 0 && (
                           <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500/12 text-emerald-400">Latest</span>
@@ -141,6 +157,7 @@ export default function Insights({ insights, setInsights }) {
                     </div>
                   )}
                 </div>
+                </SwipeToDelete>
               )
             })}
           </div>

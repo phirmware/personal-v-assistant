@@ -31,7 +31,6 @@ function getNotifiedSet() {
   try {
     const raw = localStorage.getItem(NOTIFIED_KEY)
     const parsed = raw ? JSON.parse(raw) : {}
-    // Clean entries older than 24 hours
     const cutoff = Date.now() - 24 * 60 * 60 * 1000
     const cleaned = {}
     for (const [key, ts] of Object.entries(parsed)) {
@@ -56,7 +55,7 @@ function wasNotified(key) {
 
 const REMINDER_OFFSETS = {
   'day_before': 24 * 60,
-  'morning_of': null, // fires at 9am on the day
+  'morning_of': null,
   '1h_before': 60,
   '30m_before': 30,
 }
@@ -78,6 +77,31 @@ export const INTERVAL_OPTIONS = [
   { value: '4h', label: 'Every 4 hours', minutes: 240 },
 ]
 
+const URGENCY_MESSAGES = {
+  high: [
+    'This needs your attention now.',
+    'High priority — don\'t let this slip.',
+    'Time to act on this.',
+    'This won\'t wait — get it done.',
+  ],
+  medium: [
+    'A gentle push to keep going.',
+    'Stay on track with this one.',
+    'Don\'t forget about this.',
+    'Keep the momentum going.',
+  ],
+  low: [
+    'Just a heads up.',
+    'Whenever you get a chance.',
+    'Still on your list.',
+  ],
+}
+
+function getUrgencyMessage(priority) {
+  const messages = URGENCY_MESSAGES[priority] || URGENCY_MESSAGES.medium
+  return messages[Math.floor(Math.random() * messages.length)]
+}
+
 function shouldFireReminder(task) {
   if (!task || task.done) return false
   const reminder = task.reminder || 'none'
@@ -92,7 +116,6 @@ function shouldFireReminder(task) {
   if (reminder === 'morning_of') {
     const morningTime = new Date(`${completeAt}T09:00:00`)
     const diffMin = (now - morningTime) / 60000
-    // Fire if we're within 0-60 min window after 9am on the day
     return diffMin >= 0 && diffMin <= 60
   }
 
@@ -112,8 +135,16 @@ function shouldFireReminder(task) {
   return diffMin >= 0 && diffMin <= 60
 }
 
-function showNotification(title, body) {
+function showNativeNotification(title, body, tag, priority) {
   if (!isNotificationSupported() || Notification.permission !== 'granted') return
+
+  const vibrationPattern = priority === 'high'
+    ? [100, 50, 100, 50, 200]
+    : priority === 'medium'
+      ? [100, 50, 100]
+      : [80]
+
+  if (navigator.vibrate) navigator.vibrate(vibrationPattern)
 
   if (navigator.serviceWorker?.controller) {
     navigator.serviceWorker.ready.then((reg) => {
@@ -121,88 +152,89 @@ function showNotification(title, body) {
         body,
         icon: '/icons/icon-192.png',
         badge: '/icons/icon-192.png',
-        tag: title,
-        renotify: false,
+        tag: tag || title,
+        renotify: true,
+        vibrate: vibrationPattern,
+        actions: [
+          { action: 'done', title: 'Mark Done' },
+          { action: 'snooze', title: 'Snooze 15m' },
+        ],
       })
     }).catch(() => {
-      new Notification(title, { body })
+      new Notification(title, { body, tag: tag || title })
     })
   } else {
-    new Notification(title, { body })
+    new Notification(title, { body, tag: tag || title })
   }
 }
 
-export function checkTaskReminders(tasks) {
-  if (!isNotificationSupported() || Notification.permission !== 'granted') return
-
+/**
+ * Checks all reminder types and returns an array of fired notifications
+ * for the in-app banner system. Also fires native notifications.
+ */
+export function checkAllReminders(tasks) {
   const settings = getNotificationSettings()
-  if (!settings.enabled) return
+  if (!settings.enabled) return []
 
-  for (const task of tasks) {
-    if (!shouldFireReminder(task)) continue
-    const notifKey = `${task.id}-${task.reminder}-${task.completeAt || task.complete_at}`
-    if (wasNotified(notifKey)) continue
-
-    const deadlineLabel = task.completeAt || task.complete_at
-    showNotification(
-      `Task Reminder: ${task.title}`,
-      `Due ${deadlineLabel} · ${task.priority} priority`
-    )
-    markNotified(notifKey)
-  }
-}
-
-export function checkIntervalReminders(tasks) {
-  if (!isNotificationSupported() || Notification.permission !== 'granted') return
-
-  const settings = getNotificationSettings()
-  if (!settings.enabled) return
-
+  const fired = []
   const now = Date.now()
+  const today = new Date().toISOString().split('T')[0]
   const notified = getNotifiedSet()
 
   for (const task of tasks) {
     if (task.done) continue
+
+    // Deadline reminders
+    if (shouldFireReminder(task)) {
+      const notifKey = `${task.id}-${task.reminder}-${task.completeAt || task.complete_at}`
+      if (!wasNotified(notifKey)) {
+        const deadlineLabel = task.completeAt || task.complete_at
+        const urgency = getUrgencyMessage(task.priority)
+        const title = task.title
+        const body = `Due ${deadlineLabel} · ${urgency}`
+        showNativeNotification(`Reminder: ${title}`, body, notifKey, task.priority)
+        markNotified(notifKey)
+        fired.push({ type: 'reminder', task, title, body, priority: task.priority })
+      }
+    }
+
+    // Interval reminders
     const interval = task.intervalReminder || 'none'
-    if (interval === 'none') continue
+    if (interval !== 'none') {
+      const opt = INTERVAL_OPTIONS.find((o) => o.value === interval)
+      if (opt?.minutes) {
+        const intervalKey = `interval-${task.id}`
+        const lastFired = notified[intervalKey] || 0
+        const elapsed = (now - lastFired) / 60000
+        if (elapsed >= opt.minutes) {
+          const urgency = getUrgencyMessage(task.priority)
+          const title = task.title
+          const body = `${opt.label} · ${urgency}`
+          showNativeNotification(`Nudge: ${title}`, body, intervalKey, task.priority)
+          markNotified(intervalKey)
+          fired.push({ type: 'nudge', task, title, body, priority: task.priority })
+        }
+      }
+    }
 
-    const opt = INTERVAL_OPTIONS.find((o) => o.value === interval)
-    if (!opt || !opt.minutes) continue
-
-    const intervalKey = `interval-${task.id}`
-    const lastFired = notified[intervalKey] || 0
-    const elapsed = (now - lastFired) / 60000
-
-    if (elapsed < opt.minutes) continue
-
-    showNotification(
-      `Nudge: ${task.title}`,
-      `${opt.label} reminder · ${task.priority} priority`
-    )
-    markNotified(intervalKey)
-  }
-}
-
-export function checkOverdueTasks(tasks) {
-  if (!isNotificationSupported() || Notification.permission !== 'granted') return
-
-  const settings = getNotificationSettings()
-  if (!settings.enabled) return
-
-  const today = new Date().toISOString().split('T')[0]
-
-  for (const task of tasks) {
-    if (task.done) continue
+    // Overdue
     const completeAt = task.completeAt || task.complete_at
-    if (!completeAt || completeAt >= today) continue
-
-    const notifKey = `overdue-${task.id}-${today}`
-    if (wasNotified(notifKey)) continue
-
-    showNotification(
-      `Overdue: ${task.title}`,
-      `Was due ${completeAt} · ${task.priority} priority`
-    )
-    markNotified(notifKey)
+    if (completeAt && completeAt < today) {
+      const notifKey = `overdue-${task.id}-${today}`
+      if (!wasNotified(notifKey)) {
+        const title = task.title
+        const body = `Was due ${completeAt} — this needs attention.`
+        showNativeNotification(`Overdue: ${title}`, body, notifKey, 'high')
+        markNotified(notifKey)
+        fired.push({ type: 'overdue', task, title, body, priority: 'high' })
+      }
+    }
   }
+
+  return fired
 }
+
+// Legacy exports — now handled by checkAllReminders
+export const checkTaskReminders = checkAllReminders
+export const checkIntervalReminders = checkAllReminders
+export const checkOverdueTasks = checkAllReminders

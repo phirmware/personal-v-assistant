@@ -22,14 +22,13 @@ import Insights from './pages/Insights'
 import ToastContainer from './components/Toast'
 import { useToast } from './hooks/useToast'
 import {
-  checkTaskReminders,
-  checkOverdueTasks,
-  checkIntervalReminders,
+  checkAllReminders,
   requestNotificationPermission,
   getNotificationSettings,
   saveNotificationSettings,
   isNotificationSupported,
 } from './utils/notifications'
+import NotificationBanner from './components/NotificationBanner'
 
 function getAmbientClass() {
   const hour = new Date().getHours()
@@ -90,6 +89,7 @@ export default function App() {
     try { return localStorage.getItem('va-privacy') !== 'off' } catch { return true }
   })
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => getNotificationSettings().enabled)
+  const [activeNotifications, setActiveNotifications] = useState([])
   const [ambientClass, setAmbientClass] = useState(getAmbientClass)
   const { toasts, show: showToast, dismiss: dismissToast } = useToast()
   const homeSections = useSectionMemory('va-sections-home')
@@ -127,16 +127,33 @@ export default function App() {
 
   useEffect(() => {
     if (!notificationsEnabled) return
-    function checkAll() {
-      checkTaskReminders(tasks)
-      checkOverdueTasks(tasks)
-      checkIntervalReminders(tasks)
+    function runCheck() {
+      const fired = checkAllReminders(tasks)
+      if (fired.length > 0) {
+        setActiveNotifications(fired)
+      }
     }
-    checkAll()
-    // Check every minute so interval reminders fire on time
-    const interval = setInterval(checkAll, 60 * 1000)
+    runCheck()
+    const interval = setInterval(runCheck, 60 * 1000)
     return () => clearInterval(interval)
   }, [notificationsEnabled, tasks])
+
+  useEffect(() => {
+    if (!navigator.serviceWorker) return
+    function onSwMessage(event) {
+      const data = event.data
+      if (data?.type !== 'NOTIFICATION_ACTION') return
+      if (data.action === 'done') {
+        // Try to find task by matching the tag (contains task id)
+        const matchingTask = tasks.find((t) => data.tag?.includes(String(t.id)))
+        if (matchingTask) {
+          setTasks((prev) => prev.map((t) => t.id === matchingTask.id ? { ...t, done: true } : t))
+        }
+      }
+    }
+    navigator.serviceWorker.addEventListener('message', onSwMessage)
+    return () => navigator.serviceWorker.removeEventListener('message', onSwMessage)
+  }, [tasks, setTasks])
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
@@ -299,6 +316,31 @@ export default function App() {
     } else {
       showToast('Notifications not available', { type: 'danger', duration: 3000 })
     }
+  }
+
+  function handleNotifDismiss() {}
+
+  function handleNotifMarkDone(notification) {
+    const taskId = notification.task?.id
+    if (!taskId) return
+    setTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, done: true } : t))
+    showToast('Task completed', { type: 'success', duration: 2500 })
+  }
+
+  function handleNotifSnooze(notification) {
+    const taskId = notification.task?.id
+    if (!taskId) return
+    // Reset the interval timer by clearing the notified entry so it re-fires in 15m
+    try {
+      const raw = localStorage.getItem('va-notified')
+      const parsed = raw ? JSON.parse(raw) : {}
+      const snoozeKey = `snooze-${taskId}`
+      parsed[snoozeKey] = Date.now()
+      // Remove the interval key so it fires again after 15 min
+      delete parsed[`interval-${taskId}`]
+      localStorage.setItem('va-notified', JSON.stringify(parsed))
+    } catch { /* ignore */ }
+    showToast('Snoozed for 15 minutes', { type: 'default', duration: 2500 })
   }
 
   function handleRefreshForUpdate() {
@@ -623,6 +665,12 @@ export default function App() {
         </div>
       </main>
 
+      <NotificationBanner
+        notifications={activeNotifications}
+        onDismiss={handleNotifDismiss}
+        onMarkDone={handleNotifMarkDone}
+        onSnooze={handleNotifSnooze}
+      />
       <ToastContainer toasts={toasts} dismiss={dismissToast} />
 
       {/* Mobile tab bar */}

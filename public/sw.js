@@ -23,14 +23,28 @@ self.addEventListener('message', (e) => {
 })
 
 self.addEventListener('notificationclick', (e) => {
+  const action = e.action
   e.notification.close()
+
   e.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      if (clients.length > 0) {
-        clients[0].focus()
+      const client = clients.length > 0 ? clients[0] : null
+
+      if (action === 'done' || action === 'snooze') {
+        if (client) {
+          client.postMessage({ type: 'NOTIFICATION_ACTION', action, tag: e.notification.tag })
+          client.focus()
+        } else {
+          self.clients.openWindow('/')
+        }
         return
       }
-      self.clients.openWindow('/')
+
+      if (client) {
+        client.focus()
+      } else {
+        self.clients.openWindow('/')
+      }
     })
   )
 })

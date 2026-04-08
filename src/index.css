@@ -1317,6 +1317,188 @@ html, body { overscroll-behavior: none; }
 }
 
 /* ═══════════════════════════════════════════════════
+   NOTIFICATION BANNERS
+   ═══════════════════════════════════════════════════ */
+
+.notif-banner {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 26rem;
+  border-radius: 1.125rem;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-1.5rem) scale(0.96);
+  transition: opacity 350ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.notif-banner-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.notif-banner-exit {
+  opacity: 0;
+  transform: translateY(-1rem) scale(0.95);
+  transition-duration: 250ms;
+}
+
+.notif-banner-inner {
+  position: relative;
+  z-index: 1;
+  padding: 0.875rem 1rem;
+  background: linear-gradient(135deg, rgba(15, 18, 30, 0.97), rgba(10, 12, 22, 0.97));
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1.125rem;
+}
+
+/* Priority glows */
+.notif-glow-high {
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25),
+              0 4px 24px -2px rgba(239, 68, 68, 0.2),
+              0 0 48px -8px rgba(239, 68, 68, 0.15);
+}
+
+.notif-glow-medium {
+  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2),
+              0 4px 20px -2px rgba(99, 102, 241, 0.15),
+              0 0 40px -8px rgba(99, 102, 241, 0.1);
+}
+
+.notif-glow-low {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06),
+              0 4px 16px -2px rgba(0, 0, 0, 0.3);
+}
+
+/* Urgent pulse ring */
+.notif-banner-urgent .notif-banner-inner {
+  animation: notif-border-pulse 2s ease-in-out infinite;
+}
+
+@keyframes notif-border-pulse {
+  0%, 100% { border-color: rgba(239, 68, 68, 0.15); }
+  50% { border-color: rgba(239, 68, 68, 0.4); }
+}
+
+.notif-urgency-pulse {
+  position: absolute;
+  inset: -1px;
+  border-radius: 1.25rem;
+  pointer-events: none;
+  animation: notif-ring-expand 2.5s ease-out infinite;
+}
+
+@keyframes notif-ring-expand {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3);
+    opacity: 1;
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+    opacity: 0;
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    opacity: 0;
+  }
+}
+
+/* Icon ring */
+.notif-icon-ring {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notif-icon-indigo {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+}
+
+.notif-icon-cyan {
+  background: rgba(34, 211, 238, 0.12);
+  color: #22d3ee;
+}
+
+.notif-icon-red {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  animation: notif-icon-shake 0.5s ease-in-out 0.4s;
+}
+
+@keyframes notif-icon-shake {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-12deg); }
+  40% { transform: rotate(10deg); }
+  60% { transform: rotate(-8deg); }
+  80% { transform: rotate(5deg); }
+}
+
+/* Type badge */
+.notif-type-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+
+.notif-badge-indigo {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+}
+
+.notif-badge-cyan {
+  background: rgba(34, 211, 238, 0.12);
+  color: #67e8f9;
+}
+
+.notif-badge-red {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+/* Action buttons */
+.notif-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 150ms ease;
+  cursor: pointer;
+}
+
+.notif-action-done {
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+}
+
+.notif-action-done:hover {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+.notif-action-snooze {
+  background: rgba(255, 255, 255, 0.05);
+  color: #9ca3af;
+}
+
+.notif-action-snooze:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #d1d5db;
+}
+
+/* ═══════════════════════════════════════════════════
    NATIVE MOBILE FEEL
    ═══════════════════════════════════════════════════ */
 

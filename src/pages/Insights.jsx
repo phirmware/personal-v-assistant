@@ -84,17 +84,19 @@ export default function Insights({ insights, setInsights }) {
       <section className="page-group">
         <div className="section-header-inline">
           <p className="section-header-title">Timeline</p>
-          <p className="section-header-meta">Newest first</p>
+          <p className="section-header-meta">
+            {insights.length > 0 && <span className="count-badge count-badge-accent">{insights.length}</span>}
+          </p>
         </div>
         <div className="page-group-shell">
           <div className="app-surface-list">
-            {insights.map((insight) => {
+            {insights.map((insight, idx) => {
               const isOpen = Boolean(openMap[insight.id])
               const preview = buildInsightPreview(insight.content)
               return (
                 <div
                   key={insight.id}
-                  className="app-surface-row overflow-hidden"
+                  className="app-surface-row timeline-item overflow-hidden"
                 >
                   <button
                     type="button"
@@ -102,14 +104,17 @@ export default function Insights({ insights, setInsights }) {
                     className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-start justify-between gap-3 text-left"
                   >
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2 app-accent-text">
-                        <Sparkles size={18} />
-                        <span className="text-sm text-gray-500">
-                          {new Date(insight.date).toLocaleString()}
+                      <div className="flex items-center gap-2">
+                        <Sparkles size={14} className="app-accent-text" />
+                        <span className="text-xs font-medium text-gray-400">
+                          {new Date(insight.date).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                         </span>
+                        {idx === 0 && (
+                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500/12 text-emerald-400">Latest</span>
+                        )}
                       </div>
                       {!isOpen && (
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                        <p className="text-sm text-gray-500 mt-1.5 line-clamp-2">
                           {preview || 'Tap to view insight'}
                         </p>
                       )}
@@ -122,7 +127,9 @@ export default function Insights({ insights, setInsights }) {
                   </button>
                   {isOpen && (
                     <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4 space-y-3">
-                      <MarkdownContent content={insight.content} />
+                      <div className="ai-shimmer">
+                        <MarkdownContent content={insight.content} />
+                      </div>
                       <div className="flex justify-end">
                         <button
                           onClick={() => deleteInsight(insight.id)}

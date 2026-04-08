@@ -16,6 +16,9 @@ import {
 import { runAnalysis } from '../ai'
 import MarkdownContent from '../components/MarkdownContent'
 
+const GBP = (v) =>
+  (v || 0).toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })
+
 export default function Home({
   tasks,
   setTasks,
@@ -374,7 +377,7 @@ export default function Home({
 
       <section className="page-group order-6">
         <p className="page-group-kicker">Workspace</p>
-        <div className="page-group-shell app-surface-sheet overflow-hidden">
+        <div className="page-group-shell app-surface-sheet glass-surface overflow-hidden">
         <button
           type="button"
           onClick={() => toggleSection('controls')}
@@ -528,14 +531,14 @@ export default function Home({
               {alerts.map((a, i) => (
                 <div
                   key={i}
-                  className={`flex items-start gap-2.5 rounded-xl px-4 py-2.5 text-sm ${
+                  className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm ${
                     a.type === 'danger'
                       ? 'bg-red-500/8 text-red-300'
                       : 'bg-amber-500/8 text-amber-300'
                   }`}
                 >
-                  <AlertTriangle size={16} />
-                  {a.msg}
+                  <span className={`alert-dot ${a.type === 'danger' ? 'text-red-400' : 'text-amber-400'}`} />
+                  <span className="flex-1">{a.msg}</span>
                 </div>
               ))}
             </div>
@@ -588,19 +591,20 @@ export default function Home({
                 {focusTasks.map((task, i) => (
                   <div
                     key={task.id}
-                    className="app-strip-cell flex items-center gap-3 px-4 py-2.5"
+                    className="app-strip-cell priority-edge flex items-center gap-3 px-4 py-3"
+                    style={{'--priority-color': task.priority === 'high' ? '#f87171' : task.priority === 'medium' ? '#facc15' : '#6b7280'}}
                   >
-                    <span className="app-accent-text font-bold text-sm w-5">
-                      {i + 1}.
+                    <span className="app-accent-text font-bold text-sm w-5 tabular-nums">
+                      {i + 1}
                     </span>
-                    <span className="text-white flex-1 text-left min-w-0 break-words">{task.title}</span>
+                    <span className="text-white flex-1 text-left min-w-0 break-words text-sm">{task.title}</span>
                     <span
-                      className={`text-xs font-medium uppercase shrink-0 ${
+                      className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md shrink-0 ${
                         task.priority === 'high'
-                          ? 'text-red-400'
+                          ? 'text-red-300 bg-red-500/12'
                           : task.priority === 'medium'
-                            ? 'text-yellow-400'
-                            : 'text-gray-400'
+                            ? 'text-yellow-300 bg-yellow-500/12'
+                            : 'text-gray-400 bg-white/[0.04]'
                       }`}
                     >
                       {task.priority}
@@ -640,7 +644,7 @@ export default function Home({
         </button>
         {openSections.metrics && (
           <div className="border-t border-white/[0.04] px-4 sm:px-5 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4 stagger-reveal">
-            <div className="app-grid-stat p-5 hover-lift hover-lift">
+            <div className="app-grid-stat p-5 hover-lift" style={{'--stat-accent': '#4ade80'}}>
               <div className="flex items-center gap-2 text-green-400 mb-1">
                 <TrendingUp size={18} />
                 <span className="text-sm font-medium">Tasks Done</span>
@@ -651,8 +655,13 @@ export default function Home({
                   / {tasks.length}
                 </span>
               </p>
+              {tasks.length > 0 && (
+                <div className="progress-track mt-3" style={{'--progress-color': '#4ade80'}}>
+                  <div className="progress-fill" style={{width: `${Math.round((tasks.filter((t) => t.done).length / tasks.length) * 100)}%`}} />
+                </div>
+              )}
             </div>
-            <div className="app-grid-stat p-5 hover-lift">
+            <div className="app-grid-stat p-5 hover-lift" style={{'--stat-accent': '#60a5fa'}}>
               <div className="flex items-center gap-2 text-blue-400 mb-1">
                 <PiggyBank size={18} />
                 <span className="text-sm font-medium">Net Worth</span>
@@ -660,8 +669,12 @@ export default function Home({
               <p className={`text-2xl font-bold ${netWorth >= 0 ? 'text-white' : 'text-red-400'}`}>
                 {netWorth.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })}
               </p>
+              <p className="text-[11px] text-gray-500 mt-1.5">
+                {totalSavings > 0 && `${GBP(totalSavings)} saved`}
+                {totalDebt > 0 && ` · ${GBP(totalDebt)} debt`}
+              </p>
             </div>
-            <div className="app-grid-stat p-5 hover-lift">
+            <div className="app-grid-stat p-5 hover-lift" style={{'--stat-accent': '#c084fc'}}>
               <div className="flex items-center gap-2 text-purple-400 mb-1">
                 <Target size={18} />
                 <span className="text-sm font-medium">Goal Progress</span>
@@ -669,6 +682,11 @@ export default function Home({
               <p className="text-2xl font-bold text-white">
                 {avgGoalProgress !== null ? `${avgGoalProgress}%` : '—'}
               </p>
+              {avgGoalProgress !== null && (
+                <div className="progress-track mt-3" style={{'--progress-color': '#c084fc'}}>
+                  <div className="progress-fill" style={{width: `${avgGoalProgress}%`}} />
+                </div>
+              )}
             </div>
           </div>
         )}

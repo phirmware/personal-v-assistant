@@ -61,9 +61,10 @@ function SortableTaskRow({
     <div
       ref={setNodeRef}
       style={style}
-      className={`app-surface-row overflow-hidden group ${task.done ? 'opacity-50' : ''} ${
+      className={`app-surface-row overflow-hidden group priority-edge ${task.done ? 'opacity-50' : ''} ${
         isDropTarget ? 'ring-1 ring-blue-500/70' : ''
       } ${isDragging ? 'ring-1 ring-blue-400/70' : ''}`}
+      style={{'--priority-color': task.done ? 'transparent' : task.priority === 'high' ? '#f87171' : task.priority === 'medium' ? '#facc15' : '#6b7280'}}
     >
       <div className="px-4 py-3">
         <div className="flex items-start gap-3">
@@ -196,7 +197,7 @@ function SortableTaskRow({
             </button>
           </div>
           {task.aiSuggestion && (
-            <div className="ai-tip-glow bg-white/[0.02] rounded-xl pl-4 pr-3 py-3">
+            <div className="ai-tip-glow ai-shimmer bg-white/[0.02] rounded-xl pl-4 pr-3 py-3">
               <MarkdownContent content={task.aiSuggestion} />
             </div>
           )}
@@ -411,15 +412,20 @@ export default function Tasks({ tasks, setTasks }) {
 
       <section className="page-group">
         <p className="page-group-kicker">Create</p>
-        <div className="app-surface-sheet overflow-hidden">
+        <div className="app-surface-sheet capture-zone overflow-hidden">
           <button
             type="button"
             onClick={() => setAddOpen((prev) => !prev)}
             className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
           >
-            <div>
-              <p className="text-sm sm:text-base font-semibold text-white">Add Task</p>
-              <p className="text-xs text-gray-500">Keep collapsed while focusing on active work.</p>
+            <div className="flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center shrink-0">
+                <Plus size={16} className="app-accent-text" />
+              </span>
+              <div>
+                <p className="text-sm sm:text-base font-semibold text-white">Add Task</p>
+                <p className="text-xs text-gray-500">Keep collapsed while focusing on active work.</p>
+              </div>
             </div>
             {addOpen ? (
               <ChevronUp size={16} className="text-gray-500" />

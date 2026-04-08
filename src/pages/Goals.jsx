@@ -131,18 +131,21 @@ const STATUS_CONFIG = {
     icon: CheckCircle,
     badge: 'bg-emerald-500/12 text-emerald-400',
     bar: 'bg-emerald-500',
+    color: '#34d399',
   },
   needs_work: {
     label: 'Needs Work',
     icon: AlertTriangle,
     badge: 'bg-amber-500/12 text-amber-400',
     bar: 'bg-amber-500',
+    color: '#fbbf24',
   },
   off_track: {
     label: 'Off Track',
     icon: XCircle,
     badge: 'bg-red-500/12 text-red-400',
     bar: 'bg-red-500',
+    color: '#f87171',
   },
 }
 
@@ -605,16 +608,21 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
       {/* Add goal form */}
       <section className="page-group order-3">
         <p className="page-group-kicker">Create</p>
-        <div className="app-surface-sheet">
+        <div className="app-surface-sheet capture-zone">
         <button
           onClick={() => setAddOpen((prev) => !prev)}
           className="app-section-toggle w-full px-4 py-3 flex items-center justify-between text-left"
         >
-          <div>
-            <p className="text-sm font-semibold text-white">Add New Goal</p>
-            <p className="text-xs text-gray-500">
-              Keep this collapsed while reviewing existing plans.
-            </p>
+          <div className="flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center shrink-0">
+              <Plus size={16} className="app-accent-text" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-white">Add New Goal</p>
+              <p className="text-xs text-gray-500">
+                Keep this collapsed while reviewing existing plans.
+              </p>
+            </div>
           </div>
           {addOpen ? (
             <ChevronUp size={16} className="text-gray-400" />
@@ -807,8 +815,13 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
                                   {cfg.label}
                                 </span>
                               </div>
+                              <div className="mt-2 flex items-center gap-2.5">
+                                <div className="progress-track flex-1" style={{'--progress-color': cfg.color || 'var(--app-accent-400)'}}>
+                                  <div className="progress-fill" style={{width: `${pct}%`}} />
+                                </div>
+                                <span className="text-[11px] font-semibold text-gray-400 tabular-nums w-9 text-right">{pct.toFixed(0)}%</span>
+                              </div>
                               <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-gray-500">
-                                <span>{pct.toFixed(0)}% complete</span>
                                 {goal.target > 0 && <span>Target {GBP(goal.target)}</span>}
                                 {goalTaskMap.has(String(goal.id)) && (
                                   <span className="text-indigo-300">

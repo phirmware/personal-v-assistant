@@ -58,7 +58,7 @@ function AiTip({ tip, label }) {
   const canExpand = Boolean(secondaryFull || primaryTruncated || secondaryTruncated)
 
   return (
-    <div className="ai-tip-glow bg-gray-900/60 rounded-lg pl-4 pr-3 py-2.5 border border-white/[0.06]/50">
+    <div className="ai-tip-glow ai-shimmer bg-gray-900/60 rounded-lg pl-4 pr-3 py-2.5 border border-white/[0.06]/50">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] uppercase tracking-[0.1em] text-gray-500">
           {label ? `${label} • AI next step` : 'AI next step'}
@@ -171,14 +171,14 @@ function AccountSection({
         onClick={() => setOpen((prev) => !prev)}
         className="app-section-toggle w-full flex items-center justify-between gap-3 text-left"
       >
-        <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-          {icon}
+        <h2 className="text-base font-semibold text-white flex items-center gap-2.5">
+          <span className={`${colorMap[color]} shrink-0`}>{icon}</span>
           {title}
         </h2>
-        <div className="flex items-center gap-2 text-xs text-gray-500 shrink-0">
-          {list.length > 0 && <span>{list.length} item(s)</span>}
-          {total > 0 && <span className="text-white">{GBP(total)}</span>}
-          {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        <div className="flex items-center gap-2 shrink-0">
+          {list.length > 0 && <span className="count-badge">{list.length}</span>}
+          {total > 0 && <span className="text-sm font-medium text-white">{GBP(total)}</span>}
+          {open ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
         </div>
       </button>
 

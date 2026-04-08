@@ -251,15 +251,20 @@ export default function Notes({ notes, setNotes }) {
 
       <section className="page-group">
         <p className="page-group-kicker">Capture</p>
-        <div className="app-surface-sheet overflow-hidden">
+        <div className="app-surface-sheet capture-zone overflow-hidden">
           <button
             type="button"
             onClick={() => setAddOpen((prev) => !prev)}
             className="app-section-toggle w-full px-4 sm:px-5 py-3.5 flex items-center justify-between text-left"
           >
-            <div>
-              <p className="text-sm sm:text-base font-semibold text-white">Add Note</p>
-              <p className="text-xs text-gray-500">Capture quickly, review without clutter.</p>
+            <div className="flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center shrink-0">
+                <Plus size={16} className="app-accent-text" />
+              </span>
+              <div>
+                <p className="text-sm sm:text-base font-semibold text-white">Add Note</p>
+                <p className="text-xs text-gray-500">Capture quickly, review without clutter.</p>
+              </div>
             </div>
             {addOpen ? (
               <ChevronUp size={16} className="text-gray-500" />
@@ -393,7 +398,7 @@ export default function Notes({ notes, setNotes }) {
                       </div>
 
                       {noteAiSuggestion && noteAiOpen && (
-                        <div className="ai-tip-glow bg-white/[0.02] rounded-xl pl-4 pr-3 py-3">
+                        <div className="ai-tip-glow ai-shimmer bg-white/[0.02] rounded-xl pl-4 pr-3 py-3">
                           <MarkdownContent content={noteAiSuggestion} />
                         </div>
                       )}

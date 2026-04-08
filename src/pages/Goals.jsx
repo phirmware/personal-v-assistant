@@ -415,6 +415,8 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
           const priority = ['low', 'medium', 'high'].includes(action.priority) ? action.priority : 'medium'
           const inferredDone = updatesSuggestCompletion(existing?.updates)
 
+          const reminder = ['none', 'morning_of', 'day_before', '1h_before', '30m_before'].includes(action.reminder) ? action.reminder : 'morning_of'
+
           if (existingIndex >= 0 && existing) {
             const preserveUpdates = typeof existing.updates === 'string' ? existing.updates : ''
             next[existingIndex] = {
@@ -424,6 +426,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
               updates: preserveUpdates,
               priority,
               completeAt,
+              reminder,
               done: inferredDone ? true : false,
               updatedAt: new Date().toISOString(),
             }
@@ -440,6 +443,7 @@ export default function Goals({ goals, setGoals, finances, profile, notes, tasks
               goalId: goal.id,
               updates: '',
               completeAt,
+              reminder,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             })

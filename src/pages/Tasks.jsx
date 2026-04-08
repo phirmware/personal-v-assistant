@@ -25,8 +25,12 @@ import {
   ChevronDown,
   ChevronUp,
   GripVertical,
+  Bell,
+  BellOff,
+  Calendar,
 } from 'lucide-react'
 import { runTaskSuggestion } from '../ai'
+import { REMINDER_OPTIONS } from '../utils/notifications'
 import MarkdownContent from '../components/MarkdownContent'
 import EmptyState from '../components/EmptyState'
 import SwipeToDelete from '../components/SwipeToDelete'
@@ -109,6 +113,18 @@ function SortableTaskRow({
                   pinned
                 </span>
               )}
+              {(task.completeAt || task.complete_at) && (
+                <span className="flex items-center gap-1 text-gray-500">
+                  <Calendar size={10} />
+                  {task.completeAt || task.complete_at}
+                </span>
+              )}
+              {task.reminder && task.reminder !== 'none' && (
+                <span className="flex items-center gap-1 text-indigo-400">
+                  <Bell size={10} />
+                  {REMINDER_OPTIONS.find((o) => o.value === task.reminder)?.label || task.reminder}
+                </span>
+              )}
             </div>
           </button>
 
@@ -175,6 +191,39 @@ function SortableTaskRow({
               className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[4.25rem]"
             />
           </div>
+          <div className="flex items-center gap-2">
+            <div className="input-shell flex-1">
+              <label className="text-[11px] text-gray-500 mb-1 block">Due date</label>
+              <div className="relative">
+                <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                <input
+                  type="date"
+                  value={task.completeAt || task.complete_at || ''}
+                  onChange={(e) => updateTask(task.id, 'completeAt', e.target.value || null)}
+                  className="w-full bg-gray-900 border border-white/[0.06] rounded-lg pl-8 pr-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 [color-scheme:dark]"
+                />
+              </div>
+            </div>
+            <div className="input-shell flex-1">
+              <label className="text-[11px] text-gray-500 mb-1 block">Reminder</label>
+              <div className="relative">
+                {(task.reminder && task.reminder !== 'none') ? (
+                  <Bell size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none" />
+                ) : (
+                  <BellOff size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                )}
+                <select
+                  value={task.reminder || 'none'}
+                  onChange={(e) => updateTask(task.id, 'reminder', e.target.value)}
+                  className="w-full bg-gray-900 border border-white/[0.06] rounded-lg pl-8 pr-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 appearance-none"
+                >
+                  {REMINDER_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
           <div className="flex justify-between items-center gap-2">
             <button
               onClick={onTaskAI}
@@ -220,6 +269,8 @@ export default function Tasks({ tasks, setTasks, showToast }) {
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState('medium')
   const [details, setDetails] = useState('')
+  const [dueDate, setDueDate] = useState('')
+  const [reminder, setReminder] = useState('none')
   const [openMap, setOpenMap] = useState({})
   const [addOpen, setAddOpen] = useState(false)
   const [aiLoadingId, setAiLoadingId] = useState(null)
@@ -299,10 +350,14 @@ export default function Tasks({ tasks, setTasks, showToast }) {
         pinned: false,
         aiSuggestion: '',
         sortOrder: maxSortOrder(prevTasks) + 1,
+        completeAt: dueDate || null,
+        reminder: dueDate ? reminder : 'none',
       },
     ])
     setTitle('')
     setDetails('')
+    setDueDate('')
+    setReminder('none')
   }
 
   function toggleDone(id) {
@@ -499,6 +554,35 @@ export default function Tasks({ tasks, setTasks, showToast }) {
                   rows={1}
                   className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[5rem]"
                 />
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="input-shell flex-1">
+                  <div className="relative">
+                    <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    <input
+                      type="date"
+                      value={dueDate}
+                      onChange={(e) => setDueDate(e.target.value)}
+                      className="w-full bg-gray-900 border border-white/[0.06] rounded-lg pl-8 pr-3 py-2.5 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-blue-500 [color-scheme:dark]"
+                      placeholder="Due date"
+                    />
+                  </div>
+                </div>
+                <div className="input-shell flex-1">
+                  <div className="relative">
+                    <Bell size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    <select
+                      value={reminder}
+                      onChange={(e) => setReminder(e.target.value)}
+                      disabled={!dueDate}
+                      className="w-full bg-gray-900 border border-white/[0.06] rounded-lg pl-8 pr-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500 appearance-none disabled:opacity-40"
+                    >
+                      {REMINDER_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
               <button
                 type="submit"

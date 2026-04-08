@@ -22,6 +22,19 @@ self.addEventListener('message', (e) => {
   }
 })
 
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close()
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      if (clients.length > 0) {
+        clients[0].focus()
+        return
+      }
+      self.clients.openWindow('/')
+    })
+  )
+})
+
 self.addEventListener('fetch', (e) => {
   // Skip non-GET and API calls
   if (e.request.method !== 'GET') return

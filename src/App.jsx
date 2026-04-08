@@ -9,6 +9,8 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  Bell,
+  BellOff,
 } from 'lucide-react'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import Home from './pages/Home'
@@ -19,6 +21,14 @@ import Notes from './pages/Notes'
 import Insights from './pages/Insights'
 import ToastContainer from './components/Toast'
 import { useToast } from './hooks/useToast'
+import {
+  checkTaskReminders,
+  checkOverdueTasks,
+  requestNotificationPermission,
+  getNotificationSettings,
+  saveNotificationSettings,
+  isNotificationSupported,
+} from './utils/notifications'
 
 function getAmbientClass() {
   const hour = new Date().getHours()
@@ -78,6 +88,7 @@ export default function App() {
   const [privacyMode, setPrivacyMode] = useState(() => {
     try { return localStorage.getItem('va-privacy') !== 'off' } catch { return true }
   })
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => getNotificationSettings().enabled)
   const [ambientClass, setAmbientClass] = useState(getAmbientClass)
   const { toasts, show: showToast, dismiss: dismissToast } = useToast()
   const homeSections = useSectionMemory('va-sections-home')
@@ -112,6 +123,17 @@ export default function App() {
     const interval = setInterval(() => setAmbientClass(getAmbientClass()), 60000)
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    if (!notificationsEnabled) return
+    function checkAll() {
+      checkTaskReminders(tasks)
+      checkOverdueTasks(tasks)
+    }
+    checkAll()
+    const interval = setInterval(checkAll, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [notificationsEnabled, tasks])
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
@@ -251,6 +273,29 @@ export default function App() {
       localStorage.setItem('va-privacy', next ? 'on' : 'off')
       return next
     })
+  }
+
+  async function toggleNotifications() {
+    if (notificationsEnabled) {
+      setNotificationsEnabled(false)
+      saveNotificationSettings({ enabled: false })
+      showToast('Notifications disabled', { type: 'default', duration: 2500 })
+      return
+    }
+    if (!isNotificationSupported()) {
+      showToast('Notifications not supported in this browser', { type: 'danger', duration: 3000 })
+      return
+    }
+    const permission = await requestNotificationPermission()
+    if (permission === 'granted') {
+      setNotificationsEnabled(true)
+      saveNotificationSettings({ enabled: true })
+      showToast('Notifications enabled — you\'ll get task reminders', { type: 'success', duration: 3000 })
+    } else if (permission === 'denied') {
+      showToast('Notification permission denied — enable in browser settings', { type: 'danger', duration: 4000 })
+    } else {
+      showToast('Notifications not available', { type: 'danger', duration: 3000 })
+    }
   }
 
   function handleRefreshForUpdate() {
@@ -440,15 +485,25 @@ export default function App() {
           </nav>
           <div className="px-3 py-4 flex items-center justify-between">
             <span className="text-[11px] text-slate-600 px-2">Local-first · On device</span>
-            <button
-              type="button"
-              onClick={togglePrivacy}
-              className={`p-1.5 rounded-lg transition-all text-xs flex items-center gap-1.5 ${privacyMode ? 'bg-amber-500/15 text-amber-300' : 'text-gray-600 hover:text-gray-400 hover:bg-white/[0.03]'}`}
-              title={privacyMode ? 'Privacy mode on' : 'Enable privacy mode'}
-            >
-              {privacyMode ? <EyeOff size={14} /> : <Eye size={14} />}
-              <span className="hidden xl:inline">{privacyMode ? 'Private' : 'Privacy'}</span>
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={toggleNotifications}
+                className={`p-1.5 rounded-lg transition-all text-xs flex items-center gap-1.5 ${notificationsEnabled ? 'bg-indigo-500/15 text-indigo-300' : 'text-gray-600 hover:text-gray-400 hover:bg-white/[0.03]'}`}
+                title={notificationsEnabled ? 'Notifications on' : 'Enable notifications'}
+              >
+                {notificationsEnabled ? <Bell size={14} /> : <BellOff size={14} />}
+              </button>
+              <button
+                type="button"
+                onClick={togglePrivacy}
+                className={`p-1.5 rounded-lg transition-all text-xs flex items-center gap-1.5 ${privacyMode ? 'bg-amber-500/15 text-amber-300' : 'text-gray-600 hover:text-gray-400 hover:bg-white/[0.03]'}`}
+                title={privacyMode ? 'Privacy mode on' : 'Enable privacy mode'}
+              >
+                {privacyMode ? <EyeOff size={14} /> : <Eye size={14} />}
+                <span className="hidden xl:inline">{privacyMode ? 'Private' : 'Privacy'}</span>
+              </button>
+            </div>
           </div>
         </div>
       </aside>
@@ -476,6 +531,14 @@ export default function App() {
                 </h1>
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={toggleNotifications}
+                  className={`p-1.5 rounded-full transition-all ${notificationsEnabled ? 'bg-indigo-500/15 text-indigo-300' : 'text-gray-600 hover:text-gray-400'}`}
+                  title={notificationsEnabled ? 'Notifications on' : 'Enable notifications'}
+                >
+                  {notificationsEnabled ? <Bell size={16} strokeWidth={2} /> : <BellOff size={16} strokeWidth={1.6} />}
+                </button>
                 <button
                   type="button"
                   onClick={togglePrivacy}

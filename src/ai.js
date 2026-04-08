@@ -316,6 +316,7 @@ Respond with ONLY valid JSON:
       "details": "<required when create_or_update; concise actionable context>",
       "priority": "low" | "medium" | "high",
       "complete_at": "YYYY-MM-DD" | null,
+      "reminder": "none" | "morning_of" | "day_before" | "1h_before" | "30m_before",
       "reason": "<short rationale>"
     }
   ],
@@ -326,6 +327,7 @@ Rules:
 - Return exactly one tasks item for each goal in GOALS.
 - Never create broad multi-day tasks; scope to a same-day action that can be done in one focused sitting.
 - complete_at must be today or tomorrow (unless goal deadline is sooner); never set weeks ahead.
+- reminder: set intelligently based on urgency. Use "morning_of" for same-day tasks, "day_before" for tasks due tomorrow, "1h_before" or "30m_before" for time-sensitive high-priority tasks. Use "none" only for low-priority tasks with flexible deadlines.
 - "keep" means no update needed to existing task.
 - "mark_done" only when goal is completed or task is no longer needed.
 - If existing task updates indicate the action was completed, choose "mark_done".

@@ -216,6 +216,49 @@ Rules:
   return callOpenAI(prompt, 500)
 }
 
+export async function runNoteBrainstorm({ note, conversation = [], userMessage = '' }) {
+  const noteTitle = String(note?.title || '').trim() || 'Untitled'
+  const noteBody = String(note?.body ?? note?.text ?? '').trim()
+  const latestUserMessage = String(userMessage || '').trim()
+  const compactConversation = (conversation || [])
+    .slice(-14)
+    .map((item) => ({
+      role: item?.role === 'assistant' ? 'assistant' : 'user',
+      content: String(item?.content || '').replace(/\s+/g, ' ').trim(),
+    }))
+    .filter((item) => item.content)
+
+  const prompt = `You are a collaborative brainstorming partner helping refine one user note.
+
+NOTE TITLE:
+${noteTitle}
+
+CURRENT NOTE DESCRIPTION:
+${noteBody || '(empty)'}
+
+CONVERSATION SO FAR (ordered):
+${JSON.stringify(compactConversation)}
+
+LATEST USER MESSAGE:
+${latestUserMessage || '(none - start the brainstorming by proposing a clearer direction)'}
+
+Respond with ONLY valid JSON:
+{
+  "assistant_markdown": "<short conversational response with practical refinement advice>",
+  "suggested_body": "<refined note description draft, plain text, ready to save>"
+}
+
+Rules:
+- Keep assistant_markdown conversational and concise (under 140 words).
+- Help the user refine thinking, not just summarize.
+- Ask at most one focused follow-up question when useful.
+- suggested_body must be clear, structured plain text (1-3 short paragraphs), no markdown bullets/headings.
+- suggested_body should preserve user intent while improving clarity and actionability.`
+
+  const raw = await callOpenAI(prompt, 900)
+  return parseJSON(raw)
+}
+
 export async function runGoalTaskPlanner({
   profile,
   finances,

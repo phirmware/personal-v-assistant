@@ -13,11 +13,30 @@ import EmptyState from '../components/EmptyState'
 import MarkdownContent from '../components/MarkdownContent'
 import SwipeToDelete from '../components/SwipeToDelete'
 import SkeletonBlock from '../components/SkeletonBlock'
-import { runNotesInsight, runNoteSuggestion } from '../ai'
+import { runNoteBrainstorm, runNotesInsight, runNoteSuggestion } from '../ai'
 import { relativeTime } from '../utils/time'
 
+function getNoteBody(note) {
+  if (typeof note?.body === 'string') return note.body
+  if (typeof note?.text === 'string') return note.text
+  return ''
+}
+
+function deriveTitleFromBody(body) {
+  const text = String(body || '').trim()
+  if (!text) return 'Untitled'
+  const firstLine = text.split('\n').find((line) => line.trim()) || text
+  return firstLine.length > 60 ? `${firstLine.slice(0, 57)}...` : firstLine
+}
+
+function getNoteTitle(note) {
+  if (typeof note?.title === 'string' && note.title.trim()) return note.title
+  return deriveTitleFromBody(getNoteBody(note))
+}
+
 export default function Notes({ notes, setNotes, showToast }) {
-  const [text, setText] = useState('')
+  const [title, setTitle] = useState('')
+  const [body, setBody] = useState('')
   const [addOpen, setAddOpen] = useState(false)
   const [formShake, setFormShake] = useState(false)
   const [openMap, setOpenMap] = useState({})
@@ -27,6 +46,7 @@ export default function Notes({ notes, setNotes, showToast }) {
   const [aiInsightOpen, setAiInsightOpen] = useState(false)
   const [noteAiLoadingId, setNoteAiLoadingId] = useState(null)
   const [noteAiOpenMap, setNoteAiOpenMap] = useState({})
+  const [brainstormInputMap, setBrainstormInputMap] = useState({})
 
   const [notesMeta, setNotesMeta] = useState(() => {
     try {
@@ -42,6 +62,33 @@ export default function Notes({ notes, setNotes, showToast }) {
     setNotesMeta(next)
     localStorage.setItem('va-notes-meta', JSON.stringify(next))
   }
+
+  function autoResizeTextarea(el) {
+    if (!el) return
+    el.style.height = '0px'
+    el.style.height = `${el.scrollHeight}px`
+  }
+
+  useEffect(() => {
+    let changed = false
+    const migrated = notes.map((note) => {
+      const nextBody = getNoteBody(note)
+      const hasTitle = typeof note?.title === 'string' && note.title.trim().length > 0
+      const hasBody = typeof note?.body === 'string'
+      const hasText = note?.text === nextBody
+      const hasDate = typeof note?.date === 'string' && note.date.length > 0
+      if (hasTitle && hasBody && hasText && hasDate) return note
+      changed = true
+      return {
+        ...note,
+        title: hasTitle ? note.title : deriveTitleFromBody(nextBody),
+        body: nextBody,
+        text: nextBody,
+        date: hasDate ? note.date : new Date().toISOString(),
+      }
+    })
+    if (changed) setNotes(migrated)
+  }, [notes, setNotes])
 
   useEffect(() => {
     const noteIds = new Set(notes.map((note) => String(note.id)))
@@ -66,16 +113,23 @@ export default function Notes({ notes, setNotes, showToast }) {
 
   function addNote(e) {
     e.preventDefault()
-    if (!text.trim()) {
+    if (!title.trim() || !body.trim()) {
       setFormShake(true)
       setTimeout(() => setFormShake(false), 450)
       return
     }
     setNotes([
-      { id: Date.now(), text: text.trim(), date: new Date().toISOString() },
+      {
+        id: Date.now(),
+        title: title.trim(),
+        body: body.trim(),
+        text: body.trim(),
+        date: new Date().toISOString(),
+      },
       ...notes,
     ])
-    setText('')
+    setTitle('')
+    setBody('')
   }
 
   function deleteNote(id) {
@@ -111,23 +165,31 @@ export default function Notes({ notes, setNotes, showToast }) {
     setNoteAiOpenMap((prev) => ({ ...prev, [id]: !prev[id] }))
   }
 
-  function updateNote(id, value) {
+  function updateNote(id, field, value) {
     setNotes(notes.map((note) =>
       note.id === id
         ? {
             ...note,
-            text: value,
+            title: field === 'title' ? value : getNoteTitle(note),
+            body: field === 'body' ? value : getNoteBody(note),
+            text: field === 'body' ? value : getNoteBody(note),
           }
         : note
     ))
   }
 
   async function handleNotesAI() {
-    if (notes.length === 0) return
+    const normalizedNotes = notes.map((note) => ({
+      ...note,
+      title: getNoteTitle(note),
+      body: getNoteBody(note),
+      text: getNoteBody(note),
+    }))
+    if (normalizedNotes.length === 0) return
     setAiError(null)
     setAiLoading(true)
     try {
-      const insight = await runNotesInsight({ notes })
+      const insight = await runNotesInsight({ notes: normalizedNotes })
       const nextMeta = {
         ...notesMeta,
         __summary: {
@@ -168,12 +230,78 @@ export default function Notes({ notes, setNotes, showToast }) {
     }
   }
 
+  async function handleNoteBrainstorm(note) {
+    const userMessage = String(brainstormInputMap[note.id] || '').trim()
+    if (!userMessage) return
+    setAiError(null)
+    setNoteAiLoadingId(note.id)
+    try {
+      const noteMeta = notesMeta[note.id] || {}
+      const conversation = Array.isArray(noteMeta.brainstormConversation)
+        ? noteMeta.brainstormConversation
+        : []
+      const nextConversation = [
+        ...conversation,
+        { role: 'user', content: userMessage, date: new Date().toISOString() },
+      ]
+
+      const result = await runNoteBrainstorm({
+        note: {
+          title: getNoteTitle(note),
+          body: getNoteBody(note),
+        },
+        conversation: nextConversation,
+        userMessage,
+      })
+
+      const assistantText = String(result?.assistant_markdown || '').trim()
+      const suggestedBody = String(result?.suggested_body || '').trim()
+      const updatedConversation = assistantText
+        ? [...nextConversation, { role: 'assistant', content: assistantText, date: new Date().toISOString() }]
+        : nextConversation
+
+      const nextMeta = {
+        ...notesMeta,
+        [note.id]: {
+          ...noteMeta,
+          brainstormConversation: updatedConversation,
+          brainstormSuggestedBody: suggestedBody || getNoteBody(note),
+          brainstormUpdatedAt: new Date().toISOString(),
+        },
+      }
+      persistNotesMeta(nextMeta)
+      setBrainstormInputMap((prev) => ({ ...prev, [note.id]: '' }))
+      setOpenMap((prev) => ({ ...prev, [note.id]: true }))
+      setNoteAiOpenMap((prev) => ({ ...prev, [note.id]: true }))
+    } catch (err) {
+      setAiError(err.message)
+    } finally {
+      setNoteAiLoadingId(null)
+    }
+  }
+
+  function applyBrainstormDraft(noteId) {
+    const noteMeta = notesMeta[noteId] || {}
+    const draft = String(noteMeta.brainstormSuggestedBody || '').trim()
+    if (!draft) return
+    updateNote(noteId, 'body', draft)
+    showToast?.('Draft applied to note description', { type: 'success' })
+  }
+
   const summaryInsight = notesMeta.__summary?.insight || ''
   const summaryDate = notesMeta.__summary?.date || null
+  const normalizedNotes = notes.map((note) => ({
+    ...note,
+    title: getNoteTitle(note),
+    body: getNoteBody(note),
+    text: getNoteBody(note),
+  }))
   const normalizedSearch = search.trim().toLowerCase()
   const filteredNotes = normalizedSearch
-    ? notes.filter((note) => String(note.text || '').toLowerCase().includes(normalizedSearch))
-    : notes
+    ? normalizedNotes.filter((note) =>
+        `${note.title} ${note.body}`.toLowerCase().includes(normalizedSearch)
+      )
+    : normalizedNotes
 
   return (
     <div className="page-shell space-y-5 sm:space-y-6 stagger-reveal">
@@ -185,7 +313,7 @@ export default function Notes({ notes, setNotes, showToast }) {
             <p className="page-top-ui-meta">Searchable notes with optional AI guidance.</p>
           </div>
           <span className="page-top-ui-pill">
-            {notes.length} note{notes.length === 1 ? '' : 's'}
+            {normalizedNotes.length} note{normalizedNotes.length === 1 ? '' : 's'}
           </span>
         </div>
       </section>
@@ -291,22 +419,35 @@ export default function Notes({ notes, setNotes, showToast }) {
           {addOpen && (
             <form
               onSubmit={addNote}
-              className={`border-t border-white/[0.04] px-4 sm:px-5 py-4 flex flex-col sm:flex-row gap-3 ${formShake ? 'form-shake' : ''}`}
-            >
-              <div className="input-shell flex-1">
-                <input
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="Jot down a thought..."
-                  className="w-full bg-gray-800 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-                />
-              </div>
-              <button
-                type="submit"
-                className="app-primary-btn text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
-              >
-                <Plus size={18} /> Add
-              </button>
+               className={`border-t border-white/[0.04] px-4 sm:px-5 py-4 space-y-3 ${formShake ? 'form-shake' : ''}`}
+             >
+               <div className="input-shell">
+                 <input
+                   value={title}
+                   onChange={(e) => setTitle(e.target.value)}
+                   placeholder="Note title"
+                   className="w-full bg-gray-800 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                 />
+               </div>
+               <div className="input-shell">
+                 <textarea
+                   value={body}
+                   onChange={(e) => {
+                     setBody(e.target.value)
+                     autoResizeTextarea(e.currentTarget)
+                   }}
+                   ref={(el) => autoResizeTextarea(el)}
+                   placeholder="Note description..."
+                   rows={1}
+                   className="w-full bg-gray-800 border border-white/[0.06] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[6rem]"
+                 />
+               </div>
+               <button
+                 type="submit"
+                 className="app-primary-btn text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors w-full sm:w-auto sm:ml-auto"
+               >
+                 <Plus size={18} /> Add
+               </button>
             </form>
           )}
         </div>
@@ -319,7 +460,7 @@ export default function Notes({ notes, setNotes, showToast }) {
         </div>
         <div className="page-group-shell">
           <div className="app-surface-list">
-            {notes.length === 0 && (
+            {normalizedNotes.length === 0 && (
               <EmptyState
                 icon={StickyNote}
                 title="No notes yet"
@@ -327,7 +468,7 @@ export default function Notes({ notes, setNotes, showToast }) {
               />
             )}
 
-            {notes.length > 0 && filteredNotes.length === 0 && (
+            {normalizedNotes.length > 0 && filteredNotes.length === 0 && (
               <EmptyState
                 icon={Search}
                 title="No matching notes"
@@ -341,6 +482,10 @@ export default function Notes({ notes, setNotes, showToast }) {
               const noteAiSuggestion = noteMeta.aiSuggestion || ''
               const noteAiDate = noteMeta.aiDate || null
               const noteAiOpen = Boolean(noteAiOpenMap[note.id])
+              const brainstormConversation = Array.isArray(noteMeta.brainstormConversation)
+                ? noteMeta.brainstormConversation
+                : []
+              const brainstormDraft = String(noteMeta.brainstormSuggestedBody || '').trim()
               return (
                 <SwipeToDelete key={note.id} onDelete={() => deleteNote(note.id)}>
                 <div
@@ -354,8 +499,11 @@ export default function Notes({ notes, setNotes, showToast }) {
                     <div className="flex items-start gap-2 min-w-0">
                       <StickyNote size={16} className="text-amber-400 mt-0.5 shrink-0" />
                       <div className="min-w-0">
-                        <p className={`text-sm text-gray-300 ${isOpen ? 'line-clamp-none' : 'line-clamp-2'}`}>
-                          {note.text}
+                        <p className="text-sm font-semibold text-white truncate">
+                          {note.title || 'Untitled'}
+                        </p>
+                        <p className={`text-sm text-gray-300 mt-1 ${isOpen ? 'line-clamp-none' : 'line-clamp-2'}`}>
+                          {note.body || 'No description yet.'}
                         </p>
                         <p className="text-xs text-gray-600 mt-1">
                           {relativeTime(note.date)}
@@ -372,11 +520,23 @@ export default function Notes({ notes, setNotes, showToast }) {
                   {isOpen && (
                     <div className="border-t border-white/[0.04] px-4 py-3 space-y-3">
                       <div className="input-shell">
+                        <input
+                          value={note.title || ''}
+                          onChange={(e) => updateNote(note.id, 'title', e.target.value)}
+                          placeholder="Note title"
+                          className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                        />
+                      </div>
+                      <div className="input-shell">
                         <textarea
-                          value={note.text}
-                          onChange={(e) => updateNote(note.id, e.target.value)}
-                          rows={3}
-                          className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y"
+                          value={note.body || ''}
+                          onChange={(e) => {
+                            updateNote(note.id, 'body', e.target.value)
+                            autoResizeTextarea(e.currentTarget)
+                          }}
+                          ref={(el) => autoResizeTextarea(el)}
+                          rows={1}
+                          className="w-full bg-gray-900 border border-white/[0.06] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[6rem]"
                         />
                       </div>
 
@@ -423,6 +583,72 @@ export default function Notes({ notes, setNotes, showToast }) {
                           <MarkdownContent content={noteAiSuggestion} />
                         </div>
                       )}
+
+                      <div className="input-shell border border-white/[0.05] rounded-xl p-3 bg-gray-900/50">
+                        <div className="section-header-inline mb-2">
+                          <p className="section-header-title">AI Brainstorm</p>
+                          <p className="section-header-meta">Refine this note together</p>
+                        </div>
+                        {brainstormConversation.length > 0 && (
+                          <div className="space-y-2 mb-3 max-h-56 overflow-y-auto pr-1">
+                            {brainstormConversation.map((msg, idx) => (
+                              <div
+                                key={`${note.id}-brainstorm-${idx}`}
+                                className={`rounded-lg px-3 py-2 text-sm ${
+                                  msg.role === 'assistant'
+                                    ? 'bg-indigo-500/10 border border-indigo-400/20 text-gray-200'
+                                    : 'bg-gray-800/70 border border-white/[0.06] text-gray-300'
+                                }`}
+                              >
+                                {msg.role === 'assistant' ? (
+                                  <MarkdownContent content={String(msg.content || '')} />
+                                ) : (
+                                  <p>{String(msg.content || '')}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <textarea
+                          value={brainstormInputMap[note.id] || ''}
+                          onChange={(e) => {
+                            setBrainstormInputMap((prev) => ({ ...prev, [note.id]: e.target.value }))
+                            autoResizeTextarea(e.currentTarget)
+                          }}
+                          ref={(el) => autoResizeTextarea(el)}
+                          placeholder="Reply to brainstorm with your thoughts..."
+                          rows={1}
+                          className="w-full bg-gray-900 border border-white/[0.08] rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none overflow-hidden min-h-[4.5rem]"
+                        />
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleNoteBrainstorm(note)}
+                            disabled={noteAiLoadingId !== null || !String(brainstormInputMap[note.id] || '').trim()}
+                            className="app-primary-btn text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 disabled:opacity-60"
+                          >
+                            {noteAiLoadingId === note.id ? (
+                              <Loader2 size={12} className="animate-spin" />
+                            ) : (
+                              <Sparkles size={12} />
+                            )}
+                            {noteAiLoadingId === note.id ? 'Thinking...' : 'Send to AI'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => applyBrainstormDraft(note.id)}
+                            disabled={!brainstormDraft}
+                            className="text-xs px-3 py-1.5 rounded-lg border border-indigo-500/30 text-indigo-200 bg-indigo-500/10 hover:bg-indigo-500/20 disabled:opacity-50"
+                          >
+                            Apply draft to note
+                          </button>
+                        </div>
+                        {brainstormDraft && (
+                          <p className="mt-2 text-xs text-gray-400">
+                            Draft ready. Apply it when you like the latest version.
+                          </p>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
